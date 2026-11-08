@@ -1,7 +1,10 @@
+import logging
 import os
 import stat
 from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
+
+from dsc.shared.observability import logged
 
 
 def relative_parts(value: str) -> tuple[str, ...]:
@@ -13,6 +16,7 @@ def relative_parts(value: str) -> tuple[str, ...]:
     return path.parts
 
 
+@logged(level=logging.DEBUG)
 def check_path(root: Path, value: str) -> None:
     parts = relative_parts(value)
     if not root.joinpath(*parts).resolve().is_relative_to(root.resolve()):
@@ -20,6 +24,7 @@ def check_path(root: Path, value: str) -> None:
 
 
 @contextmanager
+@logged(level=logging.DEBUG)
 def open_clip(root: Path, value: str):
     """Walk descriptors with O_NOFOLLOW so path swaps cannot escape the mounted NAS root."""
     parts = relative_parts(value)

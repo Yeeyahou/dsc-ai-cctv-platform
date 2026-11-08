@@ -18,10 +18,10 @@ from dsc.edge.inbox import receive_inbox
 from dsc.edge.store import EdgeStore
 from dsc.edge.worker import run_job, send_pending
 from dsc.shared.contracts import iso, now_ms
+from dsc.shared.observability import configure_logging, contextual, emit_event, logged
 
-logger = logging.getLogger(__name__)
 
-
+@logged(fields={"agentId": "settings.agent_id", "siteId": "settings.site_id"})
 def heartbeat(settings: EdgeSettings, store: EdgeStore) -> dict:
     count, oldest = store.stats()
     try:
@@ -44,6 +44,7 @@ def heartbeat(settings: EdgeSettings, store: EdgeStore) -> dict:
     return result
 
 
+@logged(fields={"agentId": "settings.agent_id", "siteId": "settings.site_id"})
 def serve(settings: EdgeSettings, once=False) -> None:
     settings.state_dir.mkdir(parents=True, exist_ok=True)
     # Only one process may restore SENDING entries and claim this installation's outbox.
@@ -65,7 +66,7 @@ def serve(settings: EdgeSettings, once=False) -> None:
                             if not send_pending(client, store, settings):
                                 break
                     except (OSError, ValueError):
-                        logger.error("local_reception_failed")
+                        emit_event("local_reception_failed", level=logging.ERROR)
                     now = time.monotonic()
                     try:
                         if now >= next_heartbeat:
@@ -78,9 +79,11 @@ def serve(settings: EdgeSettings, once=False) -> None:
                             job = client.post("/agent/jobs/claim", {})
                             next_claim = now + settings.claim_seconds
                             if job:
-                                future = workers.submit(run_job, client, store, settings, job)
+                                future = workers.submit(
+                                    contextual(run_job, client, store, settings, job)
+                                )
                     except (httpx.HTTPError, OSError, ValueError, KeyError):
-                        logger.warning("agent_api_temporarily_unavailable")
+                        emit_event("agent_api_temporarily_unavailable", level=logging.WARNING)
                         next_claim = now + settings.claim_seconds
                     if once:
                         break
@@ -90,16 +93,20 @@ def serve(settings: EdgeSettings, once=False) -> None:
 
 
 def main() -> int:
+    configure_logging("edge")
+    return run_cli()
+
+
+@logged()
+def run_cli() -> int:
     parser = argparse.ArgumentParser(description="DSC outbound edge agent")
     parser.add_argument("--env-file", default=None)
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--inspect-outbox", action="store_true")
     parser.add_argument("--retry", type=int, metavar="OUTBOX_ID")
     args = parser.parse_args()
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("httpcore").setLevel(logging.WARNING)
     settings = EdgeSettings(_env_file=args.env_file)
+    configure_logging("edge", settings.log_level)
     if args.inspect_outbox or args.retry is not None:
         # Operator commands use the same process lock; they must not reset an active sender.
         settings.state_dir.mkdir(parents=True, exist_ok=True)

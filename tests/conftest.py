@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+import logging
 import os
 from datetime import UTC, datetime
 from types import SimpleNamespace
@@ -17,6 +18,7 @@ from dsc.backend.config import Settings
 from dsc.backend.db import Base, database
 from dsc.backend.errors import Problem
 from dsc.backend.service import Platform
+from dsc.shared.observability import JsonFormatter
 
 
 class Clock:
@@ -226,3 +228,24 @@ def event_body():
 
 def headers(token="staff"):
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def operation_logs():
+    records = []
+
+    class Capture(logging.Handler):
+        def emit(self, record):
+            records.append(json.loads(self.format(record)))
+
+    logger = logging.getLogger("dsc.operations")
+    previous = logger.level
+    capture = Capture()
+    capture.setFormatter(JsonFormatter())
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(capture)
+    try:
+        yield records
+    finally:
+        logger.removeHandler(capture)
+        logger.setLevel(previous)

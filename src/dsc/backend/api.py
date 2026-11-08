@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import json
 import logging
-import time
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import Depends, FastAPI, Query, Request, Response
@@ -16,6 +15,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from dsc.backend.aas import AasAdapter, decoded, reference
 from dsc.backend.auth import Access, CognitoVerifier, authenticate
 from dsc.backend.errors import Problem
+from dsc.backend.observability import LoggedRoute, RequestLogging
 from dsc.backend.service import Filters, Platform
 from dsc.shared.contracts import (
     EmptyBody,
@@ -27,8 +27,7 @@ from dsc.shared.contracts import (
     UploadBody,
     milliseconds,
 )
-
-logger = logging.getLogger(__name__)
+from dsc.shared.observability import configure_logging, emit_event, logged
 
 
 class BodyLimit:
@@ -46,13 +45,19 @@ class BodyLimit:
             chunk = message.get("body", b"")
             total += len(chunk)
             if total > 256 * 1024:
+                emit_event(
+                    "request_rejected",
+                    level=logging.WARNING,
+                    errorCode="BODY_TOO_LARGE",
+                    status=413,
+                )
                 response = JSONResponse(
                     {
                         "error": {
                             "code": "BODY_TOO_LARGE",
                             "message": "요청 본문은 256 KiB 이하여야 합니다",
                             "retryable": False,
-                            "traceId": str(uuid4()),
+                            "traceId": scope["state"]["trace_id"],
                         }
                     },
                     status_code=413,
@@ -74,10 +79,12 @@ class BodyLimit:
 
 
 def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
+    configure_logging("backend")
     if platform is None:
         from dsc.backend.runtime import platform as runtime_platform
 
         platform = runtime_platform()
+    configure_logging("backend", platform.settings.log_level)
     verify = verifier or CognitoVerifier(
         platform.settings.cognito_issuer,
         platform.settings.allowed_client_ids + platform.settings.additional_client_ids,
@@ -85,6 +92,7 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
     app = FastAPI(
         title="DSC CCTV Backend", version="1.0.0", docs_url=None, redoc_url=None, openapi_url=None
     )
+    app.router.route_class = LoggedRoute
     app.state.platform = platform
     app.add_middleware(BodyLimit)
     app.add_middleware(
@@ -94,36 +102,17 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
         expose_headers=["X-Request-Id", "Location", "Retry-After"],
     )
+    app.add_middleware(RequestLogging)
     aas = AasAdapter(platform)
-
-    @app.middleware("http")
-    async def trace(request: Request, call_next):
-        request.state.trace_id = str(uuid4())
-        started = time.monotonic()
-        response = await call_next(request)
-        response.headers["X-Request-Id"] = request.state.trace_id
-        response.headers["Cache-Control"] = "no-store"
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        logger.info(
-            json.dumps(
-                {
-                    "traceId": request.state.trace_id,
-                    "method": request.method,
-                    "status": response.status_code,
-                    "latencyMs": round((time.monotonic() - started) * 1000),
-                    "principal": getattr(request.state, "principal", None),
-                    "siteId": getattr(request.state, "site_id", None),
-                    "eventId": getattr(request.state, "event_id", None)
-                    or str(request.path_params.get("event_id", "")),
-                    "requestId": str(request.path_params.get("request_id", "")),
-                },
-                ensure_ascii=False,
-            )
-        )
-        return response
 
     @app.exception_handler(Problem)
     async def problem(request: Request, exc: Problem):
+        emit_event(
+            "request_rejected",
+            level=logging.ERROR if exc.status >= 500 else logging.WARNING,
+            errorCode=exc.code,
+            status=exc.status,
+        )
         if request.url.path.startswith(("/shell", "/submodel", "/lookup", "/description")):
             return JSONResponse(
                 {"messages": [{"code": exc.code, "messageType": "Error", "text": exc.message}]},
@@ -153,18 +142,19 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
     @app.exception_handler(BotoCoreError)
     @app.exception_handler(ClientError)
     async def aws_error(request: Request, exc):
-        logger.error("aws_request_failed", extra={"traceId": request.state.trace_id})
+        emit_event("aws_request_failed", level=logging.ERROR, errorType=type(exc).__name__)
         return await problem(
             request, Problem(503, "AWS_UNAVAILABLE", "외부 저장소 접근 실패", True)
         )
 
     @app.exception_handler(SQLAlchemyError)
     async def database_error(request: Request, exc: SQLAlchemyError):
-        logger.error("database_request_failed", extra={"traceId": request.state.trace_id})
+        emit_event("database_request_failed", level=logging.ERROR, errorType=type(exc).__name__)
         return await problem(
             request, Problem(503, "STORAGE_UNAVAILABLE", "저장소 접근에 실패했습니다", True)
         )
 
+    @logged(level=logging.DEBUG)
     def access(request: Request) -> Access:
         auth = request.headers.get("Authorization", "")
         if not auth.startswith("Bearer "):

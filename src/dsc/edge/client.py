@@ -1,3 +1,4 @@
+import logging
 import os
 import threading
 import time
@@ -5,8 +6,10 @@ import time
 import httpx
 
 from dsc.edge.config import EdgeSettings
+from dsc.shared.observability import emit_event, log_methods
 
 
+@log_methods(level=logging.DEBUG, include=("_token",))
 class EdgeClient:
     def __init__(self, settings: EdgeSettings, transport=None, clock=time.time):
         self.settings, self.clock = settings, clock
@@ -50,6 +53,13 @@ class EdgeClient:
             token = self._token(refresh=attempt == 1)
             response = self.http.request(
                 method, url, json=body, headers={"Authorization": f"Bearer {token}"}
+            )
+            emit_event(
+                "backend_response_received",
+                level=logging.WARNING if response.status_code >= 400 else logging.DEBUG,
+                method=method,
+                status=response.status_code,
+                backendTraceId=response.headers.get("X-Request-Id"),
             )
             if response.status_code != 401 or attempt == 1:
                 return response

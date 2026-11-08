@@ -16,8 +16,7 @@ from dsc.edge.client import EdgeClient, response_code
 from dsc.edge.config import EdgeSettings
 from dsc.edge.paths import open_clip
 from dsc.edge.store import EdgeStore
-
-logger = logging.getLogger(__name__)
+from dsc.shared.observability import contextual, emit_event, logged
 
 
 def retry_delay(attempts: int, retry_after: str | None = None) -> int:
@@ -37,10 +36,16 @@ def retry_delay(attempts: int, retry_after: str | None = None) -> int:
     return int(random.uniform(upper / 2, upper) * 1000)
 
 
+@logged(level=logging.DEBUG, fields={"agentId": "settings.agent_id", "siteId": "settings.site_id"})
 def send_pending(client: EdgeClient, store: EdgeStore, settings: EdgeSettings) -> bool:
     item = store.next_item()
     if item is None:
         return False
+    return send_item(client, store, settings, item)
+
+
+@logged(fields={"eventId": "item.event_id", "outboxId": "item.id"})
+def send_item(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, item: dict) -> bool:
     method, path = (
         ("POST", "/ingest")
         if item["kind"] == "event"
@@ -82,6 +87,15 @@ def send_pending(client: EdgeClient, store: EdgeStore, settings: EdgeSettings) -
     return True
 
 
+@logged(
+    fields={
+        "agentId": "settings.agent_id",
+        "siteId": "settings.site_id",
+        "eventId": "job.eventId",
+        "requestId": "job.requestId",
+        "clipId": "job.clipId",
+    }
+)
 def run_job(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, job: dict) -> None:
     path = f"/agent/jobs/{job['requestId']}"
     token = {"leaseToken": job["leaseToken"]}
@@ -92,10 +106,11 @@ def run_job(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, job: d
             try:
                 client.post(f"{path}/lease", token)
             except (httpx.HTTPError, ValueError, OSError):
+                emit_event("job_lease_lost", level=logging.WARNING)
                 lost.set()
                 return
 
-    thread = threading.Thread(target=renew, daemon=True)
+    thread = threading.Thread(target=contextual(renew), daemon=True)
     thread.start()
     failure = None
     try:
@@ -150,10 +165,11 @@ def run_job(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, job: d
         stop.set()
         thread.join(timeout=settings.request_timeout + 1)
         if failure and not lost.is_set():
+            emit_event("clip_job_failed", level=logging.WARNING, errorCode=failure)
             try:
                 client.post(
                     f"{path}/fail",
                     {**token, "failureCode": failure, "retryable": failure != "SOURCE_NOT_FOUND"},
                 )
             except (httpx.HTTPError, ValueError, OSError):
-                logger.warning("job_failure_report_pending")
+                emit_event("job_failure_report_pending", level=logging.WARNING)

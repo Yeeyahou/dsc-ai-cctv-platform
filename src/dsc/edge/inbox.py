@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import stat
 
@@ -8,8 +9,10 @@ from dsc.edge.config import EdgeSettings
 from dsc.edge.paths import check_path
 from dsc.edge.store import EdgeStore
 from dsc.shared.contracts import EventEnvelope, MediaEnvelope
+from dsc.shared.observability import emit_event, logged
 
 
+@logged(level=logging.DEBUG, fields={"agentId": "settings.agent_id", "siteId": "settings.site_id"})
 def receive_inbox(settings: EdgeSettings, store: EdgeStore) -> int:
     inbox = settings.inbox
     inbox.mkdir(parents=True, exist_ok=True)
@@ -52,4 +55,12 @@ def receive_inbox(settings: EdgeSettings, store: EdgeStore) -> int:
             reason = {"code": "INVALID_LOCAL_INPUT", "type": type(exc).__name__}
             os.replace(path, inbox / "rejected" / path.name)
             (inbox / "rejected" / f"{path.name}.reason").write_text(json.dumps(reason) + "\n")
+            emit_event(
+                "inbox_rejected",
+                level=logging.WARNING,
+                errorCode=reason["code"],
+                errorType=reason["type"],
+            )
+    if accepted:
+        emit_event("inbox_accepted", acceptedCount=accepted)
     return accepted

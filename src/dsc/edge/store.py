@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
 from dsc.shared.contracts import EventEnvelope, MediaEnvelope, canonical, digest, now_ms
+from dsc.shared.observability import emit_event, log_methods, logged
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS receipts (
@@ -25,6 +27,7 @@ CREATE TABLE IF NOT EXISTS manifests (
 """
 
 
+@log_methods(level=logging.DEBUG)
 class EdgeStore:
     def __init__(self, path: Path, clock=now_ms):
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -35,6 +38,7 @@ class EdgeStore:
             db.execute("UPDATE outbox SET state='PENDING' WHERE state='SENDING'")
 
     @contextmanager
+    @logged(level=logging.DEBUG)
     def connect(self):
         db = sqlite3.connect(self.path, timeout=10)
         db.row_factory = sqlite3.Row
@@ -46,6 +50,7 @@ class EdgeStore:
         finally:
             db.close()
 
+    @logged(fields={"eventId": "envelope.event.event_id"})
     def accept(self, envelope: EventEnvelope | MediaEnvelope) -> bool:
         event = isinstance(envelope, EventEnvelope)
         event_id = str(envelope.event.event_id if event else envelope.event_id)
@@ -83,6 +88,7 @@ class EdgeStore:
                           VALUES(?,?,?,?,?,?)""",
                 (identity, event_id, envelope.kind, revision, canonical(body), self.clock()),
             )
+        emit_event("outbox_accepted", eventId=event_id)
         return True
 
     def next_item(self) -> dict | None:
@@ -114,7 +120,16 @@ class EdgeStore:
                           WHERE id=?""",
                 (state, self.clock() + delay_ms, code, item_id),
             )
+        emit_event(
+            "outbox_state_changed",
+            level=logging.WARNING if code else logging.INFO,
+            outboxId=item_id,
+            state=state,
+            retryMs=delay_ms,
+            errorCode=code,
+        )
 
+    @logged()
     def retry_quarantined(self, item_id: int) -> None:
         with self.connect() as db:
             db.execute(

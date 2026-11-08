@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 
 import jwt
@@ -5,8 +6,10 @@ from sqlalchemy import exists, or_, select
 
 from dsc.backend.db import Agent, Asset, Event, EventAsset, Principal
 from dsc.backend.errors import Problem, missing
+from dsc.shared.observability import log_methods, logged
 
 
+@log_methods(level=logging.DEBUG, include=("__call__",))
 class CognitoVerifier:
     def __init__(self, issuer: str, clients: list[str]):
         self.issuer = issuer.rstrip("/")
@@ -33,6 +36,7 @@ class CognitoVerifier:
             raise Problem(401, "INVALID_TOKEN", "유효한 access token이 필요합니다") from exc
 
 
+@log_methods(level=logging.DEBUG, fields={"principal": "self.principal.id"})
 @dataclass(frozen=True)
 class Access:
     principal: Principal
@@ -66,6 +70,7 @@ class Access:
                 raise missing()
 
 
+@logged(level=logging.DEBUG)
 def authenticate(session, claims: dict) -> Access:
     # Cognito user access tokens have username; M2M tokens are mapped only by client_id.
     key = f"user:{claims['sub']}" if "username" in claims else f"client:{claims['client_id']}"

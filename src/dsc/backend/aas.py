@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import re
 from importlib.resources import files
 
@@ -12,6 +13,7 @@ from dsc.backend.auth import Access
 from dsc.backend.db import Asset
 from dsc.backend.errors import Problem, missing
 from dsc.shared.contracts import digest
+from dsc.shared.observability import log_methods
 
 SCHEMA_ROOT = files("dsc.backend").joinpath("schemas")
 SCHEMA = json.loads(SCHEMA_ROOT.joinpath("aas-metamodel-3.1.2.json").read_text())
@@ -50,6 +52,7 @@ def validate_model(value: dict, kind: str) -> dict:
     return value
 
 
+@log_methods(level=logging.DEBUG, fields={"principal": "access.principal.id"})
 class AasAdapter:
     def __init__(self, platform):
         self.platform = platform

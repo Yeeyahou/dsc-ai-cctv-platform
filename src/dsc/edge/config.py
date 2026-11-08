@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -7,6 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class EdgeSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DSC_EDGE_", extra="ignore")
     environment: str = "production"
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     agent_id: str
     site_id: str
     api_url: str

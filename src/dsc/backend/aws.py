@@ -1,4 +1,5 @@
 import json
+import logging
 from importlib.resources import files
 
 import boto3
@@ -7,6 +8,7 @@ from pydantic import SecretStr
 
 from dsc.backend.config import Settings
 from dsc.backend.errors import Problem
+from dsc.shared.observability import log_methods, logged
 
 CLIENT_CONFIG = Config(
     connect_timeout=3,
@@ -22,6 +24,7 @@ def client(service: str, region: str):
     return boto3.client(service, region_name=region, config=config)
 
 
+@logged()
 def load_secrets(settings: Settings) -> Settings:
     if not settings.database_secret_arn and not settings.runtime_secret_arn:
         return settings
@@ -56,6 +59,7 @@ def load_secrets(settings: Settings) -> Settings:
     return settings
 
 
+@log_methods(level=logging.DEBUG)
 class AwsStorage:
     def __init__(self, settings: Settings):
         self.s3 = client("s3", settings.aws_region)
@@ -101,6 +105,7 @@ class AwsStorage:
         self.s3.delete_object(Bucket=self.bucket, Key=key)
 
 
+@log_methods(level=logging.DEBUG, fields={"requestId": "request_id"})
 class AwsQueue:
     def __init__(self, settings: Settings):
         self.sqs = client("sqs", settings.aws_region)

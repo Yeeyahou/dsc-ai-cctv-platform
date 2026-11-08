@@ -10,6 +10,7 @@ from dsc.edge.paths import open_clip
 from dsc.edge.store import EdgeStore
 from dsc.edge.worker import run_job, send_pending
 from dsc.shared.contracts import EventEnvelope, MediaEnvelope
+from dsc.shared.observability import emit_event
 
 
 @pytest.fixture
@@ -80,7 +81,7 @@ def test_media_waits_for_event_ack(edge, event_body):
         (409, "QUARANTINED"),
     ],
 )
-def test_retry_and_quarantine(edge, event_body, status, state):
+def test_retry_and_quarantine(edge, event_body, status, state, operation_logs):
     store = EdgeStore(edge.state_dir / "outbox.sqlite")
     store.accept(EventEnvelope(kind="event", event=event_body))
 
@@ -100,6 +101,9 @@ def test_retry_and_quarantine(edge, event_body, status, state):
 
     send_pending(Client(), store, edge)
     assert store.rows()[0]["state"] == state
+    transition = [entry for entry in operation_logs if entry["event"] == "outbox_state_changed"][-1]
+    assert transition["state"] == state and transition["eventId"] == event_body["eventId"]
+    assert transition["outboxId"] == store.rows()[0]["id"]
 
 
 def test_false_ack_preserves_outbox(edge, event_body):
@@ -126,7 +130,7 @@ def test_path_traversal_and_symlink_rejected(edge, tmp_path):
         assert stream.read() == b"clip"
 
 
-def test_token_refresh_once_and_no_backend_token_on_s3(edge):
+def test_token_refresh_once_and_no_backend_token_on_s3(edge, operation_logs):
     calls = []
 
     def handler(request):
@@ -144,9 +148,14 @@ def test_token_refresh_once_and_no_backend_token_on_s3(edge):
     assert len(calls) == 4
     import io
 
-    client.put_clip("https://s3.test/clip", {}, io.BytesIO(b"clip"), 4)
+    client.put_clip("https://s3.test/clip?signature=private-signature", {}, io.BytesIO(b"clip"), 4)
     assert "Authorization" not in calls[-1].headers
     client.close()
+    text = json.dumps(operation_logs)
+    assert all(
+        value not in text
+        for value in ("token-1", "token-3", "test-only-secret", "private-signature", "https://")
+    )
 
 
 def test_inbox_invalid_file_quarantine(edge, event_body):
@@ -192,3 +201,73 @@ def test_clip_worker_uploads_before_completion(edge, event_body):
         },
     )
     assert calls == ["/agent/jobs/job/upload-url", "uploaded", "/agent/jobs/job/complete"]
+
+
+def test_lease_thread_inherits_job_context(edge, event_body, operation_logs):
+    import threading
+
+    renewed = threading.Event()
+    store = EdgeStore(edge.state_dir / "outbox.sqlite")
+    (edge.nas_root / "private-clip.mp4").write_bytes(b"clip")
+    store.accept(
+        EventEnvelope(
+            kind="event",
+            event=event_body,
+            localMedia={
+                "clipId": event_body["media"]["clipId"],
+                "relativePath": "private-clip.mp4",
+            },
+        )
+    )
+
+    class Client:
+        def post(self, path, body):
+            if path.endswith("/lease"):
+                emit_event("test_lease_renewed")
+                renewed.set()
+            return {"uploadUrl": "https://s3.test/?signature=private", "headers": {}}
+
+        def put_clip(self, *args):
+            assert renewed.wait(3), "renewal thread never ran"
+
+    operation_logs.clear()
+    run_job(
+        Client(),
+        store,
+        edge.model_copy(update={"lease_renew_seconds": 1}),
+        {
+            "requestId": "job-1",
+            "eventId": event_body["eventId"],
+            "clipId": event_body["media"]["clipId"],
+            "leaseToken": "private-lease-token",
+        },
+    )
+    renewal = [entry for entry in operation_logs if entry["event"] == "test_lease_renewed"][0]
+    assert renewal["requestId"] == "job-1" and renewal["eventId"] == event_body["eventId"]
+    assert len({entry["traceId"] for entry in operation_logs}) == 1
+    assert "private-clip.mp4" not in json.dumps(operation_logs)
+    assert "private-lease-token" not in json.dumps(operation_logs)
+
+
+def test_missing_clip_is_logged_as_business_failure(edge, event_body, operation_logs):
+    store = EdgeStore(edge.state_dir / "outbox.sqlite")
+    reports = []
+
+    class Client:
+        def post(self, path, body):
+            reports.append(body["failureCode"])
+
+    run_job(
+        Client(),
+        store,
+        edge,
+        {
+            "requestId": "job-1",
+            "eventId": event_body["eventId"],
+            "clipId": event_body["media"]["clipId"],
+            "leaseToken": "private-lease-token",
+        },
+    )
+    failure = [entry for entry in operation_logs if entry["event"] == "clip_job_failed"][0]
+    assert failure["errorCode"] == "SOURCE_NOT_FOUND" and failure["requestId"] == "job-1"
+    assert reports == ["SOURCE_NOT_FOUND"]

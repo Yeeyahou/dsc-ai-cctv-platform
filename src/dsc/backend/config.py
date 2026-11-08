@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -5,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DSC_", extra="ignore")
     environment: str = "local"
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     database_url: SecretStr = SecretStr("sqlite:///runtime/backend.sqlite")
     database_secret_arn: str = ""
     cognito_issuer: str = ""

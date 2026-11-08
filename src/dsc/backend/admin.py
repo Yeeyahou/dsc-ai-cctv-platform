@@ -12,6 +12,7 @@ from dsc.backend.aws import load_secrets
 from dsc.backend.config import Settings
 from dsc.backend.db import Agent, Asset, Audit, Principal, database
 from dsc.shared.contracts import Contract, Identifier, now_ms
+from dsc.shared.observability import configure_logging, logged
 
 SCOPES = {"dsc/aas.read", "dsc/timeseries.read", "dsc/ingest.write", "dsc/agent.work"}
 
@@ -85,6 +86,7 @@ class Registration(Contract):
     agents: list[AgentRegistration] = []
 
 
+@logged()
 def register(sessions, data: Registration) -> None:
     with sessions.begin() as session:
         for entry in data.assets:
@@ -171,6 +173,12 @@ def register(sessions, data: Registration) -> None:
 
 
 def main() -> int:
+    configure_logging("backend-admin")
+    return run_cli()
+
+
+@logged()
+def run_cli() -> int:
     parser = argparse.ArgumentParser(description="DSC registration and operations")
     parser.add_argument("--env-file", default=None)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -179,6 +187,7 @@ def main() -> int:
     commands.add_parser("agent-status")
     args = parser.parse_args()
     settings = load_secrets(Settings(_env_file=args.env_file))
+    configure_logging("backend-admin", settings.log_level)
     _, sessions = database(settings.database_url.get_secret_value())
     if args.command == "register":
         data = Registration.model_validate_json(args.manifest.read_text())

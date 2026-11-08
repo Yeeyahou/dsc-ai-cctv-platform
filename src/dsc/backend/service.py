@@ -39,8 +39,7 @@ from dsc.shared.contracts import (
     milliseconds,
     now_ms,
 )
-
-logger = logging.getLogger(__name__)
+from dsc.shared.observability import emit_event, log_methods, logged
 
 
 @dataclass(frozen=True)
@@ -61,6 +60,13 @@ class Filters:
             raise Problem(422, "INVALID_LIMIT", "limit는 1~500이어야 합니다")
 
 
+@log_methods(
+    fields={
+        "principal": "access.principal.id",
+        "agentId": "access.agent.id",
+        "siteId": "access.agent.site_id",
+    }
+)
 class Platform:
     def __init__(self, sessions, settings: Settings, storage, queue, clock=now_ms):
         self.sessions = sessions
@@ -75,6 +81,14 @@ class Platform:
             raise Problem(403, "AGENT_REQUIRED", "등록된 에이전트가 필요합니다")
         return access.agent
 
+    @logged(
+        fields={
+            "eventId": "body.event_id",
+            "siteId": "body.site_id",
+            "principal": "access.principal.id",
+            "agentId": "access.agent.id",
+        }
+    )
     def ingest(self, access: Access, body: EventInput) -> tuple[dict, int]:
         access.require("dsc/ingest.write")
         agent = access.agent
@@ -204,19 +218,15 @@ class Platform:
         with self.sessions.begin() as session:
             row = session.get(Agent, agent.id)
             row.last_seen, row.heartbeat = self.clock(), body.wire()
-        logger.info(
-            canonical(
-                {
-                    "event": "agent_heartbeat",
-                    "agentId": agent.id,
-                    "siteId": agent.site_id,
-                    "receivedAt": iso(self.clock()),
-                    "outboxPendingCount": body.outbox_pending_count,
-                    "oldestPendingAt": body.wire().get("oldestPendingAt"),
-                    "diskFreeBytes": body.disk_free_bytes,
-                    "nasStatus": body.nas_status,
-                }
-            )
+        emit_event(
+            "agent_heartbeat",
+            agentId=agent.id,
+            siteId=agent.site_id,
+            receivedAt=iso(self.clock()),
+            outboxPendingCount=body.outbox_pending_count,
+            oldestPendingAt=body.wire().get("oldestPendingAt"),
+            diskFreeBytes=body.disk_free_bytes,
+            nasStatus=body.nas_status,
         )
         return {"agentId": agent.id, "serverTime": iso(self.clock())}
 
@@ -487,7 +497,7 @@ class Platform:
                     job.dispatched_version = job.dispatch_version
         except Exception:
             # DB already accepted the request; maintenance recovers this explicit delivery gap.
-            logger.warning("queue_dispatch_pending", extra={"requestId": job_id})
+            emit_event("queue_dispatch_pending", level=logging.WARNING, requestId=job_id)
 
     def claim(self, access: Access) -> dict | None:
         agent = self._agent(access)
@@ -643,7 +653,7 @@ class Platform:
         try:
             self.queue.delete(queue, receipt)
         except Exception:
-            logger.warning("queue_ack_pending")
+            emit_event("queue_ack_pending", level=logging.WARNING)
 
     def maintain(self) -> dict:
         expired_lease = exists(
@@ -701,4 +711,5 @@ class Platform:
                     self.storage.delete(attempt.object_key)
                     attempt.deleted_at = self.clock()
                     deleted += 1
+        emit_event("maintenance_completed", jobsChecked=len(ids), objectsDeleted=deleted)
         return {"jobsChecked": len(ids), "objectsDeleted": deleted}
