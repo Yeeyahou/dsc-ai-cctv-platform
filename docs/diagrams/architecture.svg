@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="830" viewBox="0 0 1400 830">
+<rect width="100%" height="100%" fill="white"/>
+<polyline points="20,120 440,120 440,770 20,770 20,120" fill="none" stroke="black" stroke-width="1.5" stroke-dasharray="7 7"/>
+<text x="230.0" y="150.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="29" font-weight="700" fill="black">현장 네트워크</text>
+<polyline points="480,120 1380,120 1380,770 480,770 480,120" fill="none" stroke="black" stroke-width="1.5" stroke-dasharray="7 7"/>
+<text x="555" y="150.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="29" font-weight="700" fill="black">AWS</text>
+<rect x="800" y="15" width="320" height="70" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="960.0" y="50.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">직원 · 허용된 파트너</text>
+<rect x="70" y="200" width="320" height="80" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="230.0" y="240.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="28" font-weight="400" fill="black">AI · 녹화 프로그램</text>
+<rect x="70" y="370" width="320" height="100" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="230.0" y="402.06" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">엣지 에이전트</text>
+<text x="230.0" y="437.94" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">로컬 outbox · manifest</text>
+<rect x="70" y="570" width="320" height="100" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="230.0" y="600.68" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="28" font-weight="400" fill="black">현장 NAS</text>
+<text x="230.0" y="639.3199999999999" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="28" font-weight="400" fill="black">녹화 원본</text>
+<rect x="770" y="185" width="330" height="90" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="935.0" y="211.37" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">WAF · API Gateway</text>
+<text x="935.0" y="248.63" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">HTTPS API</text>
+<rect x="1130" y="185" width="210" height="90" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="1235.0" y="212.75" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="25" font-weight="400" fill="black">Cognito</text>
+<text x="1235.0" y="247.25" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="25" font-weight="400" fill="black">토큰 발급</text>
+<rect x="670" y="360" width="270" height="90" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="805.0" y="386.37" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">백엔드 API</text>
+<text x="805.0" y="423.63" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">이벤트 · 작업</text>
+<rect x="1020" y="360" width="270" height="90" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="1155.0" y="405.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">AAS 조회 어댑터</text>
+<rect x="850" y="550" width="320" height="90" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="1010.0" y="577.06" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">클라우드 DB</text>
+<text x="1010.0" y="612.9399999999999" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">이벤트 · 자산 · 권한</text>
+<rect x="520" y="550" width="230" height="90" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="635.0" y="577.06" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">SQS</text>
+<text x="635.0" y="612.9399999999999" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">클립 작업</text>
+<rect x="510" y="680" width="480" height="70" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="750.0" y="715.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="28" font-weight="400" fill="black">S3  비공개 임시 클립</text>
+<polyline points="960,85 960,185" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="960,185 955.2153791247765,175.09508187412055 964.7846208752235,175.09508187412055" fill="black"/>
+<polyline points="230,280 230,370" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="230,370 225.21537912477646,360.0950818741206 234.78462087522354,360.0950818741206" fill="black"/>
+<polyline points="230,570 230,470" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="230,470 234.78462087522354,479.9049181258794 225.21537912477646,479.9049181258794" fill="black"/>
+<text x="310" y="522.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="23" font-weight="400" fill="black">읽기</text>
+<polyline points="390,420 460,420 460,230 770,230" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="770,230 760.0950818741205,234.78462087522354 760.0950818741205,225.21537912477646" fill="black"/>
+<text x="605" y="205.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="23" font-weight="400" fill="black">이벤트 · 작업 API</text>
+<polyline points="850,275 850,360" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="850,360 845.2153791247765,350.0950818741206 854.7846208752235,350.0950818741206" fill="black"/>
+<polyline points="1010,275 1010,315 1155,315 1155,360" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="1155,360 1150.2153791247765,350.0950818741206 1159.7846208752235,350.0950818741206" fill="black"/>
+<polyline points="1100,230 1130,230" fill="none" stroke="black" stroke-width="1.5"/>
+<polyline points="805,450 805,520 950,520 950,550" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="950,550 945.2153791247765,540.0950818741205 954.7846208752235,540.0950818741205" fill="black"/>
+<polyline points="1155,450 1155,510 1080,510 1080,550" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="1080,550 1075.2153791247765,540.0950818741205 1084.7846208752235,540.0950818741205" fill="black"/>
+<polyline points="670,405 635,405 635,550" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="635,550 630.2153791247765,540.0950818741205 639.7846208752235,540.0950818741205" fill="black"/>
+<text x="595" y="487.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="22" font-weight="400" fill="black">배정</text>
+<polyline points="390,450 450,450 450,715 510,715" fill="none" stroke="black" stroke-width="1.5" stroke-dasharray="7 7"/>
+<polygon points="510,715 500.0950818741206,719.7846208752235 500.0950818741206,710.2153791247765" fill="black"/>
+<text x="272" y="721.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="23" font-weight="400" fill="black">S3 PUT URL로 직접 업로드</text>
+<text x="700" y="804.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">현장 연결은 아웃바운드만 사용   ·   영상 원본은 NAS에 보관</text>
+</svg>
