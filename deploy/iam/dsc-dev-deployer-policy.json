@@ -1,0 +1,88 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateOnlyBoundedDevRoles",
+      "Effect": "Allow",
+      "Action": "iam:CreateRole",
+      "Resource": "arn:aws:iam::955268448422:role/dsc-dev-*",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::aws:policy/PowerUserAccess"
+        }
+      }
+    },
+    {
+      "Sid": "ManageDevRoleDefinitions",
+      "Effect": "Allow",
+      "Action": [
+        "iam:DeleteRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:TagRole",
+        "iam:UntagRole"
+      ],
+      "Resource": "arn:aws:iam::955268448422:role/dsc-dev-*"
+    },
+    {
+      "Sid": "AttachOnlyRuntimeManagedPolicies",
+      "Effect": "Allow",
+      "Action": ["iam:AttachRolePolicy", "iam:DetachRolePolicy"],
+      "Resource": "arn:aws:iam::955268448422:role/dsc-dev-*",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PolicyARN": [
+            "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+            "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+            "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs",
+            "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "PassOnlyDevRolesToTheirServices",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::955268448422:role/dsc-dev-*",
+      "Condition": {
+        "StringEquals": {
+          "iam:PassedToService": [
+            "lambda.amazonaws.com",
+            "apigateway.amazonaws.com",
+            "scheduler.amazonaws.com"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "PreserveApprovedDevBoundary",
+      "Effect": "Allow",
+      "Action": "iam:PutRolePermissionsBoundary",
+      "Resource": "arn:aws:iam::955268448422:role/dsc-dev-*",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::aws:policy/PowerUserAccess"
+        }
+      }
+    },
+    {
+      "Sid": "DenyRemovingDevBoundary",
+      "Effect": "Deny",
+      "Action": "iam:DeleteRolePermissionsBoundary",
+      "Resource": "arn:aws:iam::955268448422:role/dsc-dev-*"
+    },
+    {
+      "Sid": "DenyReplacingDevBoundary",
+      "Effect": "Deny",
+      "Action": "iam:PutRolePermissionsBoundary",
+      "Resource": "arn:aws:iam::955268448422:role/dsc-dev-*",
+      "Condition": {
+        "ArnNotEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::aws:policy/PowerUserAccess"
+        }
+      }
+    }
+  ]
+}

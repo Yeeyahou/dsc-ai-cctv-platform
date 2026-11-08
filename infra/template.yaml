@@ -55,6 +55,17 @@ Parameters:
     Default: '[]'
     AllowedPattern: \[.*\]
     Description: Approved browser origins as a JSON array; no wildcard is enabled by default.
+  PermissionsBoundaryArn:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|arn:[a-z-]+:iam::(aws|[0-9]{12}):policy/.+'
+    Description: Optional approved maximum permissions for every execution role created by this stack.
+Conditions:
+  HasPermissionsBoundary:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: PermissionsBoundaryArn
+      - ''
 Globals:
   Function:
     Runtime: python3.12
@@ -531,6 +542,11 @@ Resources:
   ApiLogRole:
     Type: AWS::IAM::Role
     Properties:
+      PermissionsBoundary:
+        Fn::If:
+        - HasPermissionsBoundary
+        - Ref: PermissionsBoundaryArn
+        - Ref: AWS::NoValue
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -545,6 +561,7 @@ Resources:
         why: Allows API Gateway to write its regional CloudWatch logs.
         must:
         - Coordinate account-level logging ownership
+        - Preserve the approved deployment permissions boundary when provided
   ApiAccount:
     Type: AWS::ApiGateway::Account
     DeletionPolicy: Retain
@@ -620,9 +637,15 @@ Resources:
         why: Runs bounded API or maintenance work.
         must:
         - Do not proxy video bytes; use least privilege roles
+        - Preserve the approved deployment permissions boundary when provided
     Properties:
       CodeUri: ..
       Handler: dsc.backend.lambda_handler.handler
+      PermissionsBoundary:
+        Fn::If:
+        - HasPermissionsBoundary
+        - Ref: PermissionsBoundaryArn
+        - Ref: AWS::NoValue
       ReservedConcurrentExecutions: 10
       Policies:
       - AWSLambdaVPCAccessExecutionRole
@@ -688,9 +711,15 @@ Resources:
         why: Runs bounded API or maintenance work.
         must:
         - Do not proxy video bytes; use least privilege roles
+        - Preserve the approved deployment permissions boundary for this function and its schedule when provided
     Properties:
       CodeUri: ..
       Handler: dsc.backend.runtime.maintenance_handler
+      PermissionsBoundary:
+        Fn::If:
+        - HasPermissionsBoundary
+        - Ref: PermissionsBoundaryArn
+        - Ref: AWS::NoValue
       Timeout: 120
       ReservedConcurrentExecutions: 1
       Policies:
@@ -716,6 +745,11 @@ Resources:
         Sweep:
           Type: ScheduleV2
           Properties:
+            PermissionsBoundary:
+              Fn::If:
+              - HasPermissionsBoundary
+              - Ref: PermissionsBoundaryArn
+              - Ref: AWS::NoValue
             ScheduleExpression: rate(1 minute)
   ApiFunctionLog:
     Type: AWS::Logs::LogGroup
