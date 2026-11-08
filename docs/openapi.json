@@ -24,12 +24,15 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "동일 이벤트 중복 수신 확인",
             "content": {
               "application/json": {
                 "schema": {}
               }
             }
+          },
+          "201": {
+            "description": "신규 이벤트 영속 저장 완료"
           },
           "422": {
             "description": "Validation Error",
@@ -457,12 +460,15 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "기존 READY 클립과 링크 반환",
             "content": {
               "application/json": {
                 "schema": {}
               }
             }
+          },
+          "202": {
+            "description": "작업 접수 또는 처리 중, Location과 Retry-After 제공"
           },
           "422": {
             "description": "Validation Error",
@@ -505,6 +511,9 @@
               }
             }
           },
+          "202": {
+            "description": "클립 전달 작업 처리 중"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -546,6 +555,9 @@
               }
             }
           },
+          "202": {
+            "description": "클립 전달 작업 처리 중"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -584,6 +596,9 @@
                 "schema": {}
               }
             }
+          },
+          "204": {
+            "description": "배정할 작업 없음"
           },
           "422": {
             "description": "Validation Error",

@@ -191,7 +191,14 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
         except ValueError as exc:
             raise Problem(422, "TIMEZONE_REQUIRED", "기간에는 시간대가 필요합니다") from exc
 
-    @app.post("/ingest", tags=["ingest"])
+    @app.post(
+        "/ingest",
+        tags=["ingest"],
+        responses={
+            201: {"description": "신규 이벤트 영속 저장 완료"},
+            200: {"description": "동일 이벤트 중복 수신 확인"},
+        },
+    )
     def ingest(body: EventInput, request: Request, actor: Access = Depends(access)):
         request.state.event_id = str(body.event_id)
         request.state.site_id = body.site_id
@@ -242,19 +249,44 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
             actor, make_filters(start, end, asset_id=asset_id, limit=limit), cursor
         )
 
-    @app.post("/files/{event_id}/requests", tags=["clips"])
+    @app.post(
+        "/files/{event_id}/requests",
+        tags=["clips"],
+        responses={
+            200: {"description": "기존 READY 클립과 링크 반환"},
+            202: {"description": "작업 접수 또는 처리 중, Location과 Retry-After 제공"},
+        },
+    )
     def request_clip(event_id: UUID, body: EmptyBody, actor: Access = Depends(access)):
         return job_response(platform.request_clip(actor, str(event_id)))
 
-    @app.get("/files/{event_id}", tags=["clips"])
+    @app.get(
+        "/files/{event_id}",
+        tags=["clips"],
+        responses={
+            202: {"description": "클립 전달 작업 처리 중"},
+        },
+    )
     def legacy_file(event_id: UUID, actor: Access = Depends(access)):
         return job_response(platform.file_status(actor, str(event_id), by_event=True))
 
-    @app.get("/file-requests/{request_id}", tags=["clips"])
+    @app.get(
+        "/file-requests/{request_id}",
+        tags=["clips"],
+        responses={
+            202: {"description": "클립 전달 작업 처리 중"},
+        },
+    )
     def file_status(request_id: UUID, actor: Access = Depends(access)):
         return job_response(platform.file_status(actor, str(request_id)))
 
-    @app.post("/agent/jobs/claim", tags=["jobs"])
+    @app.post(
+        "/agent/jobs/claim",
+        tags=["jobs"],
+        responses={
+            204: {"description": "배정할 작업 없음"},
+        },
+    )
     def claim(body: EmptyBody, actor: Access = Depends(access)):
         result = platform.claim(actor)
         return result if result else Response(status_code=204)
