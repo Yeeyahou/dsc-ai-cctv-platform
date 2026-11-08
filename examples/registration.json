@@ -1,0 +1,81 @@
+{
+  "assets": [
+    {
+      "assetId": "cctv-01",
+      "siteId": "incheon-01",
+      "assetType": "camera",
+      "displayName": "센터 CCTV 01",
+      "aas": {
+        "aasId": "urn:f2x:aas:cctv-01",
+        "globalAssetId": "urn:f2x:asset:cctv-01",
+        "idShort": "Cctv01",
+        "submodels": {
+          "Nameplate": {
+            "id": "urn:f2x:submodel:cctv-01:Nameplate",
+            "semanticId": "urn:f2x:dsc:semantic:Nameplate:1"
+          },
+          "TechnicalData": {
+            "id": "urn:f2x:submodel:cctv-01:TechnicalData",
+            "semanticId": "urn:f2x:dsc:semantic:TechnicalData:1"
+          },
+          "TimeSeries": {
+            "id": "urn:f2x:submodel:cctv-01:TimeSeries",
+            "semanticId": "urn:f2x:dsc:semantic:TimeSeries:1"
+          }
+        },
+        "values": {
+          "Nameplate": {},
+          "TechnicalData": {
+            "assetType": "camera"
+          }
+        }
+      }
+    }
+  ],
+  "principals": [
+    {
+      "principalId": "client:REPLACE_EDGE_CLIENT_ID",
+      "scopes": [
+        "dsc/ingest.write",
+        "dsc/agent.work"
+      ]
+    },
+    {
+      "principalId": "user:REPLACE_STAFF_SUB",
+      "scopes": [
+        "dsc/aas.read",
+        "dsc/timeseries.read"
+      ],
+      "sites": [
+        "incheon-01"
+      ],
+      "submodels": [
+        "Nameplate",
+        "TechnicalData",
+        "TimeSeries"
+      ],
+      "video": true
+    },
+    {
+      "principalId": "client:REPLACE_PARTNER_CLIENT_ID",
+      "scopes": [
+        "dsc/aas.read"
+      ],
+      "assets": [
+        "cctv-01"
+      ],
+      "video": false
+    }
+  ],
+  "agents": [
+    {
+      "agentId": "agent-initial",
+      "principalId": "client:REPLACE_EDGE_CLIENT_ID",
+      "siteId": "incheon-01",
+      "assets": [
+        "cctv-01"
+      ],
+      "queueUrl": "https://sqs.ap-northeast-2.amazonaws.com/REPLACE_ACCOUNT/REPLACE_STACK-agent-initial"
+    }
+  ]
+}

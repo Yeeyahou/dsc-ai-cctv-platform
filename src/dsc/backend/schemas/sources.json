@@ -1,0 +1,10 @@
+{
+  "aas-metamodel-3.1.2.json": {
+    "url": "https://raw.githubusercontent.com/admin-shell-io/aas-specs-metamodel/v3.1.2/schemas/json/aas.json",
+    "sha256": "9a8a005e303634f5041b9a2eac2e19c5cca05b9dd54c4bd20afbc7ab809d411e"
+  },
+  "IDTA-LICENSE.txt": {
+    "url": "https://raw.githubusercontent.com/admin-shell-io/aas-specs-metamodel/v3.1.2/LICENSE.txt",
+    "sha256": "0caef66f639ab192462d6d7a8f2c65c53f8b238179ac5ed94abf437040839e3e"
+  }
+}
