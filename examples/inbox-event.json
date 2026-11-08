@@ -1,0 +1,28 @@
+{
+  "kind": "event",
+  "event": {
+    "schemaVersion": "1.0",
+    "eventId": "8a394e71-50ac-4cde-b691-48c171f3a602",
+    "eventCode": "DSC-101",
+    "siteId": "incheon-01",
+    "occurredAt": "2026-11-07T06:00:00.000Z",
+    "assets": [
+      {
+        "assetId": "cctv-01",
+        "role": "detector"
+      }
+    ],
+    "metrics": {
+      "pingLatencyMs": 250,
+      "packetLossRatePct": 5
+    },
+    "media": {
+      "clipId": "94028d0a-4ef7-4fd4-9695-d195a78b40ce",
+      "status": "RECORDING"
+    }
+  },
+  "localMedia": {
+    "clipId": "94028d0a-4ef7-4fd4-9695-d195a78b40ce",
+    "relativePath": "cctv-01/2026-11-07/clip.mp4"
+  }
+}

@@ -1,0 +1,26 @@
+[Unit]
+Description=DSC CCTV outbound edge agent
+After=network-online.target remote-fs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dsc-edge
+Group=dsc-edge
+WorkingDirectory=/opt/dsc
+EnvironmentFile=/etc/dsc/edge.env
+ExecStart=/opt/dsc/venv/bin/dsc-edge
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=180
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/dsc /var/spool/dsc
+ReadOnlyPaths=/mnt/dsc-nas /etc/dsc
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
