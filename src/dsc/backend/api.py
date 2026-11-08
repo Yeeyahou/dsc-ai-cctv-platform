@@ -89,8 +89,13 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
         platform.settings.cognito_issuer,
         platform.settings.allowed_client_ids + platform.settings.additional_client_ids,
     )
+    local_docs = platform.settings.environment == "local"
     app = FastAPI(
-        title="DSC CCTV Backend", version="1.0.0", docs_url=None, redoc_url=None, openapi_url=None
+        title="DSC CCTV Backend",
+        version="1.0.0",
+        docs_url="/docs" if local_docs else None,
+        redoc_url=None,
+        openapi_url="/openapi.json" if local_docs else None,
     )
     app.router.route_class = LoggedRoute
     app.state.platform = platform

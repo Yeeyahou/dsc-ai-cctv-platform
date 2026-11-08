@@ -53,6 +53,8 @@ uvicorn dsc.backend.api:create_app --factory --host 127.0.0.1 --port 8000
 
 환경 파일의 JSON 배열 값은 셸에서 읽을 경우 작은따옴표로 감싸야 한다. 셸 적용 대신 `uvicorn --env-file .env`와 `dsc-admin --env-file .env`를 사용할 수도 있다. Alembic은 실행 프로세스의 환경 변수를 읽는다.
 
+`DSC_ENVIRONMENT=local`에서는 [Swagger UI](http://127.0.0.1:8000/docs)로 API 목록과 요청 형식을 볼 수 있다. 보호된 API를 호출할 때는 기존과 동일하게 유효한 Cognito 토큰이 필요하다.
+
 ## 주요 기능
 
 - `/ingest`: 원자적 이벤트 저장, 동일 ID 재수신 확인, 다른 본문 충돌 거부
