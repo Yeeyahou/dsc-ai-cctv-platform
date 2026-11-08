@@ -17,6 +17,10 @@
 
 DB는 이벤트·자산 관계와 작업 lease를 같은 트랜잭션으로 관리하기 위해 PostgreSQL을 선택했다. 규격의 미정 구현 선택과 운영 조건은 [구현 결정](docs/implementation-decisions.md)에 정리했다.
 
+## 브랜치 운영
+
+기본 개발 브랜치는 `develop`이다. 최신 `develop`에서 기능별 `codex/feature/...` 또는 수정·설정 작업 브랜치를 만들고, PR과 자동 검사를 거쳐 `develop`에 통합한다. 검증과 배포 승인이 끝난 코드는 `develop → main` PR로 승격한다. `main`과 `develop`에 직접 푸시하지 않는다. 브랜치 보호, 병합 방식과 승인 기준은 [브랜치 운영 안내](docs/branching.md)를 따른다.
+
 ## 개발 환경
 
 Python 3.12와 Docker Desktop 또는 Docker Engine을 준비한다. 테스트용 PostgreSQL은 `127.0.0.1:55432`에서만 열린다.
