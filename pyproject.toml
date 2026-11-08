@@ -10,7 +10,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
   "fastapi>=0.115,<1", "uvicorn>=0.34,<1", "mangum>=0.19,<1",
   "pydantic>=2.10,<3", "pydantic-settings>=2.7,<3",
-  "SQLAlchemy>=2.0.38,<2.1", "psycopg[binary]>=3.2,<4", "alembic>=1.14,<2",
+  "SQLAlchemy>=2.0.38,<2.1", "greenlet>=3.1,<4", "psycopg[binary]>=3.2,<4", "alembic>=1.14,<2",
   "boto3>=1.36,<2", "PyJWT[crypto]>=2.10,<3", "httpx>=0.28,<1",
   "jsonschema>=4.23,<5",
 ]
