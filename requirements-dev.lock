@@ -359,6 +359,10 @@ cryptography==50.0.2 \
     # via
     #   -c requirements.lock
     #   pyjwt
+editables==0.6 \
+    --hash=sha256:1163834902381c4613787951c5914800fdf155ae08848a373b8ea5006780977c \
+    --hash=sha256:d70e4698078a1d033e7786d9c64e5be070d058a67c21417024d38a58ac20aa43
+    # via dsc-ai-cctv-platform (pyproject.toml)
 fastapi==0.162.1 \
     --hash=sha256:8107bbfbde522cbd3edcfb32e4923f1786fc52d901ff60a9f724f142df24a648 \
     --hash=sha256:b18411785f55d05baa296fcfa2901f26728483190e7d8eb8f8e6aa47ed94b030
