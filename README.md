@@ -77,6 +77,12 @@ dsc-edge --env-file /etc/dsc/edge.env --retry 123
 
 로컬 AI·녹화 프로그램은 [inbox 예제](examples/inbox-event.json)를 참고해 `.tmp`로 작성·동기화 후 같은 파일시스템에서 `{eventId}.event.json`으로 이름을 변경한다. 클립 상태 갱신은 `{eventId}.{revision}.media.json`으로 전달한다. `localMedia.relativePath`는 현장에서만 저장하며 서버로 보내지 않는다. accepted 이동은 로컬 접수 완료이며 서버 저장 완료는 outbox의 ACKED로 확인한다.
 
+## 실행 로그
+
+API 전체와 백엔드·엣지의 기능 실행에 공통 AOP 로깅을 적용한다. 시작·정상 반환·예외·소요시간을 JSON으로 기록하고, `traceId`와 호출별 `spanId`로 연결한다. 이벤트의 `eventId`, 영상 작업의 `requestId`, Lambda의 `awsRequestId`는 별도 필드다. 로그는 stderr로 출력하며 Lambda에서는 CloudWatch, systemd에서는 journal에서 확인한다.
+
+기본값은 INFO다. 상세 함수·저장소·외부 통신·반복 폴링 로그는 백엔드 `DSC_LOG_LEVEL=DEBUG`, 엣지 `DSC_EDGE_LOG_LEVEL=DEBUG`로 활성화한다. 두 설정은 각각의 환경 파일에서도 읽는다. 토큰·비밀번호·lease 토큰·서명 URL·NAS 경로·요청/응답 본문·예외 메시지는 애플리케이션 로그에 수집하지 않는다. 적용 지점, 상태 로그와 조회 방법은 [로그 운영 안내](docs/logging.md)에 정리했다.
+
 ## 산출물과 검증
 
 자체 API OpenAPI는 `docs/openapi.json`, DB 변경은 `migrations/`, AAS 고정 스키마·필드 매핑은 `src/dsc/backend/schemas/`에 있다. IDTA 원본의 출처·해시는 `sources.json`, 라이선스는 `IDTA-LICENSE.txt`에서 확인한다.
