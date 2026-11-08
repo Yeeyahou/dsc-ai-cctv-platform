@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Private encrypted PostgreSQL for DSC event relations and serialized clip job leases. Reuses an existing
+  VPC and private subnets.
+Metadata:
+  AWSToolsMetrics:
+    AWSAgentToolkit: aws-cloudformation@3
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  InstanceClass:
+    Type: String
+    Default: db.t4g.small
+    AllowedValues:
+    - db.t4g.small
+    - db.t4g.medium
+    - db.m7g.large
+  MultiAZ:
+    Type: String
+    Default: 'true'
+    AllowedValues:
+    - 'true'
+    - 'false'
+  EngineVersion:
+    Type: String
+    Default: '17.11'
+    AllowedPattern: 17\.[0-9]+
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Private DSC PostgreSQL; ingress is added by the application stack
+      VpcId:
+        Ref: VpcId
+      SecurityGroupEgress:
+      - IpProtocol: '-1'
+        CidrIp: 127.0.0.1/32
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Restricts database or Lambda network reachability.
+        must:
+        - No public inbound CIDR
+  Subnets:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: DSC private database subnets
+      SubnetIds:
+        Ref: PrivateSubnetIds
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Places PostgreSQL in existing private subnets.
+        must:
+        - At least two availability zones
+  Parameters:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: DSC PostgreSQL TLS policy
+      Family: postgres17
+      Parameters:
+        rds.force_ssl: '1'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Forces encrypted PostgreSQL connections.
+        must:
+        - Keep rds.force_ssl enabled
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Native PostgreSQL row locks serialize lease claims and related relational updates.
+        must:
+        - Never public
+        - preserve database on stack deletion
+        - restrict runtime role separately from migration role
+    Properties:
+      Engine: postgres
+      EngineVersion:
+        Ref: EngineVersion
+      DBInstanceClass:
+        Ref: InstanceClass
+      AllocatedStorage: '30'
+      MaxAllocatedStorage: 200
+      StorageType: gp3
+      StorageEncrypted: true
+      DBName: dsc
+      MasterUsername: dsc_owner
+      ManageMasterUserPassword: true
+      DBSubnetGroupName:
+        Ref: Subnets
+      DBParameterGroupName:
+        Ref: Parameters
+      VPCSecurityGroups:
+      - Ref: SecurityGroup
+      PubliclyAccessible: false
+      MultiAZ:
+        Ref: MultiAZ
+      BackupRetentionPeriod: 14
+      DeletionProtection: true
+      AutoMinorVersionUpgrade: true
+      EnableCloudwatchLogsExports:
+      - postgresql
+      - upgrade
+Outputs:
+  Host:
+    Value:
+      Fn::GetAtt:
+      - Database
+      - Endpoint.Address
+  MasterSecretArn:
+    Value:
+      Fn::GetAtt:
+      - Database
+      - MasterUserSecret.SecretArn
+  DatabaseSecurityGroupId:
+    Value:
+      Ref: SecurityGroup

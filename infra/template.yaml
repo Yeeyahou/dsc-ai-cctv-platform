@@ -1,0 +1,879 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: DSC CCTV authenticated event API, per-agent work queue and private temporary clips. Uses an existing
+  private PostgreSQL deployment.
+Metadata:
+  AWSToolsMetrics:
+    AWSAgentToolkit: aws-cloudformation@3
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues:
+    - dev
+    - staging
+    - prod
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnets with HTTPS egress to Cognito JWKS, Secrets Manager, SQS and S3.
+  DatabaseSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+  DatabaseSecretArn:
+    Type: String
+    AllowedPattern: arn:aws[a-z-]*:secretsmanager:.+
+    Description: Secret JSON containing username,password,host,port,dbname for a restricted runtime role.
+  CertificateArn:
+    Type: String
+    AllowedPattern: arn:aws[a-z-]*:acm:.+
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+  DomainName:
+    Type: String
+    AllowedPattern: '[a-z0-9.-]+'
+  CognitoDomainPrefix:
+    Type: String
+    AllowedPattern: '[a-z0-9-]+'
+  StaffCallbackUrl:
+    Type: String
+    AllowedPattern: https://.+
+  StaffLogoutUrl:
+    Type: String
+    AllowedPattern: https://.+
+  StaffIdentityProvider:
+    Type: String
+    Description: Name of an existing corporate SAML/OIDC provider registered in the user pool; initially COGNITO
+      for deployment bootstrapping only.
+    Default: COGNITO
+  AdditionalClientIdsJson:
+    Type: String
+    Default: '[]'
+    AllowedPattern: \[.*\]
+    Description: Additional Cognito app client IDs as a JSON array; every principal still requires DB registration.
+  AllowedOriginsJson:
+    Type: String
+    Default: '[]'
+    AllowedPattern: \[.*\]
+    Description: Approved browser origins as a JSON array; no wildcard is enabled by default.
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures:
+    - x86_64
+    Timeout: 28
+    MemorySize: 512
+    Tracing: Active
+    VpcConfig:
+      SubnetIds:
+        Ref: PrivateSubnetIds
+      SecurityGroupIds:
+      - Ref: LambdaSecurityGroup
+    Environment:
+      Variables:
+        DSC_ENVIRONMENT: production
+        DSC_DATABASE_SECRET_ARN:
+          Ref: DatabaseSecretArn
+        DSC_RUNTIME_SECRET_ARN:
+          Ref: RuntimeSecret
+        DSC_COGNITO_ISSUER:
+          Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+        DSC_ALLOWED_CLIENT_IDS:
+          Fn::Sub: '["${StaffClient}","${EdgeClient}","${PartnerClient}"]'
+        DSC_ADDITIONAL_CLIENT_IDS:
+          Ref: AdditionalClientIdsJson
+        DSC_AWS_REGION:
+          Ref: AWS::Region
+        DSC_CLIP_BUCKET:
+          Ref: ClipBucket
+        DSC_PUBLIC_BASE_URL:
+          Fn::Sub: https://${DomainName}
+        DSC_ALLOWED_ORIGINS:
+          Ref: AllowedOriginsJson
+Resources:
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Allows outbound service access and PostgreSQL without inbound access to Lambda.
+        must:
+        - No ingress rules
+        - restrict DB access using a security group reference
+    Properties:
+      GroupDescription: DSC Lambda outbound only
+      VpcId:
+        Ref: VpcId
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 5432
+        ToPort: 5432
+        DestinationSecurityGroupId:
+          Ref: DatabaseSecurityGroupId
+  DatabaseIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Only this backend security group may reach PostgreSQL.
+        must:
+        - Do not widen to an IP range
+    Properties:
+      GroupId:
+        Ref: DatabaseSecurityGroupId
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId:
+        Ref: LambdaSecurityGroup
+  RuntimeSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      GenerateSecretString:
+        SecretStringTemplate: '{}'
+        GenerateStringKey: cursorSecret
+        PasswordLength: 64
+        ExcludePunctuation: true
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Stores cursor signing material outside environment variables.
+        must:
+        - No secret values in outputs or source
+  ClipBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Stores requested clips temporarily; original recordings remain on NAS.
+        must:
+        - Private HTTPS only
+        - versioning disabled by contract
+        - application enforces 24 hour access expiry
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Suspended
+      LoggingConfiguration:
+        DestinationBucketName:
+          Ref: AuditBucket
+        LogFilePrefix: s3-access/
+      LifecycleConfiguration:
+        Rules:
+        - Id: orphan-safety-net
+          Status: Enabled
+          ExpirationInDays: 3
+          AbortIncompleteMultipartUpload:
+            DaysAfterInitiation: 1
+  ClipBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: ClipBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: s3:*
+          Resource:
+          - Fn::GetAtt:
+            - ClipBucket
+            - Arn
+          - Fn::Sub: ${ClipBucket.Arn}/*
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Enforces TLS and limits service log delivery.
+        must:
+        - No public allow statement
+  AuditBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Retains private encrypted media or audit data.
+        must:
+        - Block public access and preserve data on deletion
+  AuditPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: AuditBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: s3:*
+          Resource:
+          - Fn::GetAtt:
+            - AuditBucket
+            - Arn
+          - Fn::Sub: ${AuditBucket.Arn}/*
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+        - Effect: Allow
+          Principal:
+            Service: logging.s3.amazonaws.com
+          Action: s3:PutObject
+          Resource:
+            Fn::Sub: ${AuditBucket.Arn}/s3-access/*
+          Condition:
+            StringEquals:
+              aws:SourceAccount:
+                Ref: AWS::AccountId
+            ArnEquals:
+              aws:SourceArn:
+                Fn::GetAtt:
+                - ClipBucket
+                - Arn
+        - Effect: Allow
+          Principal:
+            Service: cloudtrail.amazonaws.com
+          Action: s3:GetBucketAcl
+          Resource:
+            Fn::GetAtt:
+            - AuditBucket
+            - Arn
+          Condition:
+            StringEquals:
+              aws:SourceArn:
+                Fn::Sub: arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/${AWS::StackName}-clips
+        - Effect: Allow
+          Principal:
+            Service: cloudtrail.amazonaws.com
+          Action: s3:PutObject
+          Resource:
+            Fn::Sub: ${AuditBucket.Arn}/AWSLogs/${AWS::AccountId}/*
+          Condition:
+            StringEquals:
+              s3:x-amz-acl: bucket-owner-full-control
+              aws:SourceArn:
+                Fn::Sub: arn:${AWS::Partition}:cloudtrail:${AWS::Region}:${AWS::AccountId}:trail/${AWS::StackName}-clips
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Enforces TLS and limits service log delivery.
+        must:
+        - No public allow statement
+  ClipTrail:
+    Type: AWS::CloudTrail::Trail
+    DependsOn: AuditPolicy
+    Properties:
+      TrailName:
+        Fn::Sub: ${AWS::StackName}-clips
+      S3BucketName:
+        Ref: AuditBucket
+      IsLogging: true
+      IsMultiRegionTrail: false
+      IncludeGlobalServiceEvents: false
+      EnableLogFileValidation: true
+      EventSelectors:
+      - IncludeManagementEvents: false
+        ReadWriteType: All
+        DataResources:
+        - Type: AWS::S3::Object
+          Values:
+          - Fn::Sub: ${ClipBucket.Arn}/
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Records actual S3 clip object access separately from URL issuance.
+        must:
+        - Restrict trail to clip data events; preserve audit destination
+  WorkDLQ:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      QueueName:
+        Fn::Sub: ${AWS::StackName}-agent-dlq
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 1209600
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Delivers agent work or quarantines undeliverable work.
+        must:
+        - Encrypt messages; DB lease remains authoritative
+  WorkQueue:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Starter agent queue; every further installation gets its own queue with the same stack prefix.
+        must:
+        - Receipt handles remain server side
+        - DB lease is the source of truth
+    Properties:
+      QueueName:
+        Fn::Sub: ${AWS::StackName}-agent-initial
+      SqsManagedSseEnabled: true
+      VisibilityTimeout: 300
+      MessageRetentionPeriod: 86400
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+          - WorkDLQ
+          - Arn
+        maxReceiveCount: 20
+  QueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+      - Ref: WorkQueue
+      - Ref: WorkDLQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: sqs:*
+          Resource:
+          - Fn::GetAtt:
+            - WorkQueue
+            - Arn
+          - Fn::GetAtt:
+            - WorkDLQ
+            - Arn
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Rejects insecure transport to agent queues.
+        must:
+        - No edge IAM credentials
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      UsernameAttributes:
+      - email
+      AutoVerifiedAttributes:
+      - email
+      MfaConfiguration: OPTIONAL
+      EnabledMfas:
+      - SOFTWARE_TOKEN_MFA
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 14
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Authenticates registered company users and confidential clients.
+        must:
+        - DB registration and grants still required
+  ResourceServer:
+    Type: AWS::Cognito::UserPoolResourceServer
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      Identifier: dsc
+      Name: DSC CCTV
+      Scopes:
+      - ScopeName: aas.read
+        ScopeDescription: Read authorized AAS metadata
+      - ScopeName: timeseries.read
+        ScopeDescription: Read authorized event history
+      - ScopeName: ingest.write
+        ScopeDescription: Ingest authorized events
+      - ScopeName: agent.work
+        ScopeDescription: Agent jobs and heartbeat
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Defines explicit DSC API scopes.
+        must:
+        - Scope alone does not grant data access
+  StaffClient:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: ResourceServer
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      ClientName:
+        Fn::Sub: ${AWS::StackName}-staff
+      GenerateSecret: false
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+      - code
+      AllowedOAuthScopes:
+      - openid
+      - email
+      - dsc/aas.read
+      - dsc/timeseries.read
+      SupportedIdentityProviders:
+      - Ref: StaffIdentityProvider
+      CallbackURLs:
+      - Ref: StaffCallbackUrl
+      LogoutURLs:
+      - Ref: StaffLogoutUrl
+      EnableTokenRevocation: true
+      AccessTokenValidity: 15
+      TokenValidityUnits:
+        AccessToken: minutes
+      RefreshTokenRotation:
+        Feature: ENABLED
+        RetryGracePeriodSeconds: 10
+      PreventUserExistenceErrors: ENABLED
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Separates staff, partner and edge authentication flows.
+        must:
+        - No shared agent installation secret
+  EdgeClient:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: ResourceServer
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      ClientName:
+        Fn::Sub: ${AWS::StackName}-agent-initial
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+      - client_credentials
+      AllowedOAuthScopes:
+      - dsc/ingest.write
+      - dsc/agent.work
+      AccessTokenValidity: 15
+      TokenValidityUnits:
+        AccessToken: minutes
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Separates staff, partner and edge authentication flows.
+        must:
+        - No shared agent installation secret
+  PartnerClient:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: ResourceServer
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      ClientName:
+        Fn::Sub: ${AWS::StackName}-partner-initial
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+      - client_credentials
+      AllowedOAuthScopes:
+      - dsc/aas.read
+      - dsc/timeseries.read
+      AccessTokenValidity: 15
+      TokenValidityUnits:
+        AccessToken: minutes
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Separates staff, partner and edge authentication flows.
+        must:
+        - No shared agent installation secret
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      Domain:
+        Ref: CognitoDomainPrefix
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Hosts OAuth token and sign-in endpoints.
+        must:
+        - HTTPS only
+  ApiLog:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RetentionInDays: 90
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Retains operational records for diagnosis.
+        must:
+        - Never record tokens, passwords or signed URL queries
+  ApiLogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: apigateway.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Allows API Gateway to write its regional CloudWatch logs.
+        must:
+        - Coordinate account-level logging ownership
+  ApiAccount:
+    Type: AWS::ApiGateway::Account
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: REST API logging requires an account-level regional CloudWatch role.
+        must:
+        - Shared account setting; import or reuse an existing managed Account resource before deployment
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+        - ApiLogRole
+        - Arn
+  Api:
+    Type: AWS::Serverless::Api
+    DependsOn: ApiAccount
+    Properties:
+      Name:
+        Fn::Sub: ${AWS::StackName}-api
+      StageName:
+        Ref: Environment
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+      DisableExecuteApiEndpoint: true
+      Domain:
+        DomainName:
+          Ref: DomainName
+        CertificateArn:
+          Ref: CertificateArn
+        EndpointConfiguration: REGIONAL
+        SecurityPolicy: TLS_1_2
+        Route53:
+          HostedZoneId:
+            Ref: HostedZoneId
+      Auth:
+        DefaultAuthorizer: CognitoAccess
+        Authorizers:
+          CognitoAccess:
+            UserPoolArn:
+              Fn::GetAtt:
+              - UserPool
+              - Arn
+            AuthorizationScopes:
+            - dsc/aas.read
+            - dsc/timeseries.read
+            - dsc/ingest.write
+            - dsc/agent.work
+      AccessLogSetting:
+        DestinationArn:
+          Fn::GetAtt:
+          - ApiLog
+          - Arn
+        Format: '{"requestId":"$context.requestId","status":"$context.status","latency":"$context.responseLatency"}'
+      MethodSettings:
+      - ResourcePath: /*
+        HttpMethod: '*'
+        MetricsEnabled: true
+        DataTraceEnabled: false
+        LoggingLevel: ERROR
+        ThrottlingRateLimit: 100
+        ThrottlingBurstLimit: 200
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Exposes authenticated REST endpoints behind a custom TLS domain.
+        must:
+        - Cognito authorizer and backend object ACL checks
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      com.aws.cloudformation.Context:
+        why: Runs bounded API or maintenance work.
+        must:
+        - Do not proxy video bytes; use least privilege roles
+    Properties:
+      CodeUri: ..
+      Handler: dsc.backend.lambda_handler.handler
+      ReservedConcurrentExecutions: 10
+      Policies:
+      - AWSLambdaVPCAccessExecutionRole
+      - Statement:
+        - Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+          - Ref: DatabaseSecretArn
+          - Ref: RuntimeSecret
+        - Effect: Allow
+          Action:
+          - s3:PutObject
+          - s3:GetObject
+          Resource:
+            Fn::Sub: ${ClipBucket.Arn}/clips/*
+        - Effect: Allow
+          Action:
+          - sqs:SendMessage
+          - sqs:ReceiveMessage
+          - sqs:DeleteMessage
+          - sqs:ChangeMessageVisibility
+          Resource:
+            Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-agent-*
+      Events:
+        Proxy:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /{proxy+}
+            Method: ANY
+        Root:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /
+            Method: ANY
+        ProxyOptions:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /{proxy+}
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
+        RootOptions:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Api
+            Path: /
+            Method: OPTIONS
+            Auth:
+              Authorizer: NONE
+  MaintenanceFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+      com.aws.cloudformation.Context:
+        why: Runs bounded API or maintenance work.
+        must:
+        - Do not proxy video bytes; use least privilege roles
+    Properties:
+      CodeUri: ..
+      Handler: dsc.backend.runtime.maintenance_handler
+      Timeout: 120
+      ReservedConcurrentExecutions: 1
+      Policies:
+      - AWSLambdaVPCAccessExecutionRole
+      - Statement:
+        - Effect: Allow
+          Action:
+          - secretsmanager:GetSecretValue
+          Resource:
+          - Ref: DatabaseSecretArn
+          - Ref: RuntimeSecret
+        - Effect: Allow
+          Action:
+          - s3:DeleteObject
+          Resource:
+            Fn::Sub: ${ClipBucket.Arn}/clips/*
+        - Effect: Allow
+          Action:
+          - sqs:SendMessage
+          Resource:
+            Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-agent-*
+      Events:
+        Sweep:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: rate(1 minute)
+  ApiFunctionLog:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName:
+        Fn::Sub: /aws/lambda/${ApiFunction}
+      RetentionInDays: 90
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Retains operational records for diagnosis.
+        must:
+        - Never record tokens, passwords or signed URL queries
+  MaintenanceLog:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName:
+        Fn::Sub: /aws/lambda/${MaintenanceFunction}
+      RetentionInDays: 90
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Retains operational records for diagnosis.
+        must:
+        - Never record tokens, passwords or signed URL queries
+  WebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: DSCWaf
+        SampledRequestsEnabled: false
+      Rules:
+      - Name: RateLimit
+        Priority: 0
+        Action:
+          Block: {}
+        Statement:
+          RateBasedStatement:
+            Limit: 2000
+            AggregateKeyType: IP
+        VisibilityConfig:
+          CloudWatchMetricsEnabled: true
+          MetricName: DSCRate
+          SampledRequestsEnabled: false
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Rate limits requests at the REST API boundary.
+        must:
+        - Disable request sampling that could retain sensitive headers
+  WebAclAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    DependsOn: ApiStage
+    Properties:
+      WebACLArn:
+        Fn::GetAtt:
+        - WebAcl
+        - Arn
+      ResourceArn:
+        Fn::Sub: arn:${AWS::Partition}:apigateway:${AWS::Region}::/restapis/${Api}/stages/${Environment}
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Applies request filtering to the deployed REST stage.
+        must:
+        - Keep association on stage changes
+  ApiErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: DSC API Lambda failures require operational review
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+      - Name: FunctionName
+        Value:
+          Ref: ApiFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Reports API or maintenance failures.
+        must:
+        - Connect the company operations notification route before production
+  MaintenanceErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: DSC maintenance failure may delay cleanup or re-dispatch
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+      - Name: FunctionName
+        Value:
+          Ref: MaintenanceFunction
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Reports API or maintenance failures.
+        must:
+        - Connect the company operations notification route before production
+  ApiServerErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: DSC API returned server errors including handled storage failures
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+      - Name: ApiName
+        Value:
+          Fn::Sub: ${AWS::StackName}-api
+      - Name: Stage
+        Value:
+          Ref: Environment
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Reports API or maintenance failures.
+        must:
+        - Connect the company operations notification route before production
+Outputs:
+  ApiUrl:
+    Value:
+      Fn::Sub: https://${DomainName}
+  UserPoolId:
+    Value:
+      Ref: UserPool
+  StaffClientId:
+    Value:
+      Ref: StaffClient
+  InitialEdgeClientId:
+    Value:
+      Ref: EdgeClient
+  InitialPartnerClientId:
+    Value:
+      Ref: PartnerClient
+  InitialAgentQueueUrl:
+    Value:
+      Ref: WorkQueue
+  ClipBucketName:
+    Value:
+      Ref: ClipBucket
+  TokenEndpoint:
+    Value:
+      Fn::Sub: https://${CognitoDomainPrefix}.auth.${AWS::Region}.amazoncognito.com/oauth2/token

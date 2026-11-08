@@ -1,0 +1,17 @@
+{
+  "kind": "media",
+  "eventId": "8a394e71-50ac-4cde-b691-48c171f3a602",
+  "media": {
+    "clipId": "94028d0a-4ef7-4fd4-9695-d195a78b40ce",
+    "revision": 1,
+    "status": "AVAILABLE",
+    "startedAt": "2026-11-07T05:59:55.000Z",
+    "endedAt": "2026-11-07T06:00:05.000Z",
+    "contentType": "video/mp4",
+    "sizeBytes": 1048576
+  },
+  "localMedia": {
+    "clipId": "94028d0a-4ef7-4fd4-9695-d195a78b40ce",
+    "relativePath": "cctv-01/2026-11-07/clip.mp4"
+  }
+}

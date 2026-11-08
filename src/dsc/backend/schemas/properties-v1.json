@@ -1,0 +1,21 @@
+{
+  "Nameplate": {
+    "manufacturerName": "string",
+    "productName": "string",
+    "serialNumber": "string"
+  },
+  "TechnicalData": {
+    "assetType": "string",
+    "nominalVoltageV": "double",
+    "maxTemperatureC": "double",
+    "sensorUnit": "string"
+  },
+  "TimeSeries": {
+    "assetId": "string",
+    "recordCount": "integer",
+    "asOf": "dateTime",
+    "startTime": "dateTime",
+    "endTime": "dateTime",
+    "endpoint": "anyURI"
+  }
+}

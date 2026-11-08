@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dsc-ai-cctv-platform"
+version = "1.0.0"
+description = "DSC CCTV AWS backend and outbound edge agent"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastapi>=0.115,<1", "uvicorn>=0.34,<1", "mangum>=0.19,<1",
+  "pydantic>=2.10,<3", "pydantic-settings>=2.7,<3",
+  "SQLAlchemy>=2.0.38,<2.1", "greenlet>=3.1,<4", "psycopg[binary]>=3.2,<4", "alembic>=1.14,<2",
+  "boto3>=1.36,<2", "PyJWT[crypto]>=2.10,<3", "httpx>=0.28,<1",
+  "jsonschema>=4.23,<5",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3,<9", "pytest-cov>=6,<8", "ruff>=0.11,<1", "pip-tools>=7.4,<8", "cfn-lint>=1.30,<2", "hatchling>=1.27,<2", "editables>=0.5,<1"]
+
+[project.scripts]
+dsc-edge = "dsc.edge.main:main"
+dsc-admin = "dsc.backend.admin:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dsc"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q --strict-markers"
+markers = ["postgres: requires DSC_TEST_POSTGRES_URL for concurrency tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/dsc/backend/api.py" = ["B008"]

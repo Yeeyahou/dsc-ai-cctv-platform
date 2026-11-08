@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1300" viewBox="0 0 1200 1300">
+<rect width="100%" height="100%" fill="white"/>
+<rect x="370" y="15" width="460" height="70" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="600.0" y="50.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="29" font-weight="400" fill="black">사용자 클립 요청</text>
+<polygon points="600,130.0 740.0,190 600,250.0 460.0,190" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="600" y="190.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">읽기 권한</text>
+<rect x="940" y="152" width="235" height="76" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="1057.5" y="190.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="25" font-weight="400" fill="black">403 또는 404</text>
+<rect x="350" y="300" width="500" height="82" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="600.0" y="322.37" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">작업 영속 저장 · 큐 등록</text>
+<text x="600.0" y="359.63" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">202와 상태 조회 주소 반환</text>
+<rect x="350" y="450" width="500" height="80" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="600.0" y="471.37" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">에이전트 작업 확인</text>
+<text x="600.0" y="508.63" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">lease 확보</text>
+<rect x="350" y="595" width="500" height="80" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="600.0" y="635.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">manifest로 NAS 클립 읽기</text>
+<rect x="940" y="590" width="235" height="90" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="1057.5" y="618.44" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="24" font-weight="400" fill="black">원본 오류</text>
+<text x="1057.5" y="651.5600000000001" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="24" font-weight="400" fill="black">실패 또는 재시도</text>
+<rect x="350" y="740" width="500" height="80" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="600.0" y="761.37" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">PUT URL 발급</text>
+<text x="600.0" y="798.63" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="27" font-weight="400" fill="black">S3 직접 업로드</text>
+<polygon points="600,862.5 755.0,930 600,997.5 445.0,930" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="600" y="912.75" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="25" font-weight="400" fill="black">크기 · checksum</text>
+<text x="600" y="947.25" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="25" font-weight="400" fill="black">검증</text>
+<rect x="940" y="883" width="235" height="94" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="1057.5" y="913.44" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="24" font-weight="400" fill="black">검증 실패</text>
+<text x="1057.5" y="946.5600000000001" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="24" font-weight="400" fill="black">링크 발급 금지</text>
+<rect x="350" y="1050" width="500" height="75" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="600.0" y="1087.5" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="29" font-weight="400" fill="black">READY 저장</text>
+<rect x="350" y="1180" width="500" height="78" fill="white" stroke="black" stroke-width="1.5"/>
+<text x="600.0" y="1201.06" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">권한 재확인 · GET URL 발급</text>
+<text x="600.0" y="1236.94" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">사용자가 S3에서 다운로드</text>
+<polyline points="600,85 600,130" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="600,130 595.2153791247765,120.09508187412055 604.7846208752235,120.09508187412055" fill="black"/>
+<polyline points="740,190 940,190" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="940,190 930.0950818741205,194.78462087522354 930.0950818741205,185.21537912477646" fill="black"/>
+<text x="850" y="165.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="23" font-weight="400" fill="black">미허용</text>
+<polyline points="600,250 600,300" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="600,300 595.2153791247765,290.0950818741206 604.7846208752235,290.0950818741206" fill="black"/>
+<polyline points="600,382 600,450" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="600,450 595.2153791247765,440.0950818741206 604.7846208752235,440.0950818741206" fill="black"/>
+<polyline points="600,530 600,595" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="600,595 595.2153791247765,585.0950818741205 604.7846208752235,585.0950818741205" fill="black"/>
+<polyline points="850,635 940,635" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="940,635 930.0950818741205,639.7846208752235 930.0950818741205,630.2153791247765" fill="black"/>
+<polyline points="600,675 600,740" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="600,740 595.2153791247765,730.0950818741205 604.7846208752235,730.0950818741205" fill="black"/>
+<polyline points="600,820 600,862.5" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="600,862.5 595.2153791247765,852.5950818741205 604.7846208752235,852.5950818741205" fill="black"/>
+<polyline points="755,930 940,930" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="940,930 930.0950818741205,934.7846208752235 930.0950818741205,925.2153791247765" fill="black"/>
+<text x="846" y="900.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="23" font-weight="400" fill="black">불일치</text>
+<polyline points="600,997.5 600,1050" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="600,1050 595.2153791247765,1040.0950818741205 604.7846208752235,1040.0950818741205" fill="black"/>
+<polyline points="600,1125 600,1180" fill="none" stroke="black" stroke-width="1.5"/>
+<polygon points="600,1180 595.2153791247765,1170.0950818741205 604.7846208752235,1170.0950818741205" fill="black"/>
+<text x="600" y="1280.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="24" font-weight="400" fill="black">대용량 파일은 API Gateway와 Lambda 응답을 통과하지 않는다</text>
+</svg>

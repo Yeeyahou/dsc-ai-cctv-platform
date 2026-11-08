@@ -1,0 +1,32 @@
+name: Python validation
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: dsc_test
+          POSTGRES_PASSWORD: local-test-only
+          POSTGRES_DB: dsc_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U dsc_test -d dsc_test"
+          --health-interval 2s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip, cache-dependency-path: requirements-dev.lock}
+      - run: python -m pip install --require-hashes -r requirements-dev.lock
+      - run: python -m pip install --no-build-isolation --no-deps -e .
+      - run: make lint
+      - run: pytest --cov=dsc --cov-report=term-missing
+      - run: pytest
+        env:
+          DSC_TEST_POSTGRES_URL: postgresql+psycopg://dsc_test:local-test-only@127.0.0.1:5432/dsc_test
+      - run: alembic upgrade head && alembic check
+      - run: cfn-lint infra/template.yaml infra/database.yaml
+      - run: python scripts/export_openapi.py && git diff --exit-code docs/openapi.json
