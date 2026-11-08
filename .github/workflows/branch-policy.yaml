@@ -1,0 +1,35 @@
+name: Branch policy
+on:
+  pull_request:
+    branches: [develop, main]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+permissions: {}
+jobs:
+  branch-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check merge direction
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
+          request = event["pull_request"]
+          base = request["base"]["ref"]
+          head = request["head"]["ref"]
+          head_repo = (request["head"].get("repo") or {}).get("full_name")
+          same_repo = head_repo == os.environ["GITHUB_REPOSITORY"]
+
+          if base == "main":
+              if head != "develop" or not same_repo:
+                  raise SystemExit("main accepts only develop from this repository")
+          elif base == "develop":
+              if head == "develop" or (head == "main" and not same_repo):
+                  raise SystemExit("develop accepts feature branches or main synchronization")
+          else:
+              raise SystemExit("unexpected target branch")
+          print("Merge direction matches the repository policy")
+          PY
