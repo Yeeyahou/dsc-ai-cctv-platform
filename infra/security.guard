@@ -1,0 +1,28 @@
+let buckets = Resources.*[ Type == 'AWS::S3::Bucket' ]
+rule private_encrypted_buckets when %buckets !empty {
+    %buckets.Properties {
+        PublicAccessBlockConfiguration.BlockPublicAcls == true
+        PublicAccessBlockConfiguration.BlockPublicPolicy == true
+        PublicAccessBlockConfiguration.IgnorePublicAcls == true
+        PublicAccessBlockConfiguration.RestrictPublicBuckets == true
+        BucketEncryption.ServerSideEncryptionConfiguration !empty
+    }
+}
+let databases = Resources.*[ Type == 'AWS::RDS::DBInstance' ]
+rule private_encrypted_databases when %databases !empty {
+    %databases.Properties {
+        PubliclyAccessible == false
+        StorageEncrypted == true
+        DeletionProtection == true
+        BackupRetentionPeriod >= 7
+    }
+}
+let queues = Resources.*[ Type == 'AWS::SQS::Queue' ]
+rule encrypted_queues when %queues !empty {
+    %queues.Properties.SqsManagedSseEnabled == true
+}
+let stateful = Resources.*[ Type IN ['AWS::S3::Bucket', 'AWS::RDS::DBInstance'] ]
+rule retained_data when %stateful !empty {
+    %stateful.DeletionPolicy == 'Retain'
+    %stateful.UpdateReplacePolicy == 'Retain'
+}
