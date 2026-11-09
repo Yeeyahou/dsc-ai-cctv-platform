@@ -26,7 +26,7 @@ Python 표준 logging과 공통 데코레이터로 기능 실행 전후에 로�
 | `awsRequestId` | Lambda 실행 ID. 영상 작업 ID와 구분 |
 | `backendTraceId` | 엣지가 받은 백엔드 응답의 `X-Request-Id`. 현장·서버 로그 연결에 사용 |
 | `eventId`, `requestId`, `clipId`, `outboxId` | 이벤트, 영상 작업, 클립, 현장 전송 항목의 식별자 |
-| `principal`, `agentId`, `siteId`, `assetId` | 확인할 수 있는 처리 주체와 대상 식별자 |
+| `principal`, `edgeServerId`, `siteId`, `assetId` | 확인할 수 있는 처리 주체와 대상 식별자 |
 | `durationMs`, `status`, `errorType`, `errorCode` | 소요시간, HTTP 결과, 예외 종류, 기계 판독용 오류 코드 |
 
 식별자는 해당 기능에서 알 수 있을 때만 기록한다. HTTP 경로는 `/events/{event_id}` 같은 등록 패턴으로 기록하며 실제 쿼리 문자열과 알 수 없는 경로 원문은 수집하지 않는다. 호출자가 전송한 추적 헤더를 서버 추적 ID로 신뢰하지 않는다. 직접 만든 업로드·lease 스레드에는 실행 문맥을 복사하고 작업 종료 시 복원한다.
@@ -40,7 +40,7 @@ Python 표준 logging과 공통 데코레이터로 기능 실행 전후에 로�
 백엔드는 `DSC_LOG_LEVEL`, 엣지는 `DSC_EDGE_LOG_LEVEL`을 사용한다. 허용값은 `DEBUG`, `INFO`, `WARNING`, `ERROR`이며 기본값은 `INFO`다. 운영 명령의 일반 결과는 stdout, JSON 실행 로그는 stderr로 분리한다. AWS 실행 시 Lambda 환경변수로 설정하며, 현장에서는 `edge.env` 수정 후 서비스를 재시작한다.
 
 ```sh
-journalctl -u dsc-edge --since '30 minutes ago' -o cat
+journalctl -u dsc-edge-server --since '30 minutes ago' -o cat
 ```
 
 CloudWatch Logs Insights에서 요청을 추적하는 예:

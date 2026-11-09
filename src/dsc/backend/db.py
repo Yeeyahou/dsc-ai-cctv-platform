@@ -43,8 +43,8 @@ class Principal(Base):
     video: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
-class Agent(Base):
-    __tablename__ = "agents"
+class EdgeServer(Base):
+    __tablename__ = "edge_servers"
     id: Mapped[str] = mapped_column(String(128), primary_key=True)
     principal_id: Mapped[str] = mapped_column(ForeignKey("principals.id"), unique=True)
     site_id: Mapped[str] = mapped_column(String(128))
@@ -57,7 +57,7 @@ class Agent(Base):
 class Event(Base):
     __tablename__ = "events"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    agent_id: Mapped[str] = mapped_column(ForeignKey("agents.id"))
+    edge_server_id: Mapped[str] = mapped_column(ForeignKey("edge_servers.id"))
     site_id: Mapped[str] = mapped_column(String(128))
     event_code: Mapped[str] = mapped_column(String(16))
     occurred_at: Mapped[int] = mapped_column(BigInteger)
@@ -91,7 +91,7 @@ class FileJob(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     event_id: Mapped[str] = mapped_column(ForeignKey("events.id"), index=True)
     clip_id: Mapped[str] = mapped_column(String(36))
-    agent_id: Mapped[str] = mapped_column(ForeignKey("agents.id"), index=True)
+    edge_server_id: Mapped[str] = mapped_column(ForeignKey("edge_servers.id"), index=True)
     requested_by: Mapped[str] = mapped_column(ForeignKey("principals.id"))
     active_key: Mapped[str | None] = mapped_column(String(73), unique=True)
     status: Mapped[str] = mapped_column(String(16), index=True)

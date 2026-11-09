@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "DSC CCTV Backend",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "paths": {
     "/ingest": {
@@ -98,13 +98,13 @@
         }
       }
     },
-    "/agent/heartbeat": {
+    "/edge-server/heartbeat": {
       "post": {
         "tags": [
-          "agent"
+          "edge-server"
         ],
         "summary": "Heartbeat",
-        "operationId": "heartbeat_agent_heartbeat_post",
+        "operationId": "heartbeat_edge_server_heartbeat_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -571,13 +571,13 @@
         }
       }
     },
-    "/agent/jobs/claim": {
+    "/edge-server/jobs/claim": {
       "post": {
         "tags": [
           "jobs"
         ],
         "summary": "Claim",
-        "operationId": "claim_agent_jobs_claim_post",
+        "operationId": "claim_edge_server_jobs_claim_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -613,13 +613,13 @@
         }
       }
     },
-    "/agent/jobs/{request_id}/lease": {
+    "/edge-server/jobs/{request_id}/lease": {
       "post": {
         "tags": [
           "jobs"
         ],
         "summary": "Lease",
-        "operationId": "lease_agent_jobs__request_id__lease_post",
+        "operationId": "lease_edge_server_jobs__request_id__lease_post",
         "parameters": [
           {
             "name": "request_id",
@@ -664,13 +664,13 @@
         }
       }
     },
-    "/agent/jobs/{request_id}/upload-url": {
+    "/edge-server/jobs/{request_id}/upload-url": {
       "post": {
         "tags": [
           "jobs"
         ],
         "summary": "Upload Url",
-        "operationId": "upload_url_agent_jobs__request_id__upload_url_post",
+        "operationId": "upload_url_edge_server_jobs__request_id__upload_url_post",
         "parameters": [
           {
             "name": "request_id",
@@ -715,13 +715,13 @@
         }
       }
     },
-    "/agent/jobs/{request_id}/complete": {
+    "/edge-server/jobs/{request_id}/complete": {
       "post": {
         "tags": [
           "jobs"
         ],
         "summary": "Complete",
-        "operationId": "complete_agent_jobs__request_id__complete_post",
+        "operationId": "complete_edge_server_jobs__request_id__complete_post",
         "parameters": [
           {
             "name": "request_id",
@@ -766,13 +766,13 @@
         }
       }
     },
-    "/agent/jobs/{request_id}/fail": {
+    "/edge-server/jobs/{request_id}/fail": {
       "post": {
         "tags": [
           "jobs"
         ],
         "summary": "Fail",
-        "operationId": "fail_agent_jobs__request_id__fail_post",
+        "operationId": "fail_edge_server_jobs__request_id__fail_post",
         "parameters": [
           {
             "name": "request_id",
@@ -1421,14 +1421,14 @@
         "properties": {
           "schemaVersion": {
             "type": "string",
-            "const": "1.0",
+            "const": "1.1",
             "title": "Schemaversion"
           },
-          "agentVersion": {
+          "edgeServerVersion": {
             "type": "string",
             "maxLength": 128,
             "minLength": 1,
-            "title": "Agentversion"
+            "title": "Edgeserverversion"
           },
           "observedAt": {
             "type": "string",
@@ -1471,7 +1471,7 @@
         "type": "object",
         "required": [
           "schemaVersion",
-          "agentVersion",
+          "edgeServerVersion",
           "observedAt",
           "outboxPendingCount",
           "diskFreeBytes",

@@ -19,11 +19,11 @@ def requested(system, event_body):
 
 
 def claim(system):
-    return system.client.post("/agent/jobs/claim", json={}, headers=headers("edge"))
+    return system.client.post("/edge-server/jobs/claim", json={}, headers=headers("edge"))
 
 
 def upload(system, job, content=b"clip"):
-    path = f"/agent/jobs/{job['requestId']}/upload-url"
+    path = f"/edge-server/jobs/{job['requestId']}/upload-url"
     body = {
         "leaseToken": job["leaseToken"],
         "sizeBytes": len(content),
@@ -60,7 +60,7 @@ def test_verified_upload_and_expiry(system, event_body):
     job_id = requested(system, event_body)
     job = claim(system).json()
     upload(system, job)
-    complete = f"/agent/jobs/{job_id}/complete"
+    complete = f"/edge-server/jobs/{job_id}/complete"
     token = {"leaseToken": job["leaseToken"]}
     assert system.client.post(complete, json=token, headers=headers("edge")).json() == {
         "status": "READY"
@@ -88,7 +88,7 @@ def test_false_complete_and_checksum_mismatch_never_ready(system, event_body):
     job_id = requested(system, event_body)
     job = claim(system).json()
     token = {"leaseToken": job["leaseToken"]}
-    complete = f"/agent/jobs/{job_id}/complete"
+    complete = f"/edge-server/jobs/{job_id}/complete"
     assert system.client.post(complete, json=token, headers=headers("edge")).status_code == 409
     upload(system, job)
     system.storage.objects = {key: b"evil" for key in system.storage.objects}
@@ -110,14 +110,14 @@ def test_lease_expiry_reassignment_fences_old_completion(system, event_body):
     for suffix in ("lease", "complete"):
         assert (
             system.client.post(
-                f"/agent/jobs/{job_id}/{suffix}", json=token, headers=headers("edge")
+                f"/edge-server/jobs/{job_id}/{suffix}", json=token, headers=headers("edge")
             ).status_code
             == 409
         )
     token = {"leaseToken": second["leaseToken"]}
     assert (
         system.client.post(
-            f"/agent/jobs/{job_id}/lease", json=token, headers=headers("edge-other")
+            f"/edge-server/jobs/{job_id}/lease", json=token, headers=headers("edge-other")
         ).status_code
         == 404
     )
@@ -186,7 +186,7 @@ def test_revoked_requester_blocks_completion(system, event_body):
     with system.sessions.begin() as session:
         session.get(Principal, "user:staff").video = False
     response = system.client.post(
-        f"/agent/jobs/{job_id}/complete",
+        f"/edge-server/jobs/{job_id}/complete",
         json={"leaseToken": job["leaseToken"]},
         headers=headers("edge"),
     )

@@ -2,6 +2,8 @@
 
 이 절차는 전용 개발 환경을 처음 설치할 때 사용한다. `develop`에서 검증한 소스를 서울 리전에 배포하고 회사 공용 VPC·DB나 운영 스택을 변경하지 않는다. 애플리케이션 스택 이름은 `dsc-dev-app`이다.
 
+v1.0 개발 스택을 갱신할 때는 [엣지 서버 v1.1 전환 절차](edge-server-upgrade-v1.1.md)에 따라 먼저 DB를 마이그레이션하고 큐와 인증 설정을 함께 변경한다.
+
 ## 먼저 확인할 항목
 
 - 회사가 부여한 `DevBoundary`와 `app-*` 역할 규칙을 사용한다. 별도의 개발자 IAM 정책을 추가하지 않는다. API, 유지관리, API Gateway 로그, 임시 DB 초기화 역할 이름과 정책 범위를 개발 스택에 맞춘다.
@@ -57,7 +59,7 @@ aws cloudformation package --template-file build/dev-release/app-local.yaml \
 
 패키지 템플릿으로 `dsc-dev-app` 변경 세트를 만든다. 필수 파라미터는 `Environment=dev`, 선택한 `ClipAuditMode`(합성 시험은 `synthetic`), `PermissionsBoundaryArn`, VPC·서브넷·DB 보안 그룹, `DatabaseSecretArn`(마스터가 아닌 런타임 secret), 고유한 `CognitoDomainPrefix`, 개발용 HTTPS 로그인 콜백 및 로그아웃 주소다. 별도 도메인이 없으면 `DomainName`, `CertificateArn`, `HostedZoneId`를 생략한다. `CAPABILITY_NAMED_IAM`을 지정한다. 변경 세트의 자원과 CloudFormation 사전 검사 결과를 확인한 후 실행한다.
 
-도메인 없는 개발 환경은 첫 스택 생성 이후에 API ID가 정해진다. `ApiUrl` 출력을 같은 스택의 `DevPublicBaseUrl`에 전달해 한 번 갱신한다. 갱신하기 전에는 AAS 응답의 기준 링크가 시험용 주소이므로 고객이나 현장 에이전트에 연결하지 않는다.
+도메인 없는 개발 환경은 첫 스택 생성 이후에 API ID가 정해진다. `ApiUrl` 출력을 같은 스택의 `DevPublicBaseUrl`에 전달해 한 번 갱신한다. 갱신하기 전에는 AAS 응답의 기준 링크가 시험용 주소이므로 고객이나 현장 엣지 서버에 연결하지 않는다.
 
 스택 출력의 Cognito client ID·큐 URL과 실제 테스트 주체 ID를 [등록 예제](../examples/registration.json)에 반영한다. 초기화 함수에 `{"registration": {...}}` 형태로 호출해 등록하고, 인증 실패 응답과 등록된 주체의 이벤트 수신·조회·AAS 조회를 확인한다. 클립 검증은 합성 MP4로 작업 생성부터 S3 임시 링크까지 확인한다. `external` 모드에서는 관리자 trail과 S3 접근 로그에서 해당 접근을 대조한다. 함수 사용이 끝나면 **초기화 함수 스택만** 삭제해 마스터 secret에 접근하는 실행 경로를 없앤다. DB와 앱 스택은 유지한다.
 

@@ -1,5 +1,5 @@
 [Unit]
-Description=DSC CCTV outbound edge agent
+Description=DSC CCTV outbound edge server
 After=network-online.target remote-fs.target
 Wants=network-online.target
 
@@ -9,7 +9,7 @@ User=dsc-edge
 Group=dsc-edge
 WorkingDirectory=/opt/dsc
 EnvironmentFile=/etc/dsc/edge.env
-ExecStart=/opt/dsc/venv/bin/dsc-edge
+ExecStart=/opt/dsc/venv/bin/dsc-edge-server
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=180

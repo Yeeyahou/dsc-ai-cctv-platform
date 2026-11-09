@@ -34,10 +34,10 @@
   ],
   "principals": [
     {
-      "principalId": "client:REPLACE_EDGE_CLIENT_ID",
+      "principalId": "client:REPLACE_EDGE_SERVER_CLIENT_ID",
       "scopes": [
         "dsc/ingest.write",
-        "dsc/agent.work"
+        "dsc/edge-server.work"
       ]
     },
     {
@@ -67,15 +67,15 @@
       "video": false
     }
   ],
-  "agents": [
+  "edgeServers": [
     {
-      "agentId": "agent-initial",
-      "principalId": "client:REPLACE_EDGE_CLIENT_ID",
+      "edgeServerId": "edge-server-initial",
+      "principalId": "client:REPLACE_EDGE_SERVER_CLIENT_ID",
       "siteId": "incheon-01",
       "assets": [
         "cctv-01"
       ],
-      "queueUrl": "https://sqs.ap-northeast-2.amazonaws.com/REPLACE_ACCOUNT/REPLACE_STACK-agent-initial"
+      "queueUrl": "https://sqs.ap-northeast-2.amazonaws.com/REPLACE_ACCOUNT/REPLACE_STACK-edge-server-initial"
     }
   ]
 }

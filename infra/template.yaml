@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: DSC CCTV authenticated event API, per-agent work queue and private temporary clips. Uses an existing
+Description: DSC CCTV authenticated event API, per-edge-server work queue and private temporary clips. Uses an existing
   private PostgreSQL deployment.
 Metadata:
   AWSToolsMetrics:
@@ -394,12 +394,12 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       QueueName:
-        Fn::Sub: ${AWS::StackName}-agent-dlq
+        Fn::Sub: ${AWS::StackName}-edge-server-dlq
       SqsManagedSseEnabled: true
       MessageRetentionPeriod: 1209600
     Metadata:
       com.aws.cloudformation.Context:
-        why: Delivers agent work or quarantines undeliverable work.
+        why: Delivers edge server work or quarantines undeliverable work.
         must:
         - Encrypt messages; DB lease remains authoritative
   WorkQueue:
@@ -408,13 +408,13 @@ Resources:
     UpdateReplacePolicy: Retain
     Metadata:
       com.aws.cloudformation.Context:
-        why: Starter agent queue; every further installation gets its own queue with the same stack prefix.
+        why: Starter edge server queue; every further installation gets its own queue with the same stack prefix.
         must:
         - Receipt handles remain server side
         - DB lease is the source of truth
     Properties:
       QueueName:
-        Fn::Sub: ${AWS::StackName}-agent-initial
+        Fn::Sub: ${AWS::StackName}-edge-server-initial
       SqsManagedSseEnabled: true
       VisibilityTimeout: 300
       MessageRetentionPeriod: 86400
@@ -442,7 +442,7 @@ Resources:
               aws:SecureTransport: 'false'
     Metadata:
       com.aws.cloudformation.Context:
-        why: Rejects insecure transport to the agent work queue.
+        why: Rejects insecure transport to the edge server work queue.
         must:
         - No edge IAM credentials
         - One queue ARN per statement as required by SQS
@@ -464,7 +464,7 @@ Resources:
               aws:SecureTransport: 'false'
     Metadata:
       com.aws.cloudformation.Context:
-        why: Rejects insecure transport to the agent dead-letter queue.
+        why: Rejects insecure transport to the edge server dead-letter queue.
         must:
         - One queue ARN per statement as required by SQS
   UserPool:
@@ -507,8 +507,8 @@ Resources:
         ScopeDescription: Read authorized event history
       - ScopeName: ingest.write
         ScopeDescription: Ingest authorized events
-      - ScopeName: agent.work
-        ScopeDescription: Agent jobs and heartbeat
+      - ScopeName: edge-server.work
+        ScopeDescription: Edge Server jobs and heartbeat
     Metadata:
       com.aws.cloudformation.Context:
         why: Defines explicit DSC API scopes.
@@ -549,7 +549,7 @@ Resources:
       com.aws.cloudformation.Context:
         why: Separates staff, partner and edge authentication flows.
         must:
-        - No shared agent installation secret
+        - No shared edge server installation secret
   EdgeClient:
     Type: AWS::Cognito::UserPoolClient
     DependsOn: ResourceServer
@@ -557,14 +557,14 @@ Resources:
       UserPoolId:
         Ref: UserPool
       ClientName:
-        Fn::Sub: ${AWS::StackName}-agent-initial
+        Fn::Sub: ${AWS::StackName}-edge-server-initial
       GenerateSecret: true
       AllowedOAuthFlowsUserPoolClient: true
       AllowedOAuthFlows:
       - client_credentials
       AllowedOAuthScopes:
       - dsc/ingest.write
-      - dsc/agent.work
+      - dsc/edge-server.work
       AccessTokenValidity: 15
       TokenValidityUnits:
         AccessToken: minutes
@@ -572,7 +572,7 @@ Resources:
       com.aws.cloudformation.Context:
         why: Separates staff, partner and edge authentication flows.
         must:
-        - No shared agent installation secret
+        - No shared edge server installation secret
   PartnerClient:
     Type: AWS::Cognito::UserPoolClient
     DependsOn: ResourceServer
@@ -595,7 +595,7 @@ Resources:
       com.aws.cloudformation.Context:
         why: Separates staff, partner and edge authentication flows.
         must:
-        - No shared agent installation secret
+        - No shared edge server installation secret
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
@@ -685,7 +685,7 @@ Resources:
             - dsc/aas.read
             - dsc/timeseries.read
             - dsc/ingest.write
-            - dsc/agent.work
+            - dsc/edge-server.work
       AccessLogSetting:
         DestinationArn:
           Fn::GetAtt:
@@ -806,12 +806,12 @@ Resources:
             - sqs:DeleteMessage
             - sqs:ChangeMessageVisibility
             Resource:
-              Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-agent-*
+              Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-edge-server-*
     Metadata:
       com.aws.cloudformation.Context:
         why: Preserves the existing service permissions with an explicit deployment role.
         must:
-        - Restrict application actions to this stack's secrets, clip prefix and agent queues
+        - Restrict application actions to this stack's secrets, clip prefix and edge server queues
         - Use the approved role name and boundary in development
   ApiFunction:
     Type: AWS::Serverless::Function
@@ -904,12 +904,12 @@ Resources:
             Action:
             - sqs:SendMessage
             Resource:
-              Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-agent-*
+              Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-edge-server-*
     Metadata:
       com.aws.cloudformation.Context:
         why: Preserves the existing service permissions with an explicit deployment role.
         must:
-        - Restrict application actions to this stack's secrets, clip prefix and agent queues
+        - Restrict application actions to this stack's secrets, clip prefix and edge server queues
         - Use the approved role name and boundary in development
   MaintenanceFunction:
     Type: AWS::Serverless::Function
@@ -1081,13 +1081,13 @@ Outputs:
   StaffClientId:
     Value:
       Ref: StaffClient
-  InitialEdgeClientId:
+  InitialEdgeServerClientId:
     Value:
       Ref: EdgeClient
   InitialPartnerClientId:
     Value:
       Ref: PartnerClient
-  InitialAgentQueueUrl:
+  InitialEdgeServerQueueUrl:
     Value:
       Ref: WorkQueue
   ClipBucketName:

@@ -16,10 +16,10 @@ from sqlalchemy.exc import IntegrityError
 from dsc.backend.auth import Access
 from dsc.backend.config import Settings
 from dsc.backend.db import (
-    Agent,
     Asset,
     Attempt,
     Audit,
+    EdgeServer,
     Event,
     EventAsset,
     EventMedia,
@@ -63,8 +63,8 @@ class Filters:
 @log_methods(
     fields={
         "principal": "access.principal.id",
-        "agentId": "access.agent.id",
-        "siteId": "access.agent.site_id",
+        "edgeServerId": "access.edge_server.id",
+        "siteId": "access.edge_server.site_id",
     }
 )
 class Platform:
@@ -75,24 +75,24 @@ class Platform:
         self.queue = queue
         self.clock = clock
 
-    def _agent(self, access: Access) -> Agent:
-        access.require("dsc/agent.work")
-        if access.agent is None:
-            raise Problem(403, "AGENT_REQUIRED", "등록된 에이전트가 필요합니다")
-        return access.agent
+    def _edge_server(self, access: Access) -> EdgeServer:
+        access.require("dsc/edge-server.work")
+        if access.edge_server is None:
+            raise Problem(403, "EDGE_SERVER_REQUIRED", "등록된 엣지 서버가 필요합니다")
+        return access.edge_server
 
     @logged(
         fields={
             "eventId": "body.event_id",
             "siteId": "body.site_id",
             "principal": "access.principal.id",
-            "agentId": "access.agent.id",
+            "edgeServerId": "access.edge_server.id",
         }
     )
     def ingest(self, access: Access, body: EventInput) -> tuple[dict, int]:
         access.require("dsc/ingest.write")
-        agent = access.agent
-        if agent is None or body.site_id != agent.site_id:
+        edge_server = access.edge_server
+        if edge_server is None or body.site_id != edge_server.site_id:
             raise Problem(403, "SITE_MISMATCH", "등록 센터와 일치하지 않습니다")
         payload = body.wire()
         event_id = str(body.event_id)
@@ -100,13 +100,13 @@ class Platform:
             with self.sessions.begin() as session:
                 prior = session.get(Event, event_id)
                 if prior:
-                    return self._duplicate(prior, agent.id, payload)
+                    return self._duplicate(prior, edge_server.id, payload)
                 for link in body.assets:
                     asset = session.get(Asset, link.asset_id)
                     if (
                         asset is None
-                        or asset.site_id != agent.site_id
-                        or asset.id not in agent.assets
+                        or asset.site_id != edge_server.site_id
+                        or asset.id not in edge_server.assets
                     ):
                         raise Problem(403, "ASSET_MISMATCH", "허용되지 않은 자산입니다")
                     for key in {"fireAnomalyScore", "noiseVariance"} & (body.metrics or {}).keys():
@@ -135,7 +135,7 @@ class Platform:
                         )
                 row = Event(
                     id=event_id,
-                    agent_id=agent.id,
+                    edge_server_id=edge_server.id,
                     site_id=body.site_id,
                     event_code=body.event_code,
                     occurred_at=milliseconds(body.occurred_at),
@@ -165,11 +165,11 @@ class Platform:
             with self.sessions() as session:
                 prior = session.get(Event, event_id)
                 if prior:
-                    return self._duplicate(prior, agent.id, payload)
+                    return self._duplicate(prior, edge_server.id, payload)
             raise
 
-    def _duplicate(self, prior: Event, agent_id: str, payload: dict) -> tuple[dict, int]:
-        if prior.agent_id != agent_id or prior.payload_hash != digest(payload):
+    def _duplicate(self, prior: Event, edge_server_id: str, payload: dict) -> tuple[dict, int]:
+        if prior.edge_server_id != edge_server_id or prior.payload_hash != digest(payload):
             raise Problem(
                 409, "EVENT_ID_CONFLICT", "동일 eventId에 다른 이벤트가 저장되어 있습니다"
             )
@@ -179,7 +179,7 @@ class Platform:
     def _ack(row: Event, duplicate: bool) -> dict:
         return {
             "eventId": row.id,
-            "agentId": row.agent_id,
+            "edgeServerId": row.edge_server_id,
             "siteId": row.site_id,
             "receivedAt": iso(row.received_at),
             "duplicate": duplicate,
@@ -189,7 +189,11 @@ class Platform:
         access.require("dsc/ingest.write")
         with self.sessions.begin() as session:
             row = session.get(Event, event_id)
-            if row is None or access.agent is None or row.agent_id != access.agent.id:
+            if (
+                row is None
+                or access.edge_server is None
+                or row.edge_server_id != access.edge_server.id
+            ):
                 raise missing()
             self._lock_event_media(session, event_id)
             media = session.get(EventMedia, event_id)
@@ -215,25 +219,29 @@ class Platform:
         return {"eventId": event_id, **body.wire()}
 
     def heartbeat(self, access: Access, body: Heartbeat) -> dict:
-        agent = self._agent(access)
+        edge_server = self._edge_server(access)
         with self.sessions.begin() as session:
-            row = session.get(Agent, agent.id)
+            row = session.get(EdgeServer, edge_server.id)
             row.last_seen, row.heartbeat = self.clock(), body.wire()
         emit_event(
-            "agent_heartbeat",
-            agentId=agent.id,
-            siteId=agent.site_id,
+            "edge_server_heartbeat",
+            edgeServerId=edge_server.id,
+            siteId=edge_server.site_id,
             receivedAt=iso(self.clock()),
             outboxPendingCount=body.outbox_pending_count,
             oldestPendingAt=body.wire().get("oldestPendingAt"),
             diskFreeBytes=body.disk_free_bytes,
             nasStatus=body.nas_status,
         )
-        return {"agentId": agent.id, "serverTime": iso(self.clock())}
+        return {"edgeServerId": edge_server.id, "serverTime": iso(self.clock())}
 
     @staticmethod
     def _view(session, row: Event) -> dict:
-        result = {**row.payload, "agentId": row.agent_id, "receivedAt": iso(row.received_at)}
+        result = {
+            **row.payload,
+            "edgeServerId": row.edge_server_id,
+            "receivedAt": iso(row.received_at),
+        }
         media = session.get(EventMedia, row.id)
         if media:
             result["media"] = {**media.payload, "revision": media.revision}
@@ -405,7 +413,7 @@ class Platform:
                     id=str(uuid4()),
                     event_id=event_id,
                     clip_id=media.clip_id,
-                    agent_id=event.agent_id,
+                    edge_server_id=event.edge_server_id,
                     requested_by=access.principal.id,
                     active_key=key,
                     status="QUEUED",
@@ -507,8 +515,8 @@ class Platform:
             with self.sessions.begin() as session:
                 job = session.scalar(select(FileJob).where(FileJob.id == job_id).with_for_update())
                 if job and job.status == "QUEUED" and job.dispatched_version < job.dispatch_version:
-                    agent = session.get(Agent, job.agent_id)
-                    self.queue.send(agent.queue_url, job.id, job.dispatch_version)
+                    edge_server = session.get(EdgeServer, job.edge_server_id)
+                    self.queue.send(edge_server.queue_url, job.id, job.dispatch_version)
                     # A crash before this marker commits causes a fenced duplicate delivery.
                     job.dispatched_version = job.dispatch_version
         except Exception:
@@ -516,11 +524,11 @@ class Platform:
             emit_event("queue_dispatch_pending", level=logging.WARNING, requestId=job_id)
 
     def claim(self, access: Access) -> dict | None:
-        agent = self._agent(access)
+        edge_server = self._edge_server(access)
 
         def messages():
             for _ in range(10):
-                batch = self.queue.receive(agent.queue_url)
+                batch = self.queue.receive(edge_server.queue_url)
                 if not batch:
                     return
                 yield from batch
@@ -531,24 +539,24 @@ class Platform:
                 data = json.loads(message["Body"])
                 job_id, version = data["requestId"], data["dispatchVersion"]
             except (ValueError, KeyError, TypeError):
-                self.queue.delete(agent.queue_url, receipt)
+                self.queue.delete(edge_server.queue_url, receipt)
                 continue
             with self.sessions.begin() as session:
                 job = session.scalar(select(FileJob).where(FileJob.id == job_id).with_for_update())
-                if job is None or job.agent_id != agent.id:
-                    self.queue.delete(agent.queue_url, receipt)
+                if job is None or job.edge_server_id != edge_server.id:
+                    self.queue.delete(edge_server.queue_url, receipt)
                     continue
                 self._expire(session, job)
                 if job.status != "QUEUED" or version != job.dispatch_version:
                     if job.status != "UPLOADING" or version != job.dispatch_version:
-                        self.queue.delete(agent.queue_url, receipt)
+                        self.queue.delete(edge_server.queue_url, receipt)
                     continue
                 if not self._requester_allowed(session, job):
                     self._terminal(job, "FAILED", "REQUESTER_DISABLED")
-                    self.queue.delete(agent.queue_url, receipt)
+                    self.queue.delete(edge_server.queue_url, receipt)
                     continue
                 event = session.get(Event, job.event_id)
-                if event.agent_id != agent.id or event.site_id != agent.site_id:
+                if event.edge_server_id != edge_server.id or event.site_id != edge_server.site_id:
                     raise missing()
                 job.attempt += 1
                 job.status = "UPLOADING"
@@ -588,9 +596,9 @@ class Platform:
         return True
 
     def _leased(self, session, access: Access, job_id: str, token: str, completed=False):
-        agent = self._agent(access)
+        edge_server = self._edge_server(access)
         job = session.scalar(select(FileJob).where(FileJob.id == job_id).with_for_update())
-        if job is None or job.agent_id != agent.id:
+        if job is None or job.edge_server_id != edge_server.id:
             raise missing()
         attempt = self._attempt(session, job)
         if attempt is None or not hmac.compare_digest(attempt.token_hash, digest(token)):
@@ -608,7 +616,9 @@ class Platform:
             job, attempt = self._leased(session, access, job_id, token)
             until = min(job.deadline, self.clock() + self.settings.lease_seconds * 1000)
             self.queue.extend(
-                access.agent.queue_url, attempt.receipt, max(1, (until - self.clock()) // 1000)
+                access.edge_server.queue_url,
+                attempt.receipt,
+                max(1, (until - self.clock()) // 1000),
             )
             attempt.lease_until = until
             return {"leaseExpiresAt": iso(until)}
@@ -652,7 +662,7 @@ class Platform:
             job.status = "READY"
             job.object_expires_at = self.clock() + self.settings.clip_retention_seconds * 1000
             self._audit(session, access, "clip.complete", job.id)
-        self._delete_receipt(access.agent.queue_url, attempt.receipt)
+        self._delete_receipt(access.edge_server.queue_url, attempt.receipt)
         return {"status": "READY"}
 
     def fail(self, access: Access, job_id: str, body: FailureBody) -> dict:
@@ -661,7 +671,7 @@ class Platform:
             retryable = body.failure_code != "SOURCE_NOT_FOUND"
             self._retry(job, body.failure_code, retryable)
             status = job.status
-        self._delete_receipt(access.agent.queue_url, attempt.receipt)
+        self._delete_receipt(access.edge_server.queue_url, attempt.receipt)
         self._try_dispatch(job_id)
         return {"status": status}
 

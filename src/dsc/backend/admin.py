@@ -10,11 +10,11 @@ from sqlalchemy import select
 from dsc.backend.aas import PROPERTIES
 from dsc.backend.aws import load_secrets
 from dsc.backend.config import Settings
-from dsc.backend.db import Agent, Asset, Audit, Principal, database
+from dsc.backend.db import Asset, Audit, EdgeServer, Principal, database
 from dsc.shared.contracts import Contract, Identifier, now_ms
 from dsc.shared.observability import configure_logging, logged
 
-SCOPES = {"dsc/aas.read", "dsc/timeseries.read", "dsc/ingest.write", "dsc/agent.work"}
+SCOPES = {"dsc/aas.read", "dsc/timeseries.read", "dsc/ingest.write", "dsc/edge-server.work"}
 
 
 class AssetRegistration(Contract):
@@ -72,8 +72,8 @@ class PrincipalRegistration(Contract):
         return value
 
 
-class AgentRegistration(Contract):
-    agent_id: Identifier
+class EdgeServerRegistration(Contract):
+    edge_server_id: Identifier
     principal_id: str
     site_id: Identifier
     assets: list[Identifier] = Field(min_length=1)
@@ -83,7 +83,7 @@ class AgentRegistration(Contract):
 class Registration(Contract):
     assets: list[AssetRegistration] = []
     principals: list[PrincipalRegistration] = []
-    agents: list[AgentRegistration] = []
+    edge_servers: list[EdgeServerRegistration] = []
 
 
 @logged()
@@ -127,35 +127,35 @@ def register(sessions, data: Registration) -> None:
                 )
             )
         session.flush()
-        for entry in data.agents:
+        for entry in data.edge_servers:
             principal = session.get(Principal, entry.principal_id)
             if (
                 principal is None
                 or not entry.principal_id.startswith("client:")
-                or not {"dsc/ingest.write", "dsc/agent.work"}.issubset(principal.scopes)
+                or not {"dsc/ingest.write", "dsc/edge-server.work"}.issubset(principal.scopes)
             ):
                 raise ValueError(
-                    "agent requires a registered M2M principal with ingest/work scopes"
+                    "edge server requires a registered M2M principal with ingest/work scopes"
                 )
             if not entry.queue_url.startswith("https://sqs."):
-                raise ValueError("an AWS per-agent SQS queue URL is required")
+                raise ValueError("an AWS per-edge-server SQS queue URL is required")
             for asset_id in entry.assets:
                 asset = session.get(Asset, asset_id)
                 if asset is None or asset.site_id != entry.site_id:
-                    raise ValueError("agent asset belongs to another site")
-            prior = session.get(Agent, entry.agent_id)
+                    raise ValueError("edge server asset belongs to another site")
+            prior = session.get(EdgeServer, entry.edge_server_id)
             if prior and (
                 prior.site_id != entry.site_id or prior.principal_id != entry.principal_id
             ):
                 raise ValueError(
-                    "agent identity and site are immutable; register a replacement agent"
+                    "edge server identity and site are immutable; register a replacement"
                 )
             if prior:
                 prior.assets, prior.queue_url = entry.assets, entry.queue_url
             else:
                 session.add(
-                    Agent(
-                        id=entry.agent_id,
+                    EdgeServer(
+                        id=entry.edge_server_id,
                         principal_id=entry.principal_id,
                         site_id=entry.site_id,
                         assets=entry.assets,
@@ -184,7 +184,7 @@ def run_cli() -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     bootstrap = commands.add_parser("register")
     bootstrap.add_argument("manifest", type=Path)
-    commands.add_parser("agent-status")
+    commands.add_parser("edge-server-status")
     args = parser.parse_args()
     settings = load_secrets(Settings(_env_file=args.env_file))
     configure_logging("backend-admin", settings.log_level)
@@ -195,11 +195,11 @@ def run_cli() -> int:
         print("등록 설정 적용 완료")
     else:
         with sessions() as session:
-            for row in session.scalars(select(Agent).order_by(Agent.id)):
+            for row in session.scalars(select(EdgeServer).order_by(EdgeServer.id)):
                 print(
                     json.dumps(
                         {
-                            "agentId": row.id,
+                            "edgeServerId": row.id,
                             "siteId": row.site_id,
                             "status": "ONLINE"
                             if row.last_seen is not None and now_ms() - row.last_seen < 300000

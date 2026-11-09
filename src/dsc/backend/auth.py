@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import jwt
 from sqlalchemy import exists, or_, select
 
-from dsc.backend.db import Agent, Asset, Event, EventAsset, Principal
+from dsc.backend.db import Asset, EdgeServer, Event, EventAsset, Principal
 from dsc.backend.errors import Problem, missing
 from dsc.shared.observability import log_methods, logged
 
@@ -41,7 +41,7 @@ class CognitoVerifier:
 class Access:
     principal: Principal
     scopes: frozenset[str]
-    agent: Agent | None
+    edge_server: EdgeServer | None
 
     def require(self, *scopes: str) -> None:
         if not set(scopes).issubset(self.scopes):
@@ -78,5 +78,5 @@ def authenticate(session, claims: dict) -> Access:
     if principal is None or not principal.active:
         raise Problem(401, "INACTIVE_PRINCIPAL", "등록된 활성 주체가 필요합니다")
     scopes = frozenset(claims.get("scope", "").split()) & frozenset(principal.scopes)
-    agent = session.scalar(select(Agent).where(Agent.principal_id == key))
-    return Access(principal, scopes, agent)
+    edge_server = session.scalar(select(EdgeServer).where(EdgeServer.principal_id == key))
+    return Access(principal, scopes, edge_server)
