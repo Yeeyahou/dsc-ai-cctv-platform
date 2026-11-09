@@ -429,6 +429,27 @@ Resources:
     Properties:
       Queues:
       - Ref: WorkQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: sqs:*
+          Resource:
+            Fn::GetAtt: [WorkQueue, Arn]
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Rejects insecure transport to the agent work queue.
+        must:
+        - No edge IAM credentials
+        - One queue ARN per statement as required by SQS
+  DeadLetterQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
       - Ref: WorkDLQ
       PolicyDocument:
         Version: '2012-10-17'
@@ -437,20 +458,15 @@ Resources:
           Principal: '*'
           Action: sqs:*
           Resource:
-          - Fn::GetAtt:
-            - WorkQueue
-            - Arn
-          - Fn::GetAtt:
-            - WorkDLQ
-            - Arn
+            Fn::GetAtt: [WorkDLQ, Arn]
           Condition:
             Bool:
               aws:SecureTransport: 'false'
     Metadata:
       com.aws.cloudformation.Context:
-        why: Rejects insecure transport to agent queues.
+        why: Rejects insecure transport to the agent dead-letter queue.
         must:
-        - No edge IAM credentials
+        - One queue ARN per statement as required by SQS
   UserPool:
     Type: AWS::Cognito::UserPool
     DeletionPolicy: Retain
