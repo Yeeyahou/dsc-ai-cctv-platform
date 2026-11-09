@@ -1,12 +1,14 @@
 import os
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from threading import Barrier
 
 import pytest
 from sqlalchemy import func, select
+from sqlalchemy.orm import sessionmaker
 
-from dsc.backend.db import Attempt, Event, FileJob
-from dsc.shared.contracts import EventInput
+from dsc.backend.db import Attempt, Audit, Event, FileJob
+from dsc.shared.contracts import EventInput, MediaUpdate
 
 pytestmark = [
     pytest.mark.postgres,
@@ -69,3 +71,31 @@ def test_duplicate_queue_messages_one_lease(system, event_body):
     assert len([j for j in jobs if j]) == 1
     with system.sessions() as session:
         assert session.scalar(select(func.count()).select_from(Attempt)) == 1
+
+
+def test_event_read_and_clip_request_with_runtime_grants(system, event_body, monkeypatch):
+    edge, staff = system.access("edge"), system.access("staff")
+    event_id = event_body["eventId"]
+    system.platform.ingest(edge, EventInput.model_validate(event_body))
+    role = "dsc_postgres_runtime_grants_test"
+    grants = Path("deploy/database/grants.sql").read_text().replace("dsc_runtime", role)
+    # The outer transaction rolls back both the temporary role and its grants.
+    with system.engine.connect() as connection:
+        connection.exec_driver_sql(f"CREATE ROLE {role} NOLOGIN")
+        for statement in grants.split(";"):
+            if statement.strip():
+                connection.exec_driver_sql(statement)
+        connection.exec_driver_sql(f"SET LOCAL ROLE {role}")
+        runtime_sessions = sessionmaker(
+            bind=connection, expire_on_commit=False, join_transaction_mode="create_savepoint"
+        )
+        monkeypatch.setattr(system.platform, "sessions", runtime_sessions)
+        assert system.platform.get_event(staff, event_id)["eventId"] == event_id
+        media = MediaUpdate.model_validate({**event_body["media"], "revision": 1})
+        assert system.platform.media(edge, event_id, media)["revision"] == 1
+        job, status = system.platform.request_clip(staff, event_id)
+        assert status == 202
+        assert job["status"] == "QUEUED"
+        connection.exec_driver_sql("RESET ROLE")
+        actions = connection.scalars(select(Audit.action).where(Audit.object_id == event_id)).all()
+        assert "event.read" in actions

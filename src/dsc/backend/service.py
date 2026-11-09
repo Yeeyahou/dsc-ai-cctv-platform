@@ -188,9 +188,10 @@ class Platform:
     def media(self, access: Access, event_id: str, body: MediaUpdate) -> dict:
         access.require("dsc/ingest.write")
         with self.sessions.begin() as session:
-            row = session.scalar(select(Event).where(Event.id == event_id).with_for_update())
+            row = session.get(Event, event_id)
             if row is None or access.agent is None or row.agent_id != access.agent.id:
                 raise missing()
+            self._lock_event_media(session, event_id)
             media = session.get(EventMedia, event_id)
             if media:
                 if media.clip_id != str(body.clip_id):
@@ -355,8 +356,11 @@ class Platform:
             ) from exc
 
     def _audit(self, session, access: Access, action: str, object_id: str) -> None:
-        session.add(
-            Audit(
+        # The runtime may append audit rows, but cannot read them (including RETURNING).
+        session.execute(
+            Audit.__table__.insert()
+            .inline()
+            .values(
                 principal_id=access.principal.id,
                 action=action,
                 object_id=object_id,
@@ -364,13 +368,25 @@ class Platform:
             )
         )
 
+    @staticmethod
+    def _lock_event_media(session, event_id: str) -> None:
+        # A PostgreSQL row lock on the immutable event would require UPDATE on events.
+        if session.get_bind().dialect.name == "postgresql":
+            key = int.from_bytes(
+                hashlib.sha256(f"dsc:event-media:{event_id}".encode()).digest()[:8],
+                "big",
+                signed=True,
+            )
+            session.execute(select(func.pg_advisory_xact_lock(key)))
+
     def request_clip(self, access: Access, event_id: str) -> tuple[dict, int]:
         access.require("dsc/timeseries.read")
         with self.sessions.begin() as session:
-            event = session.scalar(select(Event).where(Event.id == event_id).with_for_update())
+            event = session.get(Event, event_id)
             if event is None:
                 raise missing()
             access.check_event(session, event, video=True)
+            self._lock_event_media(session, event_id)
             media = session.get(EventMedia, event_id)
             if media is None or media.payload["status"] in {"MISSING", "NOT_APPLICABLE"}:
                 raise missing("CLIP_UNAVAILABLE")
