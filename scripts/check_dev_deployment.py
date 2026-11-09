@@ -93,7 +93,9 @@ def check(args: argparse.Namespace) -> int:
         ]
         if denied:
             errors.append(f"{role}: {', '.join(denied)}")
-    if not args.trail_arn:
+    if args.synthetic:
+        print("Synthetic data only: S3 access logging remains enabled; no CloudTrail data trail.")
+    elif not args.trail_arn:
         errors.append(
             f"administrator-managed CloudTrail ARN required for arn:{partition}:s3:::{bucket}/"
         )
@@ -115,7 +117,7 @@ def check(args: argparse.Namespace) -> int:
     if errors:
         print("\n".join(f"Blocked: {error}" for error in errors), file=sys.stderr)
         return 1
-    print("Development role simulation and external clip audit checks passed.")
+    print("Development role simulation and selected audit mode checks passed.")
     return 0
 
 
@@ -125,7 +127,9 @@ def main() -> int:
     parser.add_argument("--account", required=True)
     parser.add_argument("--region", default="ap-northeast-2")
     parser.add_argument("--stack", default="dsc-dev-app")
-    parser.add_argument("--trail-arn")
+    audit = parser.add_mutually_exclusive_group(required=True)
+    audit.add_argument("--trail-arn")
+    audit.add_argument("--synthetic", action="store_true")
     args = parser.parse_args()
     if not re.fullmatch(r"[0-9]{12}", args.account):
         parser.error("--account must be a 12-digit AWS account ID")

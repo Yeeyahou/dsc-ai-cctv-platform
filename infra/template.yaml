@@ -50,7 +50,8 @@ Parameters:
     AllowedValues:
     - managed
     - external
-    Description: External requires an independently verified administrator-owned data trail for this clip bucket.
+    - synthetic
+    Description: Synthetic is development-only. External requires a verified administrator-owned data trail.
   CognitoDomainPrefix:
     Type: String
     AllowedPattern: '[a-z0-9-]+'
@@ -76,6 +77,13 @@ Parameters:
     AllowedPattern: \[.*\]
     Description: Approved browser origins as a JSON array; no wildcard is enabled by default.
 Rules:
+  SyntheticAuditModeIsDevOnly:
+    RuleCondition:
+      Fn::Equals: [Ref: ClipAuditMode, synthetic]
+    Assertions:
+    - Assert:
+        Fn::Equals: [Ref: Environment, dev]
+      AssertDescription: Synthetic audit mode is allowed only for development with synthetic clips.
   DevRequiresPermissionsBoundary:
     RuleCondition:
       Fn::Equals: [Ref: Environment, dev]
