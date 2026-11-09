@@ -12,6 +12,8 @@
 
 사설 관리 호스트에서 `deploy/database/roles.sql`을 최초 한 번 적용한다. 마이그레이션 계정으로 `alembic upgrade head`를 실행하고 `deploy/database/grants.sql`을 적용한다. 등록 정보도 마이그레이션·운영 계정으로 입력한다. API에 RDS master 계정을 사용하지 않는다.
 
+런타임 계정은 이벤트를 수정하거나 감사 기록을 읽을 수 없다. 클립 상태 갱신과 작업 생성은 이벤트 ID에 대한 PostgreSQL 트랜잭션 잠금으로 직렬화한다. 감사 기록은 생성된 행을 다시 읽지 않고 추가한다.
+
 Secrets Manager에는 역할별로 다음 JSON 키를 가진 secret을 만든다. 아래는 형식 설명이며 실제 비밀 파일은 저장소 외부의 접근 제한 위치에서 관리한다.
 
 ```json
