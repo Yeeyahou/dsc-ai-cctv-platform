@@ -31,6 +31,16 @@ def test_put_signs_length_type_and_checksum(storage):
     assert "Authorization" not in headers
 
 
+def test_presigned_clip_urls_use_the_bucket_region(monkeypatch):
+    session = boto3.Session(aws_access_key_id="test-only", aws_secret_access_key="test-only")
+    monkeypatch.setattr(boto3, "DEFAULT_SESSION", session)
+    storage = AwsStorage(Settings(environment="test", clip_bucket="private-clips"))
+    put, _ = storage.upload_url("clips/request/1/test.mp4", 4, "a" * 44, 900)
+    get = storage.download_url("clips/request/1/test.mp4", 300)
+    assert urlparse(put).hostname == "private-clips.s3.ap-northeast-2.amazonaws.com"
+    assert urlparse(get).hostname == "private-clips.s3.ap-northeast-2.amazonaws.com"
+
+
 @pytest.mark.parametrize(
     "checksum,valid", [("expected", True), ("different", False), (None, False)]
 )

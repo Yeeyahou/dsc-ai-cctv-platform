@@ -19,7 +19,15 @@ CLIENT_CONFIG = Config(
 
 def client(service: str, region: str):
     config = (
-        CLIENT_CONFIG.merge(Config(signature_version="s3v4")) if service == "s3" else CLIENT_CONFIG
+        CLIENT_CONFIG.merge(
+            Config(
+                signature_version="s3v4",
+                # A redirect from the global S3 endpoint changes the signed host.
+                s3={"addressing_style": "virtual", "us_east_1_regional_endpoint": "regional"},
+            )
+        )
+        if service == "s3"
+        else CLIENT_CONFIG
     )
     return boto3.client(service, region_name=region, config=config)
 
