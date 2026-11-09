@@ -190,8 +190,8 @@ class EventInput(Contract):
 
 
 class Heartbeat(Contract):
-    schema_version: Literal["1.0"]
-    agent_version: Annotated[str, Field(min_length=1, max_length=128)]
+    schema_version: Literal["1.1"]
+    edge_server_version: Annotated[str, Field(min_length=1, max_length=128)]
     observed_at: datetime
     outbox_pending_count: Annotated[int, Field(strict=True, ge=0)]
     disk_free_bytes: Annotated[int, Field(strict=True, ge=0)]

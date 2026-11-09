@@ -31,7 +31,7 @@ _fields = frozenset(
         "backendTraceId",
         "principal",
         "siteId",
-        "agentId",
+        "edgeServerId",
         "assetId",
         "eventId",
         "requestId",

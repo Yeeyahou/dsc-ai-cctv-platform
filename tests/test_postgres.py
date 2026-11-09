@@ -56,7 +56,7 @@ def test_duplicate_queue_messages_one_lease(system, event_body):
     job_id = system.platform.request_clip(system.access("staff"), event_body["eventId"])[0][
         "requestId"
     ]
-    queue_url = system.access("edge").agent.queue_url
+    queue_url = system.access("edge").edge_server.queue_url
     for _ in range(5):
         system.queue.send(queue_url, job_id, 1)
     barrier = Barrier(6)

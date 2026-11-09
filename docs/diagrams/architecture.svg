@@ -9,7 +9,7 @@
 <rect x="70" y="200" width="320" height="80" fill="white" stroke="black" stroke-width="1.5"/>
 <text x="230.0" y="240.0" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="28" font-weight="400" fill="black">AI · 녹화 프로그램</text>
 <rect x="70" y="370" width="320" height="100" fill="white" stroke="black" stroke-width="1.5"/>
-<text x="230.0" y="402.06" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">엣지 에이전트</text>
+<text x="230.0" y="402.06" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">엣지 서버</text>
 <text x="230.0" y="437.94" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="26" font-weight="400" fill="black">로컬 outbox · manifest</text>
 <rect x="70" y="570" width="320" height="100" fill="white" stroke="black" stroke-width="1.5"/>
 <text x="230.0" y="600.68" text-anchor="middle" dominant-baseline="central" font-family="Nanum Gothic" font-size="28" font-weight="400" fill="black">현장 NAS</text>

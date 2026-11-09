@@ -127,7 +127,7 @@ def system(tmp_path):
     if "DSC_TEST_POSTGRES_URL" in os.environ:
         Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-    scopes = ["dsc/aas.read", "dsc/timeseries.read", "dsc/ingest.write", "dsc/agent.work"]
+    scopes = ["dsc/aas.read", "dsc/timeseries.read", "dsc/ingest.write", "dsc/edge-server.work"]
     register(
         sessions,
         Registration.model_validate(
@@ -151,20 +151,20 @@ def system(tmp_path):
                         "video": True,
                     },
                 ],
-                "agents": [
+                "edgeServers": [
                     {
-                        "agentId": "agent-1",
+                        "edgeServerId": "edge-server-1",
                         "principalId": "client:edge",
                         "siteId": "site-1",
                         "assets": ["camera-1", "rack-1"],
-                        "queueUrl": "https://sqs.test/agent-1",
+                        "queueUrl": "https://sqs.test/edge-server-1",
                     },
                     {
-                        "agentId": "agent-other",
+                        "edgeServerId": "edge-server-other",
                         "principalId": "client:edge-other",
                         "siteId": "other-site",
                         "assets": ["other-camera"],
-                        "queueUrl": "https://sqs.test/agent-other",
+                        "queueUrl": "https://sqs.test/edge-server-other",
                     },
                 ],
             }

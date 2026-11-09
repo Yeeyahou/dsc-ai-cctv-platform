@@ -92,7 +92,7 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
     local_docs = platform.settings.environment == "local"
     app = FastAPI(
         title="DSC CCTV Backend",
-        version="1.0.0",
+        version="1.1.0",
         docs_url="/docs" if local_docs else None,
         redoc_url=None,
         openapi_url="/openapi.json" if local_docs else None,
@@ -168,7 +168,7 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
         with platform.sessions() as session:
             result = authenticate(session, claims)
         request.state.principal = result.principal.id
-        request.state.site_id = result.agent.site_id if result.agent else None
+        request.state.site_id = result.edge_server.site_id if result.edge_server else None
         return result
 
     def job_response(result: tuple[dict, int]):
@@ -204,7 +204,7 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
     def media(event_id: UUID, body: MediaUpdate, actor: Access = Depends(access)):
         return platform.media(actor, str(event_id), body)
 
-    @app.post("/agent/heartbeat", tags=["agent"])
+    @app.post("/edge-server/heartbeat", tags=["edge-server"])
     def heartbeat(body: Heartbeat, actor: Access = Depends(access)):
         return platform.heartbeat(actor, body)
 
@@ -276,7 +276,7 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
         return job_response(platform.file_status(actor, str(request_id)))
 
     @app.post(
-        "/agent/jobs/claim",
+        "/edge-server/jobs/claim",
         tags=["jobs"],
         responses={
             204: {"description": "배정할 작업 없음"},
@@ -286,19 +286,19 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
         result = platform.claim(actor)
         return result if result else Response(status_code=204)
 
-    @app.post("/agent/jobs/{request_id}/lease", tags=["jobs"])
+    @app.post("/edge-server/jobs/{request_id}/lease", tags=["jobs"])
     def lease(request_id: UUID, body: LeaseBody, actor: Access = Depends(access)):
         return platform.renew(actor, str(request_id), body.lease_token)
 
-    @app.post("/agent/jobs/{request_id}/upload-url", tags=["jobs"])
+    @app.post("/edge-server/jobs/{request_id}/upload-url", tags=["jobs"])
     def upload_url(request_id: UUID, body: UploadBody, actor: Access = Depends(access)):
         return platform.upload_url(actor, str(request_id), body)
 
-    @app.post("/agent/jobs/{request_id}/complete", tags=["jobs"])
+    @app.post("/edge-server/jobs/{request_id}/complete", tags=["jobs"])
     def complete(request_id: UUID, body: LeaseBody, actor: Access = Depends(access)):
         return platform.complete(actor, str(request_id), body.lease_token)
 
-    @app.post("/agent/jobs/{request_id}/fail", tags=["jobs"])
+    @app.post("/edge-server/jobs/{request_id}/fail", tags=["jobs"])
     def fail(request_id: UUID, body: FailureBody, actor: Access = Depends(access)):
         return platform.fail(actor, str(request_id), body)
 

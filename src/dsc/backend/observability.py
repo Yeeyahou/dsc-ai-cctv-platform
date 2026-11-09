@@ -20,8 +20,8 @@ class LoggedRoute(APIRoute):
                 fields={
                     "requestId": "request_id",
                     "principal": "actor.principal.id",
-                    "agentId": "actor.agent.id",
-                    "siteId": "actor.agent.site_id",
+                    "edgeServerId": "actor.edge_server.id",
+                    "siteId": "actor.edge_server.site_id",
                 },
             ),
             **kwargs,

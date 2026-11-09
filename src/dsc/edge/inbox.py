@@ -12,7 +12,9 @@ from dsc.shared.contracts import EventEnvelope, MediaEnvelope
 from dsc.shared.observability import emit_event, logged
 
 
-@logged(level=logging.DEBUG, fields={"agentId": "settings.agent_id", "siteId": "settings.site_id"})
+@logged(
+    level=logging.DEBUG, fields={"edgeServerId": "settings.server_id", "siteId": "settings.site_id"}
+)
 def receive_inbox(settings: EdgeSettings, store: EdgeStore) -> int:
     inbox = settings.inbox
     inbox.mkdir(parents=True, exist_ok=True)

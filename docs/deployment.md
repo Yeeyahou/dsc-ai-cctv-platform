@@ -1,8 +1,10 @@
 # 배포 및 운영 안내
 
+v1.0 설치의 엣지 서버 식별자·스코프 전환은 [v1.1 전환 절차](edge-server-upgrade-v1.1.md)를 따른다.
+
 ## 환경 준비
 
-운영·개발 AWS 계정과 저장소를 분리한다. 운영 매니페스트에는 리전, 도메인·인증서, VPC·사설 서브넷, DB secret ARN, 센터·자산·에이전트, 회사 IdP, 보관 정책과 장애 수신자를 기록한다. 실제 비밀번호·client secret·서명 URL은 Git에 넣지 않는다.
+운영·개발 AWS 계정과 저장소를 분리한다. 운영 매니페스트에는 리전, 도메인·인증서, VPC·사설 서브넷, DB secret ARN, 센터·자산·엣지 서버, 회사 IdP, 보관 정책과 장애 수신자를 기록한다. 실제 비밀번호·client secret·서명 URL은 Git에 넣지 않는다.
 
 백엔드의 사설 서브넷은 PostgreSQL 외에 Cognito JWKS·Secrets Manager·SQS·S3로 HTTPS 접속할 수 있어야 한다. 사내 기존 NAT·프록시 또는 지원되는 VPC endpoint를 구성한다. Cognito 공개 JWKS 접근을 포함해 연결을 시험한다. 이 저장소는 회사 VPC 라우팅을 임의로 변경하지 않는다.
 
@@ -41,24 +43,24 @@ S3는 비공개·HTTPS·SSE-S3·ACL 비활성화를 적용한다. 클립 버킷�
 
 ## Cognito와 등록
 
-출력되는 직원 client ID, 초기 에이전트 client ID, 파트너 client ID와 큐 URL을 등록 매니페스트에 반영한다. client secret은 출력·문서 복사 대신 관리 콘솔 또는 승인된 비밀 전달 경로로 현장에 설치한다.
+출력되는 직원 client ID, 초기 엣지 서버 client ID, 파트너 client ID와 큐 URL을 등록 매니페스트에 반영한다. client secret은 출력·문서 복사 대신 관리 콘솔 또는 승인된 비밀 전달 경로로 현장에 설치한다.
 
-직원용 회사 SAML/OIDC IdP를 User Pool에 등록한 뒤 `StaffIdentityProvider`를 해당 provider 이름으로 변경한다. 초기 `COGNITO` 값은 스택 준비용이다. 운영 전 회사 계정 로그인·PKCE·퇴사자 권한 회수를 시험한다. 직원은 `user:<sub>`, 서버·파트너·에이전트는 `client:<client_id>`로 DB 주체를 구분한다.
+직원용 회사 SAML/OIDC IdP를 User Pool에 등록한 뒤 `StaffIdentityProvider`를 해당 provider 이름으로 변경한다. 초기 `COGNITO` 값은 스택 준비용이다. 운영 전 회사 계정 로그인·PKCE·퇴사자 권한 회수를 시험한다. 직원은 `user:<sub>`, 서버·파트너·엣지 서버는 `client:<client_id>`로 DB 주체를 구분한다.
 
 ```sh
 dsc-admin --env-file /secure/operator.env register deployment.local.json
-dsc-admin --env-file /secure/operator.env agent-status
+dsc-admin --env-file /secure/operator.env edge-server-status
 ```
 
 `examples/registration.json`의 샘플 자산과 식별자를 실제 값으로 바꾼다. 등록은 한 DB 트랜잭션으로 적용한다. 권한 등록을 생략한 신규 주체는 접근할 수 없다. 파트너는 허용 자산의 Nameplate·TechnicalData부터 시작하고 이력·영상은 별도 허용한다.
 
-설치를 추가할 때 Cognito app client와 SQS 큐를 각각 만든다. 큐는 `${앱스택명}-agent-...` 접두사, SSE-SQS, visibility 300초, 보존 1일, 동일 보안 정책과 DLQ를 적용한다. `AdditionalClientIdsJson` 파라미터에 client ID를 추가하고 DB agent 등록에 해당 큐 URL을 입력한다. 직원 client secret을 에이전트에 재사용하지 않는다.
+설치를 추가할 때 Cognito app client와 SQS 큐를 각각 만든다. 큐는 `${앱스택명}-edge-server-...` 접두사, SSE-SQS, visibility 300초, 보존 1일, 동일 보안 정책과 DLQ를 적용한다. `AdditionalClientIdsJson` 파라미터에 client ID를 추가하고 DB 엣지 서버 등록에 해당 큐 URL을 입력한다. 직원 client secret을 엣지 서버에 재사용하지 않는다.
 
 ## 현장 설치와 복구
 
 Python 3.12 가상 환경에 잠금된 패키지를 설치하고 `/etc/dsc/edge.env`, `0600` client secret, 읽기 전용 NAS 마운트를 준비한다. `dsc-edge` 사용자가 `/var/lib/dsc`, `/var/spool/dsc`에 쓸 수 있어야 한다. inbox에는 승인된 AI·녹화 프로그램만 쓰도록 권한을 설정한다.
 
-`deploy/edge/dsc-edge.service`의 설치 경로와 NAS 경로를 현장 값에 맞춘다. 등록 후 systemd에서 자동 시작과 실패 재시작을 확인한다. 실행 중 업데이트·백업에는 outbox DB와 WAL을 함께 다루거나 SQLite backup API·서비스 중지 상태의 일관된 백업을 사용한다. 배포·롤백 때 상태 디렉터리를 새로 만들지 않는다.
+`deploy/edge/dsc-edge-server.service`의 설치 경로와 NAS 경로를 현장 값에 맞춘다. 등록 후 systemd에서 자동 시작과 실패 재시작을 확인한다. 실행 중 업데이트·백업에는 outbox DB와 WAL을 함께 다루거나 SQLite backup API·서비스 중지 상태의 일관된 백업을 사용한다. 배포·롤백 때 상태 디렉터리를 새로 만들지 않는다.
 
 인터넷 단절·종료 후에는 outbox가 남고 같은 ID로 재전송된다. 격리 건은 원인을 해결한 뒤 `--retry`로 재처리한다. 디스크 부족 시 미전송 건을 삭제하지 않고 용량을 확보한다. NAS 오류는 메타데이터 조회와 별개로 처리한다.
 

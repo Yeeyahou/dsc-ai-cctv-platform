@@ -191,14 +191,14 @@ def test_aas_normative_schema_and_time_series_acl(system, event_body):
 
 def test_heartbeat_offline_source_time_is_not_receive_time(system):
     body = {
-        "schemaVersion": "1.0",
-        "agentVersion": "1.0.0",
+        "schemaVersion": "1.1",
+        "edgeServerVersion": "1.1.0",
         "observedAt": "2025-01-01T00:00:00Z",
         "outboxPendingCount": 0,
         "diskFreeBytes": 0,
         "nasStatus": "OK",
     }
-    response = system.client.post("/agent/heartbeat", json=body, headers=headers("edge"))
+    response = system.client.post("/edge-server/heartbeat", json=body, headers=headers("edge"))
     assert response.status_code == 200
     assert response.json()["serverTime"].startswith("2026-11-07")
 

@@ -9,7 +9,7 @@ class EdgeSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DSC_EDGE_", extra="ignore")
     environment: str = "production"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
-    agent_id: str
+    server_id: str
     site_id: str
     api_url: str
     token_url: str

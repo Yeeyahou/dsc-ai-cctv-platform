@@ -21,7 +21,7 @@ from dsc.shared.contracts import iso, now_ms
 from dsc.shared.observability import configure_logging, contextual, emit_event, logged
 
 
-@logged(fields={"agentId": "settings.agent_id", "siteId": "settings.site_id"})
+@logged(fields={"edgeServerId": "settings.server_id", "siteId": "settings.site_id"})
 def heartbeat(settings: EdgeSettings, store: EdgeStore) -> dict:
     count, oldest = store.stats()
     try:
@@ -32,8 +32,8 @@ def heartbeat(settings: EdgeSettings, store: EdgeStore) -> dict:
     except OSError:
         nas_status = "READ_ERROR"
     result = {
-        "schemaVersion": "1.0",
-        "agentVersion": __version__,
+        "schemaVersion": "1.1",
+        "edgeServerVersion": __version__,
         "observedAt": iso(now_ms()),
         "outboxPendingCount": count,
         "diskFreeBytes": shutil.disk_usage(settings.state_dir).free,
@@ -44,11 +44,11 @@ def heartbeat(settings: EdgeSettings, store: EdgeStore) -> dict:
     return result
 
 
-@logged(fields={"agentId": "settings.agent_id", "siteId": "settings.site_id"})
+@logged(fields={"edgeServerId": "settings.server_id", "siteId": "settings.site_id"})
 def serve(settings: EdgeSettings, once=False) -> None:
     settings.state_dir.mkdir(parents=True, exist_ok=True)
     # Only one process may restore SENDING entries and claim this installation's outbox.
-    with (settings.state_dir / "agent.lock").open("w") as lock:
+    with (settings.state_dir / "edge-server.lock").open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         store = EdgeStore(settings.state_dir / "outbox.sqlite")
         client = EdgeClient(settings)
@@ -71,19 +71,19 @@ def serve(settings: EdgeSettings, once=False) -> None:
                     try:
                         if now >= next_heartbeat:
                             next_heartbeat = now + settings.heartbeat_seconds
-                            client.post("/agent/heartbeat", heartbeat(settings, store))
+                            client.post("/edge-server/heartbeat", heartbeat(settings, store))
                         if future and future.done():
                             future.result()
                             future = None
                         if future is None and now >= next_claim:
-                            job = client.post("/agent/jobs/claim", {})
+                            job = client.post("/edge-server/jobs/claim", {})
                             next_claim = now + settings.claim_seconds
                             if job:
                                 future = workers.submit(
                                     contextual(run_job, client, store, settings, job)
                                 )
                     except (httpx.HTTPError, OSError, ValueError, KeyError):
-                        emit_event("agent_api_temporarily_unavailable", level=logging.WARNING)
+                        emit_event("edge_server_api_temporarily_unavailable", level=logging.WARNING)
                         next_claim = now + settings.claim_seconds
                     if once:
                         break
@@ -99,7 +99,7 @@ def main() -> int:
 
 @logged()
 def run_cli() -> int:
-    parser = argparse.ArgumentParser(description="DSC outbound edge agent")
+    parser = argparse.ArgumentParser(description="DSC outbound edge server")
     parser.add_argument("--env-file", default=None)
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--inspect-outbox", action="store_true")
@@ -110,7 +110,7 @@ def run_cli() -> int:
     if args.inspect_outbox or args.retry is not None:
         # Operator commands use the same process lock; they must not reset an active sender.
         settings.state_dir.mkdir(parents=True, exist_ok=True)
-        with (settings.state_dir / "agent.lock").open("w") as lock:
+        with (settings.state_dir / "edge-server.lock").open("w") as lock:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             store = EdgeStore(settings.state_dir / "outbox.sqlite")
             if args.retry is not None:

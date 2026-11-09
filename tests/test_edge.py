@@ -22,7 +22,7 @@ def edge(tmp_path):
     secret.chmod(0o600)
     return EdgeSettings(
         environment="test",
-        agent_id="agent-1",
+        server_id="edge-server-1",
         site_id="site-1",
         api_url="https://api.test",
         token_url="https://auth.test/oauth2/token",
@@ -91,7 +91,7 @@ def test_retry_and_quarantine(edge, event_body, status, state, operation_logs):
                 status,
                 json={
                     "eventId": event_body["eventId"],
-                    "agentId": "agent-1",
+                    "edgeServerId": "edge-server-1",
                     "siteId": "site-1",
                     "receivedAt": "2026-11-07T12:00:00Z",
                     "duplicate": status == 200,
@@ -144,7 +144,7 @@ def test_token_refresh_once_and_no_backend_token_on_s3(edge, operation_logs):
         return httpx.Response(401)
 
     client = EdgeClient(edge, transport=httpx.MockTransport(handler))
-    assert client.request("POST", "/agent/heartbeat", {}).status_code == 401
+    assert client.request("POST", "/edge-server/heartbeat", {}).status_code == 401
     assert len(calls) == 4
     import io
 
@@ -200,7 +200,11 @@ def test_clip_worker_uploads_before_completion(edge, event_body):
             "eventId": event_body["eventId"],
         },
     )
-    assert calls == ["/agent/jobs/job/upload-url", "uploaded", "/agent/jobs/job/complete"]
+    assert calls == [
+        "/edge-server/jobs/job/upload-url",
+        "uploaded",
+        "/edge-server/jobs/job/complete",
+    ]
 
 
 def test_lease_thread_inherits_job_context(edge, event_body, operation_logs):

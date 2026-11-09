@@ -1,6 +1,6 @@
 # DSC AI CCTV 플랫폼
 
-퓨처렉스 DSC 센터의 이벤트를 수집·조회하고 요청한 녹화 클립을 전달하는 Python 백엔드와 엣지 에이전트다. 구현 계약은 [연동 규격서](docs/aws-backend-edge-spec-v1.0.md)를 따른다.
+퓨처렉스 DSC 센터의 이벤트를 수집·조회하고 요청한 녹화 클립을 전달하는 Python 백엔드와 엣지 서버다. 구현 계약은 [연동 규격서](docs/aws-backend-edge-server-spec-v1.1.md)를 따른다.
 
 ## 구현 구성
 
@@ -11,7 +11,7 @@
 | 인증 | Cognito access token, 회사 SAML/OIDC 연동, M2M client credentials |
 | 데이터 | PostgreSQL 17, SQLAlchemy 2, Alembic |
 | 영상 작업 | 설치별 SQS 큐, DB lease, S3 서명 PUT/GET URL |
-| 현장 에이전트 | HTTPX, SQLite WAL outbox·manifest, POSIX 파일 접근, Linux systemd |
+| 현장 엣지 서버 | HTTPX, SQLite WAL outbox·manifest, POSIX 파일 접근, Linux systemd |
 | 운영 | SAM/CloudFormation, WAF, CloudWatch, S3 접근 로그·CloudTrail 데이터 이벤트 |
 | 검증 | pytest, Ruff, cfn-lint, CloudFormation Guard 규칙 |
 
@@ -61,12 +61,12 @@ uvicorn dsc.backend.api:create_app --factory --host 127.0.0.1 --port 8000
 - `/events`, `/timeseries`: 기간·자산별 이력, 권한 필터 후 집계, 서명된 페이지 cursor
 - `/shells`, `/submodels`, Registry·Discovery 읽기: 같은 자산·이력 DB에 대한 AAS 어댑터
 - `/files/.../requests`, `/file-requests`: 클립 요청 중복 제한, 상태 조회, 만료 전용 다운로드 링크
-- `/agent/jobs/...`: 작업 claim·lease 연장·조건부 업로드·완료 검증·실패 재배정
-- `/agent/heartbeat`: 에이전트 관측 시각과 서버 수신 시각을 구분한 상태 보고
+- `/edge-server/jobs/...`: 작업 claim·lease 연장·조건부 업로드·완료 검증·실패 재배정
+- `/edge-server/heartbeat`: 엣지 서버 관측 시각과 서버 수신 시각을 구분한 상태 보고
 
 센터 전체 또는 이벤트에 연결된 모든 자산의 읽기 권한을 확인한다. 일부 자산만 허용된 사용자는 해당 이벤트 전체·클립을 볼 수 없다. 파트너의 이력·영상 접근은 별도로 등록한다.
 
-영상 원본은 NAS에 남는다. 요청한 기본 클립만 S3에 업로드하며 에이전트에 AWS 장기 자격 증명을 넣지 않는다. 클립 요청은 30분 안에서 최대 3회 시도하고 lease를 60초마다 연장한다. 완료 시 실제 크기와 SHA-256을 대조한다. 업로드 URL 15분, 다운로드 URL 최대 5분, READY 이후 접근 보관 24시간이 기본값이다.
+영상 원본은 NAS에 남는다. 요청한 기본 클립만 S3에 업로드하며 엣지 서버에 AWS 장기 자격 증명을 넣지 않는다. 클립 요청은 30분 안에서 최대 3회 시도하고 lease를 60초마다 연장한다. 완료 시 실제 크기와 SHA-256을 대조한다. 업로드 URL 15분, 다운로드 URL 최대 5분, READY 이후 접근 보관 24시간이 기본값이다.
 
 ## 배포와 현장 설치
 
@@ -74,13 +74,15 @@ AWS 배포·DB 계정·Cognito 회사 계정 연동·등록 절차는 [배포 �
 
 FutureX의 개발 역할 경계에 맞춘 신규 SAM 배포는 [개발 환경 배포 안내](docs/dev-deployment.md)를 따른다.
 
-Linux 현장은 `examples/edge.env.example`과 `deploy/edge/dsc-edge.service`를 사용한다. `client-secret` 파일 권한은 `0600`으로 두고 NAS는 읽기 전용으로 마운트한다. 업데이트 시 outbox·manifest 경로를 보존한다.
+v1.0 설치를 갱신할 때는 [v1.1 연동 변경 이력과 전환 절차](docs/edge-server-upgrade-v1.1.md)를 확인한다.
+
+Linux 현장은 `examples/edge.env.example`과 `deploy/edge/dsc-edge-server.service`를 사용한다. `client-secret` 파일 권한은 `0600`으로 두고 NAS는 읽기 전용으로 마운트한다. 업데이트 시 outbox·manifest 경로를 보존한다.
 
 ```sh
-dsc-edge --env-file /etc/dsc/edge.env
-dsc-edge --env-file /etc/dsc/edge.env --inspect-outbox
+dsc-edge-server --env-file /etc/dsc/edge.env
+dsc-edge-server --env-file /etc/dsc/edge.env --inspect-outbox
 # 원인 조치 후 격리 건을 명시적으로 재처리한다.
-dsc-edge --env-file /etc/dsc/edge.env --retry 123
+dsc-edge-server --env-file /etc/dsc/edge.env --retry 123
 ```
 
 로컬 AI·녹화 프로그램은 [inbox 예제](examples/inbox-event.json)를 참고해 `.tmp`로 작성·동기화 후 같은 파일시스템에서 `{eventId}.event.json`으로 이름을 변경한다. 클립 상태 갱신은 `{eventId}.{revision}.media.json`으로 전달한다. `localMedia.relativePath`는 현장에서만 저장하며 서버로 보내지 않는다. accepted 이동은 로컬 접수 완료이며 서버 저장 완료는 outbox의 ACKED로 확인한다.

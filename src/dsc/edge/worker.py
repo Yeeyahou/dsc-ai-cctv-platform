@@ -36,7 +36,9 @@ def retry_delay(attempts: int, retry_after: str | None = None) -> int:
     return int(random.uniform(upper / 2, upper) * 1000)
 
 
-@logged(level=logging.DEBUG, fields={"agentId": "settings.agent_id", "siteId": "settings.site_id"})
+@logged(
+    level=logging.DEBUG, fields={"edgeServerId": "settings.server_id", "siteId": "settings.site_id"}
+)
 def send_pending(client: EdgeClient, store: EdgeStore, settings: EdgeSettings) -> bool:
     item = store.next_item()
     if item is None:
@@ -64,7 +66,7 @@ def send_item(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, item
                 raise ValueError()
             if item["kind"] == "event":
                 if (
-                    value["agentId"] != settings.agent_id
+                    value["edgeServerId"] != settings.server_id
                     or value["siteId"] != settings.site_id
                     or not isinstance(value["receivedAt"], str)
                     or value["duplicate"] is not (status == 200)
@@ -89,7 +91,7 @@ def send_item(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, item
 
 @logged(
     fields={
-        "agentId": "settings.agent_id",
+        "edgeServerId": "settings.server_id",
         "siteId": "settings.site_id",
         "eventId": "job.eventId",
         "requestId": "job.requestId",
@@ -97,7 +99,7 @@ def send_item(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, item
     }
 )
 def run_job(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, job: dict) -> None:
-    path = f"/agent/jobs/{job['requestId']}"
+    path = f"/edge-server/jobs/{job['requestId']}"
     token = {"leaseToken": job["leaseToken"]}
     stop, lost = threading.Event(), threading.Event()
 
