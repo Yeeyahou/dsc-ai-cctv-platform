@@ -26,6 +26,13 @@ Parameters:
     Type: String
     Default: '17.11'
     AllowedPattern: 17\.[0-9]+
+  GenerateDevRuntimeSecret:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Generate the restricted runtime credentials for a dedicated development database.
+Conditions:
+  HasDevRuntimeSecret: !Equals [!Ref GenerateDevRuntimeSecret, 'true']
 Resources:
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -103,6 +110,23 @@ Resources:
       EnableCloudwatchLogsExports:
       - postgresql
       - upgrade
+  DevRuntimeSecret:
+    Type: AWS::SecretsManager::Secret
+    Condition: HasDevRuntimeSecret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub ${AWS::StackName}/runtime-db
+      GenerateSecretString:
+        SecretStringTemplate: !Sub '{"username":"dsc_runtime","host":"${Database.Endpoint.Address}","port":5432,"dbname":"dsc"}'
+        GenerateStringKey: password
+        PasswordLength: 48
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Separates the application's development credentials from the RDS master login.
+        must:
+        - Only return the secret ARN and never expose its contents
+        - Initialize the restricted login before starting the application
 Outputs:
   Host:
     Value:
@@ -117,3 +141,6 @@ Outputs:
   DatabaseSecurityGroupId:
     Value:
       Ref: SecurityGroup
+  DevRuntimeSecretArn:
+    Condition: HasDevRuntimeSecret
+    Value: !Ref DevRuntimeSecret

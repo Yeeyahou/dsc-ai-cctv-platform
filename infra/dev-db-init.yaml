@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Temporary IAM-invoked initializer for an isolated DSC development PostgreSQL database.
+Metadata:
+  AWSToolsMetrics:
+    AWSAgentToolkit: aws-cloudformation@3
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  DatabaseSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+  MasterSecretArn:
+    Type: String
+    AllowedPattern: arn:aws[a-z-]*:secretsmanager:.+
+  RuntimeDbSecretArn:
+    Type: String
+    AllowedPattern: arn:aws[a-z-]*:secretsmanager:.+
+  PermissionsBoundaryArn:
+    Type: String
+    AllowedPattern: arn:[a-z-]+:iam::[0-9]{12}:policy/.+
+  ArtifactBucket:
+    Type: String
+    AllowedPattern: '[a-z0-9.-]{3,63}'
+  ArtifactKey:
+    Type: String
+    MinLength: 1
+Resources:
+  InitializerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: Outbound access for the temporary DSC development database initializer
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 5432
+        ToPort: 5432
+        DestinationSecurityGroupId: !Ref DatabaseSecurityGroupId
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Allows the temporary initializer to reach RDS and Secrets Manager.
+        must:
+        - No public ingress
+  DatabaseIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref DatabaseSecurityGroupId
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref InitializerSecurityGroup
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Grants database connectivity only to this temporary function.
+  InitializerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub app-${AWS::StackName}
+      PermissionsBoundary: !Ref PermissionsBoundaryArn
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+      - PolicyName: ReadDevelopmentDatabaseSecrets
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: secretsmanager:GetSecretValue
+            Resource: [!Ref MasterSecretArn, !Ref RuntimeDbSecretArn]
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Gives only the initializer access to the two development database secrets.
+        must:
+        - Never reuse for the API function
+        - Remove the initializer stack after use
+  InitializerLog:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AWS::StackName}
+      RetentionInDays: 30
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Keeps a diagnostic record of the privileged initialization.
+        must:
+        - Never log secret values or SQL statements
+  Initializer:
+    Type: AWS::Lambda::Function
+    DependsOn: [DatabaseIngress, InitializerLog]
+    Properties:
+      FunctionName: !Ref AWS::StackName
+      Runtime: python3.12
+      Architectures: [x86_64]
+      MemorySize: 512
+      Timeout: 90
+      Role: !GetAtt InitializerRole.Arn
+      Handler: dev_init.handler
+      Code:
+        S3Bucket: !Ref ArtifactBucket
+        S3Key: !Ref ArtifactKey
+      Environment:
+        Variables:
+          MASTER_SECRET_ARN: !Ref MasterSecretArn
+          RUNTIME_DB_SECRET_ARN: !Ref RuntimeDbSecretArn
+      VpcConfig:
+        SubnetIds: !Ref PrivateSubnetIds
+        SecurityGroupIds: [!Ref InitializerSecurityGroup]
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Applies migrations and runtime database grants without a public DB or host.
+        must:
+        - Invoke through IAM; never expose through an API or function URL
+        - The database serializes concurrent initialization attempts with a transaction lock
+Outputs:
+  FunctionName:
+    Value: !Ref Initializer

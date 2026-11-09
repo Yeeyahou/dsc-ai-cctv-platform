@@ -25,12 +25,32 @@ Parameters:
     Description: Secret JSON containing username,password,host,port,dbname for a restricted runtime role.
   CertificateArn:
     Type: String
-    AllowedPattern: arn:aws[a-z-]*:acm:.+
+    Default: ''
+    AllowedPattern: '^$|arn:aws[a-z-]*:acm:.+'
   HostedZoneId:
-    Type: AWS::Route53::HostedZone::Id
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|[A-Z0-9]+'
   DomainName:
     Type: String
-    AllowedPattern: '[a-z0-9.-]+'
+    Default: ''
+    AllowedPattern: '^$|[a-z0-9.-]+'
+  DevPublicBaseUrl:
+    Type: String
+    Default: https://unconfigured.invalid
+    AllowedPattern: '^https://(unconfigured\.invalid|[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/dev)$'
+    Description: For a domainless development stack, set to its ApiUrl output after initial creation.
+  PermissionsBoundaryArn:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|arn:[a-z-]+:iam::[0-9]{12}:policy/.+'
+  ClipAuditMode:
+    Type: String
+    Default: managed
+    AllowedValues:
+    - managed
+    - external
+    Description: External requires an independently verified administrator-owned data trail for this clip bucket.
   CognitoDomainPrefix:
     Type: String
     AllowedPattern: '[a-z0-9-]+'
@@ -55,6 +75,47 @@ Parameters:
     Default: '[]'
     AllowedPattern: \[.*\]
     Description: Approved browser origins as a JSON array; no wildcard is enabled by default.
+Rules:
+  DevRequiresPermissionsBoundary:
+    RuleCondition:
+      Fn::Equals: [Ref: Environment, dev]
+    Assertions:
+    - Assert:
+        Fn::Not:
+        - Fn::Equals: [Ref: PermissionsBoundaryArn, '']
+      AssertDescription: Development execution roles require the account-approved permissions boundary.
+  DomainRequiredOutsideDev:
+    RuleCondition:
+      Fn::Not:
+      - Fn::Equals: [Ref: Environment, dev]
+    Assertions:
+    - Assert:
+        Fn::Not:
+        - Fn::Equals: [Ref: DomainName, '']
+      AssertDescription: A custom domain is required outside development.
+  CustomDomainInputs:
+    RuleCondition:
+      Fn::Not:
+      - Fn::Equals: [Ref: DomainName, '']
+    Assertions:
+    - Assert:
+        Fn::And:
+        - Fn::Not:
+          - Fn::Equals: [Ref: CertificateArn, '']
+        - Fn::Not:
+          - Fn::Equals: [Ref: HostedZoneId, '']
+      AssertDescription: A custom domain needs a certificate and hosted zone.
+Conditions:
+  IsDev:
+    Fn::Equals: [Ref: Environment, dev]
+  HasPermissionsBoundary:
+    Fn::Not:
+    - Fn::Equals: [Ref: PermissionsBoundaryArn, '']
+  HasCustomDomain:
+    Fn::Not:
+    - Fn::Equals: [Ref: DomainName, '']
+  ManageClipTrail:
+    Fn::Equals: [Ref: ClipAuditMode, managed]
 Globals:
   Function:
     Runtime: python3.12
@@ -86,7 +147,10 @@ Globals:
         DSC_CLIP_BUCKET:
           Ref: ClipBucket
         DSC_PUBLIC_BASE_URL:
-          Fn::Sub: https://${DomainName}
+          Fn::If:
+          - HasCustomDomain
+          - Fn::Sub: https://${DomainName}
+          - Ref: DevPublicBaseUrl
         DSC_ALLOWED_ORIGINS:
           Ref: AllowedOriginsJson
 Resources:
@@ -144,6 +208,7 @@ Resources:
         - No secret values in outputs or source
   ClipBucket:
     Type: AWS::S3::Bucket
+    DependsOn: AuditPolicy
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Metadata:
@@ -153,7 +218,10 @@ Resources:
         - Private HTTPS only
         - versioning disabled by contract
         - application enforces 24 hour access expiry
+        - Preserve the name when changing an installed stack; audit coverage and data retention depend on it
     Properties:
+      BucketName:
+        Fn::Sub: ${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-clips
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -258,9 +326,7 @@ Resources:
                 Ref: AWS::AccountId
             ArnEquals:
               aws:SourceArn:
-                Fn::GetAtt:
-                - ClipBucket
-                - Arn
+                Fn::Sub: arn:${AWS::Partition}:s3:::${AWS::StackName}-${AWS::AccountId}-${AWS::Region}-clips
         - Effect: Allow
           Principal:
             Service: cloudtrail.amazonaws.com
@@ -291,6 +357,7 @@ Resources:
         - No public allow statement
   ClipTrail:
     Type: AWS::CloudTrail::Trail
+    Condition: ManageClipTrail
     DependsOn: AuditPolicy
     Properties:
       TrailName:
@@ -531,6 +598,16 @@ Resources:
   ApiLogRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName:
+        Fn::If:
+        - IsDev
+        - Fn::Sub: app-${AWS::StackName}-api-logs
+        - Ref: AWS::NoValue
+      PermissionsBoundary:
+        Fn::If:
+        - HasPermissionsBoundary
+        - Ref: PermissionsBoundaryArn
+        - Ref: AWS::NoValue
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -545,6 +622,7 @@ Resources:
         why: Allows API Gateway to write its regional CloudWatch logs.
         must:
         - Coordinate account-level logging ownership
+        - Use the approved role name and boundary in development
   ApiAccount:
     Type: AWS::ApiGateway::Account
     DeletionPolicy: Retain
@@ -569,17 +647,8 @@ Resources:
         Ref: Environment
       EndpointConfiguration: REGIONAL
       TracingEnabled: true
-      DisableExecuteApiEndpoint: true
-      Domain:
-        DomainName:
-          Ref: DomainName
-        CertificateArn:
-          Ref: CertificateArn
-        EndpointConfiguration: REGIONAL
-        SecurityPolicy: TLS_1_2
-        Route53:
-          HostedZoneId:
-            Ref: HostedZoneId
+      DisableExecuteApiEndpoint:
+        Fn::If: [HasCustomDomain, true, false]
       Auth:
         DefaultAuthorizer: CognitoAccess
         Authorizers:
@@ -609,9 +678,117 @@ Resources:
         ThrottlingBurstLimit: 200
     Metadata:
       com.aws.cloudformation.Context:
-        why: Exposes authenticated REST endpoints behind a custom TLS domain.
+        why: Exposes authenticated REST endpoints over the managed HTTPS endpoint or a custom TLS domain.
         must:
         - Cognito authorizer and backend object ACL checks
+        - Disable the default endpoint when a custom domain is configured
+  ApiCustomDomain:
+    Type: AWS::ApiGateway::DomainName
+    Condition: HasCustomDomain
+    Properties:
+      DomainName:
+        Ref: DomainName
+      EndpointConfiguration:
+        Types: [REGIONAL]
+      RegionalCertificateArn:
+        Ref: CertificateArn
+      SecurityPolicy: TLS_1_2
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Provides the approved customer-facing HTTPS domain.
+        must:
+        - Use a regional ACM certificate and TLS 1.2 or newer
+  ApiCustomMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Condition: HasCustomDomain
+    DependsOn: ApiStage
+    Properties:
+      DomainName:
+        Ref: ApiCustomDomain
+      RestApiId:
+        Ref: Api
+      Stage:
+        Ref: Environment
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Maps the custom domain root to the authenticated API stage.
+        must:
+        - The mapping must target the WAF-protected stage
+  ApiCustomDns:
+    Type: AWS::Route53::RecordSet
+    Condition: HasCustomDomain
+    DependsOn: ApiCustomMapping
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Ref: DomainName
+      Type: A
+      AliasTarget:
+        DNSName:
+          Fn::GetAtt: [ApiCustomDomain, RegionalDomainName]
+        HostedZoneId:
+          Fn::GetAtt: [ApiCustomDomain, RegionalHostedZoneId]
+        EvaluateTargetHealth: false
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Publishes the custom domain only after the API mapping exists.
+        must:
+        - Route traffic to the regional API Gateway domain
+  ApiFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::If:
+        - IsDev
+        - Fn::Sub: app-${AWS::StackName}-api
+        - Ref: AWS::NoValue
+      PermissionsBoundary:
+        Fn::If:
+        - HasPermissionsBoundary
+        - Ref: PermissionsBoundaryArn
+        - Ref: AWS::NoValue
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AWSXRayDaemonWriteAccess
+      Policies:
+      - PolicyName: DSCApiFunction
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - secretsmanager:GetSecretValue
+            Resource:
+            - Ref: DatabaseSecretArn
+            - Ref: RuntimeSecret
+          - Effect: Allow
+            Action:
+            - s3:PutObject
+            - s3:GetObject
+            Resource:
+              Fn::Sub: ${ClipBucket.Arn}/clips/*
+          - Effect: Allow
+            Action:
+            - sqs:SendMessage
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+            - sqs:ChangeMessageVisibility
+            Resource:
+              Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-agent-*
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Preserves the existing service permissions with an explicit deployment role.
+        must:
+        - Restrict application actions to this stack's secrets, clip prefix and agent queues
+        - Use the approved role name and boundary in development
   ApiFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -623,30 +800,10 @@ Resources:
     Properties:
       CodeUri: ..
       Handler: dsc.backend.lambda_handler.handler
-      ReservedConcurrentExecutions: 10
-      Policies:
-      - AWSLambdaVPCAccessExecutionRole
-      - Statement:
-        - Effect: Allow
-          Action:
-          - secretsmanager:GetSecretValue
-          Resource:
-          - Ref: DatabaseSecretArn
-          - Ref: RuntimeSecret
-        - Effect: Allow
-          Action:
-          - s3:PutObject
-          - s3:GetObject
-          Resource:
-            Fn::Sub: ${ClipBucket.Arn}/clips/*
-        - Effect: Allow
-          Action:
-          - sqs:SendMessage
-          - sqs:ReceiveMessage
-          - sqs:DeleteMessage
-          - sqs:ChangeMessageVisibility
-          Resource:
-            Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-agent-*
+      ReservedConcurrentExecutions:
+        Fn::If: [IsDev, {Ref: 'AWS::NoValue'}, 10]
+      Role:
+        Fn::GetAtt: [ApiFunctionRole, Arn]
       Events:
         Proxy:
           Type: Api
@@ -680,6 +837,56 @@ Resources:
             Method: OPTIONS
             Auth:
               Authorizer: NONE
+  MaintenanceFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::If:
+        - IsDev
+        - Fn::Sub: app-${AWS::StackName}-maintenance
+        - Ref: AWS::NoValue
+      PermissionsBoundary:
+        Fn::If:
+        - HasPermissionsBoundary
+        - Ref: PermissionsBoundaryArn
+        - Ref: AWS::NoValue
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AWSXRayDaemonWriteAccess
+      Policies:
+      - PolicyName: DSCMaintenanceFunction
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - secretsmanager:GetSecretValue
+            Resource:
+            - Ref: DatabaseSecretArn
+            - Ref: RuntimeSecret
+          - Effect: Allow
+            Action:
+            - s3:DeleteObject
+            Resource:
+              Fn::Sub: ${ClipBucket.Arn}/clips/*
+          - Effect: Allow
+            Action:
+            - sqs:SendMessage
+            Resource:
+              Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-agent-*
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Preserves the existing service permissions with an explicit deployment role.
+        must:
+        - Restrict application actions to this stack's secrets, clip prefix and agent queues
+        - Use the approved role name and boundary in development
   MaintenanceFunction:
     Type: AWS::Serverless::Function
     Metadata:
@@ -692,31 +899,16 @@ Resources:
       CodeUri: ..
       Handler: dsc.backend.runtime.maintenance_handler
       Timeout: 120
-      ReservedConcurrentExecutions: 1
-      Policies:
-      - AWSLambdaVPCAccessExecutionRole
-      - Statement:
-        - Effect: Allow
-          Action:
-          - secretsmanager:GetSecretValue
-          Resource:
-          - Ref: DatabaseSecretArn
-          - Ref: RuntimeSecret
-        - Effect: Allow
-          Action:
-          - s3:DeleteObject
-          Resource:
-            Fn::Sub: ${ClipBucket.Arn}/clips/*
-        - Effect: Allow
-          Action:
-          - sqs:SendMessage
-          Resource:
-            Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-agent-*
+      ReservedConcurrentExecutions:
+        Fn::If: [IsDev, {Ref: 'AWS::NoValue'}, 1]
+      Role:
+        Fn::GetAtt: [MaintenanceFunctionRole, Arn]
       Events:
         Sweep:
-          Type: ScheduleV2
+          Type: Schedule
           Properties:
-            ScheduleExpression: rate(1 minute)
+            Schedule: rate(1 minute)
+            Description: Runs the clip expiration and retry sweep without a Scheduler execution role.
   ApiFunctionLog:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain
@@ -855,7 +1047,10 @@ Resources:
 Outputs:
   ApiUrl:
     Value:
-      Fn::Sub: https://${DomainName}
+      Fn::If:
+      - HasCustomDomain
+      - Fn::Sub: https://${DomainName}
+      - Fn::Sub: https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}/${Environment}
   UserPoolId:
     Value:
       Ref: UserPool

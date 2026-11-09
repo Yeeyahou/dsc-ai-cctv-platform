@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Private versioned S3 bucket for DSC development Lambda deployment packages.
+Metadata:
+  AWSToolsMetrics:
+    AWSAgentToolkit: aws-cloudformation@3
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub ${AWS::StackName}-${AWS::AccountId}-${AWS::Region}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+        - Id: CleanIncompleteAndSupersededArtifacts
+          Status: Enabled
+          AbortIncompleteMultipartUpload:
+            DaysAfterInitiation: 1
+          NoncurrentVersionExpiration:
+            NoncurrentDays: 30
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Stages immutable development function ZIPs in the target Region.
+        must:
+        - No credentials, environment files or clips
+        - Keep active packages available for stack updates and rollback
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: s3:*
+          Resource: [!GetAtt Bucket.Arn, !Sub '${Bucket.Arn}/*']
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Rejects insecure access to deployment artifacts.
+        must:
+        - Do not grant public access
+Outputs:
+  BucketName:
+    Value: !Ref Bucket
