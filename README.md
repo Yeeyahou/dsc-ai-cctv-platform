@@ -72,6 +72,8 @@ uvicorn dsc.backend.api:create_app --factory --host 127.0.0.1 --port 8000
 
 AWS 배포·DB 계정·Cognito 회사 계정 연동·등록 절차는 [배포 및 운영 안내](docs/deployment.md)를 따른다. 배포 전 개발 환경에서 외부 연동 시험을 수행한다. 커밋·푸시와 AWS 리소스 배포는 별도 작업이다.
 
+FutureX의 개발 역할 경계에 맞춘 신규 SAM 배포는 [개발 환경 배포 안내](docs/dev-deployment.md)를 따른다.
+
 Linux 현장은 `examples/edge.env.example`과 `deploy/edge/dsc-edge.service`를 사용한다. `client-secret` 파일 권한은 `0600`으로 두고 NAS는 읽기 전용으로 마운트한다. 업데이트 시 outbox·manifest 경로를 보존한다.
 
 ```sh

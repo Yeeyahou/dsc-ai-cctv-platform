@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Isolated development VPC with private application and PostgreSQL subnets and outbound HTTPS.
+Metadata:
+  AWSToolsMetrics:
+    AWSAgentToolkit: aws-cloudformation@3
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.74.0.0/24
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+      - Key: Name
+        Value: !Ref AWS::StackName
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Keeps development resources separate from shared account networks.
+        must:
+        - Do not add routes to company networks
+  Gateway:
+    Type: AWS::EC2::InternetGateway
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Provides internet egress for the development NAT gateway.
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref Gateway
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Attaches the gateway to this stack's isolated VPC only.
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.74.0.0/26
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Hosts the only development NAT gateway.
+        must:
+        - No application or database instances
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.74.0.64/26
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Provides private addresses for application and database in the first AZ.
+        must:
+        - No direct internet gateway route
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.74.0.128/26
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: false
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Provides a second AZ for the RDS subnet group and application.
+        must:
+        - No direct internet gateway route
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Isolates the NAT subnet's public route from the application subnets.
+  PublicAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Routes only the NAT subnet directly to the internet gateway.
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref Gateway
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Makes the NAT public IP reachable from AWS service endpoints.
+  NatAddress:
+    Type: AWS::EC2::EIP
+    DependsOn: GatewayAttachment
+    Properties:
+      Domain: vpc
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Supplies the development NAT gateway's public source address.
+  Nat:
+    Type: AWS::EC2::NatGateway
+    DependsOn: [PublicAssociation, PublicRoute]
+    Properties:
+      AllocationId: !GetAtt NatAddress.AllocationId
+      SubnetId: !Ref PublicSubnet
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Lets private Lambda functions reach Cognito JWKS and AWS APIs.
+        must:
+        - Single AZ egress is a development cost tradeoff only
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Gives both development subnets the same outbound routing.
+  PrivateAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetA
+      RouteTableId: !Ref PrivateRouteTable
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Keeps first-AZ workloads on the private route table.
+  PrivateAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnetB
+      RouteTableId: !Ref PrivateRouteTable
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Keeps second-AZ workloads on the private route table.
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref Nat
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Gives private workloads outbound connectivity without a public ingress route.
+  S3GatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref Vpc
+      VpcEndpointType: Gateway
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      RouteTableIds: [!Ref PrivateRouteTable]
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Keeps S3 calls off the NAT path; workload IAM still restricts bucket access.
+Outputs:
+  VpcId:
+    Value: !Ref Vpc
+  PrivateSubnetIds:
+    Value: !Join [',', [!Ref PrivateSubnetA, !Ref PrivateSubnetB]]

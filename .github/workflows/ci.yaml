@@ -31,5 +31,6 @@ jobs:
         env:
           DSC_TEST_POSTGRES_URL: postgresql+psycopg://dsc_test:local-test-only@127.0.0.1:5432/dsc_test
       - run: alembic upgrade head && alembic check
-      - run: cfn-lint infra/template.yaml infra/database.yaml
+      - run: cfn-lint infra/*.yaml
+      - run: ruff check deploy/database/dev_init.py && ruff format --check deploy/database/dev_init.py
       - run: python scripts/export_openapi.py && git diff --exit-code docs/openapi.json
