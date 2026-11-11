@@ -79,6 +79,8 @@ v1.0 설치를 갱신할 때는 [v1.1 연동 변경 이력과 전환 절차](doc
 
 신규 CCTV·로봇 현장은 `examples/field.env.example`, 사무실 수신기·워커는 `examples/office.env.example`을 사용한다. 설치·HTTPS·NAS 마커·30일 관리 사본 정리와 장애 복구는 [사무실·현장 운영 안내](docs/office-worker-operations.md)를 따른다. 기존 legacy 설치는 `examples/edge.env.example`과 기존 서비스 파일을 유지할 수 있다. 비밀 파일 권한은 `0600`으로 두고 업데이트 시 outbox·manifest·관리 사본 경로를 보존한다.
 
+2026년 11월 11일 AWS 개발 스택을 v1.2로 갱신하고 실제 AWS 업로드·장애 전환·다운로드 만료를 확인했다. 배포 해시와 데이터 보존 및 남은 물리 장비 검수는 [개발 배포 기록](docs/office-worker-deployment-v1.2.md)에 있다. 현장·사무실 장비 설치는 NAS와 접속·네트워크 정보가 준비된 뒤 수행한다.
+
 ```sh
 dsc-edge-server --env-file /etc/dsc/edge.env
 dsc-edge-server --env-file /etc/dsc/edge.env --inspect-outbox
@@ -106,4 +108,4 @@ cfn-guard validate --rules infra/security.guard --data infra/template.yaml --out
 cfn-guard validate --rules infra/security.guard --data infra/database.yaml --output-format json
 ```
 
-검수 항목별 자동 시험과 실제 환경 확인 범위는 [검증 기록](docs/verification.md)을 참고한다. 실제 회사 IdP, 현장 NAS, AWS 통합·부하·재해 복구 시험은 운영 환경값과 함께 확인해야 한다.
+검수 항목별 자동 시험과 실제 AWS 연동 범위는 [검증 기록](docs/verification.md)을 참고한다. 실제 회사 IdP, 현장 NAS·회선·전원, 부하와 재해 복구 시험은 운영 환경값과 함께 확인해야 한다.
