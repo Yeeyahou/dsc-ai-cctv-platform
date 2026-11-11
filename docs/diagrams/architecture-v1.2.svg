@@ -1,66 +1,151 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
-<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#222"/></marker></defs>
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1760" viewBox="0 0 2400 1760" role="img">
+<title>전체 시스템 구성과 제어 흐름</title><desc>API 화살표는 요청 방향이다. 클립 복제·직접 업로드는 클립 저장 경로도, 각 요청·응답은 상세 흐름도를 따른다.</desc>
 <rect width="100%" height="100%" fill="white"/>
-<rect x="25" y="25" width="700" height="550" rx="12" fill="white" stroke="#333" stroke-width="2" stroke-dasharray="9 7"/>
-<text x="375.0" y="63" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="31" font-weight="700" fill="#111">산업 현장</text>
-<rect x="850" y="25" width="725" height="550" rx="12" fill="white" stroke="#333" stroke-width="2" stroke-dasharray="9 7"/>
-<text x="1212.5" y="63" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="31" font-weight="700" fill="#111">사무실</text>
-<rect x="25" y="715" width="1550" height="340" rx="12" fill="white" stroke="#333" stroke-width="2" stroke-dasharray="9 7"/>
-<text x="800.0" y="753" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="31" font-weight="700" fill="#111">AWS</text>
-<rect x="65" y="110" width="280" height="90" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="205.0" y="165.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">CCTV 디텍션 프로그램</text>
-<rect x="400" y="110" width="280" height="90" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="540.0" y="165.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">로봇 디텍션 프로그램</text>
-<rect x="65" y="290" width="280" height="130" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="205.0" y="348.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">CCTV 엣지</text>
-<text x="205.0" y="382.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">outbox · 관리 사본</text>
-<rect x="400" y="290" width="280" height="130" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="540.0" y="348.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">로봇 엣지</text>
-<text x="540.0" y="382.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">outbox · 관리 사본</text>
-<text x="375" y="475" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="400" fill="#111">같은 코드 · 별도 식별자와 상태</text>
-<text x="375" y="525" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="400" fill="#111">현장 사본 기본 30일 보관</text>
-<polyline points="205,200 205,290" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<text x="205" y="250" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">이벤트 · 클립 매핑</text>
-<polyline points="540,200 540,290" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<text x="540" y="250" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">이벤트 · 클립 매핑</text>
-<rect x="900" y="120" width="260" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="1030.0" y="168.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">사무실 NAS</text>
-<text x="1030.0" y="202.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">검증 클립 보관</text>
-<rect x="1230" y="120" width="300" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="1380.0" y="168.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">HTTPS 수신기</text>
-<text x="1380.0" y="202.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">크기 · SHA-256 검증</text>
-<rect x="1030" y="370" width="340" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="1200.0" y="418.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">업로드 워커</text>
-<text x="1200.0" y="452.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">요청된 클립만 업로드</text>
-<polyline points="1230,175 1160,175" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<polyline points="1030,230 1030,320 1120,320 1120,370" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<text x="940" y="350" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">클립 읽기</text>
-<polyline points="725,350 780,350 780,270 1380,270 1380,230" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<text x="1080" y="305" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">클립 복제 · 완료 확인</text>
-<rect x="80" y="790" width="310" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="235.0" y="838.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">WAF · API Gateway</text>
-<text x="235.0" y="872.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">Cognito 인증</text>
-<rect x="480" y="790" width="310" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="635.0" y="838.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">Lambda 백엔드</text>
-<text x="635.0" y="872.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">이벤트 · 사본 · lease</text>
-<rect x="925" y="790" width="275" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="1062.5" y="838.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">설치별 SQS</text>
-<text x="1062.5" y="872.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">클립 작업 전달</text>
-<rect x="1280" y="790" width="250" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="1405.0" y="838.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">비공개 S3</text>
-<text x="1405.0" y="872.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">임시 클립</text>
-<rect x="480" y="960" width="310" height="70" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
-<text x="635.0" y="1005.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">클라우드 DB</text>
-<polyline points="390,845 480,845" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<polyline points="790,845 925,845" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<polyline points="635,900 635,960" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<polyline points="160,420 160,790" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<text x="280" y="635" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">이벤트 HTTPS</text>
-<polyline points="540,420 540,610 310,610 310,790" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<polyline points="1030,425 820,425 820,675 350,675 350,790" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<text x="1100" y="655" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">작업 API 폴링</text>
-<polyline points="1240,480 1240,620 1405,620 1405,790" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
-<text x="1395" y="655" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">서명 URL로 직접 업로드</text>
-<polyline points="650,575 650,700 1405,700 1405,790" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="9 7"/>
-<text x="1100" y="690" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">사무실 장애 시 현장 사본 직접 업로드</text>
+<text x="45" y="48" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="34" font-weight="700" fill="#172431">전체 시스템 구성과 제어 흐름</text>
+<text x="45" y="91" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">API 화살표는 요청 방향이다. 클립 복제·직접 업로드는 클립 저장 경로도, 각 요청·응답은 상세 흐름도를 따른다.</text>
+<rect x="900" y="130" width="1470" height="1550" rx="8" fill="#F7F9FB" stroke="#A3ADB8" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="922" y="169" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="700" fill="#172431">AWS 관리 서비스와 백엔드</text>
+<rect x="30" y="470" width="700" height="570" rx="8" fill="#F7F9FB" stroke="#A3ADB8" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="52" y="509" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="700" fill="#172431">산업 현장  |  두 설치는 같은 코드와 별도 상태 사용</text>
+<rect x="30" y="1150" width="700" height="510" rx="8" fill="#F7F9FB" stroke="#A3ADB8" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="52" y="1189" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="700" fill="#172431">사무실  |  수신기와 워커는 PC 또는 지원 NAS에서 실행</text>
+<rect x="60" y="170" width="640" height="180" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="380.0" y="209" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="700" fill="#172431">고객 클라이언트</text>
+<text x="380.0" y="247" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="400" fill="#172431">직원 웹·모바일 / 허용된 파트너 서버</text>
+<text x="380.0" y="289" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="400" fill="#172431">이벤트·시계열·AAS 조회 / 클립 요청·상태·다운로드</text>
+<rect x="930" y="200" width="380" height="150" rx="6" fill="white" stroke="#704892" stroke-width="2.4"/>
+<text x="1120.0" y="239" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">Cognito User Pool</text>
+<text x="1120.0" y="277" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">직원 로그인 / 설치별 M2M 토큰</text>
+<text x="1120.0" y="319" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">회사 IdP 연동은 별도 설정</text>
+<rect x="70" y="550" width="240" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="190.0" y="589" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">CCTV AI·센서 수집</text>
+<text x="190.0" y="627.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">감지·온도 이벤트</text>
+<text x="190.0" y="659.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">JSON</text>
+<text x="190.0" y="691.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">녹화 클립·매핑</text>
+<rect x="420" y="550" width="270" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="555.0" y="589" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="700" fill="#172431">CCTV field 엣지</text>
+<text x="555.0" y="627" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">SQLite outbox·manifest</text>
+<text x="555.0" y="669" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">관리 사본·예비 업로드</text>
+<rect x="70" y="820" width="240" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="190.0" y="859" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">로봇 AI·녹화</text>
+<text x="190.0" y="897" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">감지 이벤트 JSON</text>
+<text x="190.0" y="939" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">완성 클립·매핑</text>
+<rect x="420" y="820" width="270" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="555.0" y="859" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="700" fill="#172431">로봇 field 엣지</text>
+<text x="555.0" y="897" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">SQLite outbox·manifest</text>
+<text x="555.0" y="939" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">관리 사본·예비 업로드</text>
+<rect x="930" y="550" width="380" height="480" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="1120.0" y="589" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="700" fill="#172431">API Gateway REST API</text>
+<text x="1120.0" y="627" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="400" fill="#172431">WAF는 API stage에 연결</text>
+<text x="1120.0" y="669" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="400" fill="#172431">Cognito Authorizer</text>
+<text x="1120.0" y="711" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="400" fill="#172431">HTTPS JSON 요청과 응답</text>
+<text x="1120.0" y="753" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="400" fill="#172431">토큰·scope 1차 검사</text>
+<text x="1120.0" y="795" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="400" fill="#172431">요청 제한 / 접근 로그</text>
+<text x="1120.0" y="837" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="400" fill="#172431">기능별 권한은 백엔드 재검사</text>
+<rect x="1440" y="490" width="480" height="640" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="1680.0" y="529" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">ApiFunction | 한 개 Lambda</text>
+<text x="1680.0" y="567" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">FastAPI 라우팅 / 공통 인증·데이터 권한</text>
+<text x="1680.0" y="609" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">이벤트 수신 · 이벤트·TimeSeries 조회</text>
+<text x="1680.0" y="651" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">AAS 조회 어댑터</text>
+<text x="1680.0" y="693" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">Discovery · Registry · Shell</text>
+<text x="1680.0" y="735" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">Nameplate · TechnicalData · TimeSeries</text>
+<text x="1680.0" y="777" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">Submodel · submodel-refs · $value</text>
+<text x="1680.0" y="819" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">클립 요청 · 상태 · GET/PUT 서명 URL</text>
+<text x="1680.0" y="861" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">작업 claim · lease · 업로드 완료 검증</text>
+<text x="1680.0" y="903" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">사본 등록 · 전송 권한 · 정리 보호</text>
+<rect x="2020" y="610" width="320" height="380" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="2180.0" y="649" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">RDS PostgreSQL 17</text>
+<text x="2180.0" y="687" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">자산·센터·등록 주체·권한</text>
+<text x="2180.0" y="729" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">이벤트·자산 연결·영상 상태</text>
+<text x="2180.0" y="771" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">file_requests / job_leases</text>
+<text x="2180.0" y="813" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">clip_replicas</text>
+<text x="2180.0" y="855" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">archive_transfers</text>
+<text x="2180.0" y="897" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">AAS도 같은 DB 조회</text>
+<rect x="2020" y="1140" width="320" height="200" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="2180.0" y="1179" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">SQS 설치별 큐 + DLQ</text>
+<text x="2180.0" y="1217" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">CCTV / 로봇 / 사무실</text>
+<text x="2180.0" y="1259" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">기존 legacy 큐 유지</text>
+<text x="2180.0" y="1301" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">SQS 접근은 백엔드만 수행</text>
+<rect x="2020" y="170" width="320" height="180" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="2180.0" y="209" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="700" fill="#172431">비공개 S3 클립 버킷</text>
+<text x="2180.0" y="247" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">요청한 클립만 임시 보관</text>
+<text x="2180.0" y="289" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">객체·시도별 PUT / GET URL</text>
+<text x="2180.0" y="331" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">영상 바이트는 Lambda 미경유</text>
+<rect x="70" y="1250" width="280" height="160" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="210.0" y="1289" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="700" fill="#172431">HTTPS 수신기</text>
+<text x="210.0" y="1327.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">TLS 프록시 + archive</text>
+<text x="210.0" y="1351.6666666666667" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">receiver</text>
+<text x="210.0" y="1376.3333333333333" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">크기·SHA-256·볼륨 확인</text>
+<text x="210.0" y="1401.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">NAS 확정 후 완료 보고</text>
+<rect x="420" y="1250" width="270" height="160" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="555.0" y="1289" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="700" fill="#172431">사무실 archive 워커</text>
+<text x="555.0" y="1327.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">작업 API claim / lease</text>
+<text x="555.0" y="1364.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">NAS 읽기 → S3 PUT</text>
+<text x="555.0" y="1401.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">상태·업로드 결과 보고</text>
+<rect x="70" y="1490" width="280" height="130" rx="6" fill="white" stroke="#A44F11" stroke-width="2.4"/>
+<text x="210.0" y="1529" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="700" fill="#172431">사무실 NAS</text>
+<text x="210.0" y="1567" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">검증 클립 / .dsc-volume-id</text>
+<text x="210.0" y="1609" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">로컬·마운트 경로로 접근</text>
+<rect x="930" y="1450" width="380" height="170" rx="6" fill="white" stroke="#586575" stroke-width="2.4"/>
+<text x="1120.0" y="1489" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">EventBridge 예약 규칙</text>
+<text x="1120.0" y="1527" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">rate(1 minute)</text>
+<text x="1120.0" y="1569" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">SAM Schedule로 유지관리 호출</text>
+<rect x="1440" y="1450" width="480" height="170" rx="6" fill="white" stroke="#586575" stroke-width="2.4"/>
+<text x="1680.0" y="1489" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">MaintenanceFunction | 별도 Lambda</text>
+<text x="1680.0" y="1527" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">미수락·lease 만료 / 재발행·재배정</text>
+<text x="1680.0" y="1569" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">기한 만료 / 이전 S3 객체 안전 정리</text>
+<text x="1680.0" y="1611" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">DB·SQS·S3·관측 연결: AWS 배포 상세</text>
+<polyline points="700,260 930,260" fill="none" stroke="#704892" stroke-width="2.6" />
+<polygon points="930,260 918,255 918,265" fill="#704892"/>
+<text x="813" y="237" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#704892">A01  로그인·토큰</text>
+<polyline points="1120,350 1120,550" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="1120,550 1115,538 1125,538" fill="#586575"/>
+<text x="1260" y="430" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#586575">A02  User Pool 연동 설정</text>
+<polyline points="620,350 620,400 850,400 850,610 930,610" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="930,610 918,605 918,615" fill="#235D92"/>
+<text x="725" y="445" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">A03  고객 조회·클립 요청</text>
+<polyline points="310,625 420,625" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="420,625 408,620 408,630" fill="#235D92"/>
+<text x="365" y="605" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">F01  입력</text>
+<polyline points="310,895 420,895" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="420,895 408,890 408,900" fill="#235D92"/>
+<text x="365" y="875" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">F02  입력</text>
+<polyline points="690,625 800,625 800,700 930,700" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="930,700 918,695 918,705" fill="#235D92"/>
+<text x="800" y="735" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">F03  이벤트·작업</text>
+<polyline points="690,895 800,895 800,840 930,840" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="930,840 918,835 918,845" fill="#235D92"/>
+<text x="810" y="810" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">F04  이벤트·작업</text>
+<polyline points="350,1300 380,1300 380,1240 760,1240 760,1100 800,1100 800,940 930,940" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="930,940 918,935 918,945" fill="#235D92"/>
+<text x="580" y="1220" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">O01  수신 권한·완료</text>
+<polyline points="690,1340 850,1340 850,1000 930,1000" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="930,1000 918,995 918,1005" fill="#235D92"/>
+<text x="1050" y="1100" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">O02  claim·lease·결과</text>
+<polyline points="210,1410 210,1490" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="210,1490 205,1478 215,1478" fill="#A44F11"/>
+<text x="315" y="1455" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#A44F11">O03  NAS 확정</text>
+<polyline points="550,1410 550,1540 350,1540" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="350,1540 362,1535 362,1545" fill="#A44F11"/>
+<text x="475" y="1500" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#A44F11">O04  NAS 읽기</text>
+<polyline points="1310,800 1440,800" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="1440,800 1428,795 1428,805" fill="#235D92"/>
+<text x="1375" y="777" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">A04  호출</text>
+<polyline points="1920,790 2020,790" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="2020,790 2008,785 2008,795" fill="#235D92"/>
+<text x="1970" y="765" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">A05  SQL</text>
+<polyline points="1920,1050 1960,1050 1960,1240 2020,1240" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="2020,1240 2008,1235 2008,1245" fill="#235D92"/>
+<text x="2110" y="1090" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">A06  큐 송수신</text>
+<polyline points="1920,550 1970,550 1970,430 2180,430 2180,350" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="2180,350 2175,362 2185,362" fill="#235D92"/>
+<text x="2170" y="485" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">A07  S3 HEAD 검증</text>
+<polyline points="380,170 380,120 2180,120 2180,170" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="2180,170 2175,158 2185,158" fill="#A44F11"/>
+<text x="1680" y="151" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#A44F11">A08  서명 GET URL로 직접 다운로드</text>
+<polyline points="1310,1535 1440,1535" fill="none" stroke="#586575" stroke-width="2.6" />
+<polygon points="1440,1535 1428,1530 1428,1540" fill="#586575"/>
+<text x="1375" y="1507" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#586575">A09  매 1분</text>
+<text x="60" y="1008" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">복제·주·예비 업로드: 클립 저장 경로와 상세 흐름도 참조</text>
+<text x="45" y="1725" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">파랑: HTTPS API·DB·큐 요청   주황: 클립 전송·파일 접근   보라: 토큰 발급   회색 점선: 설정 의존 관계</text>
 </svg>
