@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1130" viewBox="0 0 1600 1130">
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#222"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<rect x="35" y="20" width="270" height="80" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="170.0" y="70.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">현장 엣지</text>
+<line x1="170" y1="110" x2="170" y2="1080" stroke="#999" stroke-dasharray="6 6"/>
+<rect x="465" y="20" width="270" height="80" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="600.0" y="70.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">AWS 백엔드</text>
+<line x1="600" y1="110" x2="600" y2="1080" stroke="#999" stroke-dasharray="6 6"/>
+<rect x="925" y="20" width="270" height="80" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="1060.0" y="70.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">사무실 수신기·워커</text>
+<line x1="1060" y1="110" x2="1060" y2="1080" stroke="#999" stroke-dasharray="6 6"/>
+<rect x="1315" y="20" width="270" height="80" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="1450.0" y="70.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">S3</text>
+<line x1="1450" y1="110" x2="1450" y2="1080" stroke="#999" stroke-dasharray="6 6"/>
+<polyline points="170,160 600,160" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="385.0" y="140" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">이벤트 영속 저장 · ACK</text>
+<polyline points="170,245 600,245" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="385.0" y="225" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">사본 SHA-256 등록 · 전송 토큰 발급</text>
+<polyline points="170,330 1060,330" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="615.0" y="310" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">HTTPS 클립 전송</text>
+<polyline points="1060,500 600,500" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="830.0" y="480" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">파일 fsync · 원자적 확정 · manifest 후 완료 보고</text>
+<polyline points="1060,580 170,580" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="615.0" y="560" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">AWS STORED 확인 후 동일 클립 ACK</text>
+<polyline points="1060,735 600,735" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="830.0" y="715" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">요청된 작업 폴링 · 단일 lease 확보</text>
+<polyline points="1060,820 1450,820" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="1255.0" y="800" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">고정 크기 · SHA-256으로 직접 PUT</text>
+<polyline points="1060,905 600,905" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="830.0" y="885" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">완료 통지 · S3 HEAD 검증 후 READY</text>
+<polyline points="170,1030 1450,1030" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="9 7"/>
+<text x="810.0" y="1010" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">사무실 장애 시 새 배정 · 새 lease로 현장 업로드</text>
+<text x="1060" y="420" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">실제 크기·해시 검증</text>
+<text x="600" y="665" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#111">사용자 클립 요청 → 작업 생성</text>
+</svg>
