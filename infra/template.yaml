@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: DSC CCTV authenticated event API, per-edge-server work queue and private temporary clips. Uses an existing
-  private PostgreSQL deployment.
+Description: DSC CCTV and robot event API with verified office replicas, independently leased upload workers and
+  private temporary clips.
 Metadata:
   AWSToolsMetrics:
     AWSAgentToolkit: aws-cloudformation@3
@@ -26,24 +26,24 @@ Parameters:
   CertificateArn:
     Type: String
     Default: ''
-    AllowedPattern: '^$|arn:aws[a-z-]*:acm:.+'
+    AllowedPattern: ^$|arn:aws[a-z-]*:acm:.+
   HostedZoneId:
     Type: String
     Default: ''
-    AllowedPattern: '^$|[A-Z0-9]+'
+    AllowedPattern: ^$|[A-Z0-9]+
   DomainName:
     Type: String
     Default: ''
-    AllowedPattern: '^$|[a-z0-9.-]+'
+    AllowedPattern: ^$|[a-z0-9.-]+
   DevPublicBaseUrl:
     Type: String
     Default: https://unconfigured.invalid
-    AllowedPattern: '^https://(unconfigured\.invalid|[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/dev)$'
+    AllowedPattern: ^https://(unconfigured\.invalid|[a-z0-9]+\.execute-api\.[a-z0-9-]+\.amazonaws\.com/dev)$
     Description: For a domainless development stack, set to its ApiUrl output after initial creation.
   PermissionsBoundaryArn:
     Type: String
     Default: ''
-    AllowedPattern: '^$|arn:[a-z-]+:iam::[0-9]{12}:policy/.+'
+    AllowedPattern: ^$|arn:[a-z-]+:iam::[0-9]{12}:policy/.+
   ClipAuditMode:
     Type: String
     Default: managed
@@ -76,54 +76,91 @@ Parameters:
     Default: '[]'
     AllowedPattern: \[.*\]
     Description: Approved browser origins as a JSON array; no wildcard is enabled by default.
+  InitialQueueNaming:
+    Type: String
+    Default: edge-server
+    AllowedValues:
+    - edge-server
+    - agent
+    Description: Retain agent only when updating a pre-v1.1 stack, preserving its initial queue and pending messages.
 Rules:
   SyntheticAuditModeIsDevOnly:
     RuleCondition:
-      Fn::Equals: [Ref: ClipAuditMode, synthetic]
+      Fn::Equals:
+      - Ref: ClipAuditMode
+      - synthetic
     Assertions:
     - Assert:
-        Fn::Equals: [Ref: Environment, dev]
+        Fn::Equals:
+        - Ref: Environment
+        - dev
       AssertDescription: Synthetic audit mode is allowed only for development with synthetic clips.
   DevRequiresPermissionsBoundary:
     RuleCondition:
-      Fn::Equals: [Ref: Environment, dev]
+      Fn::Equals:
+      - Ref: Environment
+      - dev
     Assertions:
     - Assert:
         Fn::Not:
-        - Fn::Equals: [Ref: PermissionsBoundaryArn, '']
+        - Fn::Equals:
+          - Ref: PermissionsBoundaryArn
+          - ''
       AssertDescription: Development execution roles require the account-approved permissions boundary.
   DomainRequiredOutsideDev:
     RuleCondition:
       Fn::Not:
-      - Fn::Equals: [Ref: Environment, dev]
+      - Fn::Equals:
+        - Ref: Environment
+        - dev
     Assertions:
     - Assert:
         Fn::Not:
-        - Fn::Equals: [Ref: DomainName, '']
+        - Fn::Equals:
+          - Ref: DomainName
+          - ''
       AssertDescription: A custom domain is required outside development.
   CustomDomainInputs:
     RuleCondition:
       Fn::Not:
-      - Fn::Equals: [Ref: DomainName, '']
+      - Fn::Equals:
+        - Ref: DomainName
+        - ''
     Assertions:
     - Assert:
         Fn::And:
         - Fn::Not:
-          - Fn::Equals: [Ref: CertificateArn, '']
+          - Fn::Equals:
+            - Ref: CertificateArn
+            - ''
         - Fn::Not:
-          - Fn::Equals: [Ref: HostedZoneId, '']
+          - Fn::Equals:
+            - Ref: HostedZoneId
+            - ''
       AssertDescription: A custom domain needs a certificate and hosted zone.
 Conditions:
   IsDev:
-    Fn::Equals: [Ref: Environment, dev]
+    Fn::Equals:
+    - Ref: Environment
+    - dev
   HasPermissionsBoundary:
     Fn::Not:
-    - Fn::Equals: [Ref: PermissionsBoundaryArn, '']
+    - Fn::Equals:
+      - Ref: PermissionsBoundaryArn
+      - ''
   HasCustomDomain:
     Fn::Not:
-    - Fn::Equals: [Ref: DomainName, '']
+    - Fn::Equals:
+      - Ref: DomainName
+      - ''
   ManageClipTrail:
-    Fn::Equals: [Ref: ClipAuditMode, managed]
+    Fn::Equals:
+    - Ref: ClipAuditMode
+    - managed
+  LegacyInitialQueue:
+    Fn::Equals:
+    - Ref: InitialQueueNaming
+    - agent
 Globals:
   Function:
     Runtime: python3.12
@@ -147,7 +184,7 @@ Globals:
         DSC_COGNITO_ISSUER:
           Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
         DSC_ALLOWED_CLIENT_IDS:
-          Fn::Sub: '["${StaffClient}","${EdgeClient}","${PartnerClient}"]'
+          Fn::Sub: '["${StaffClient}","${EdgeClient}","${PartnerClient}","${CctvClient}","${RobotClient}","${OfficeClient}"]'
         DSC_ADDITIONAL_CLIENT_IDS:
           Ref: AdditionalClientIdsJson
         DSC_AWS_REGION:
@@ -394,7 +431,10 @@ Resources:
     UpdateReplacePolicy: Retain
     Properties:
       QueueName:
-        Fn::Sub: ${AWS::StackName}-edge-server-dlq
+        Fn::If:
+        - LegacyInitialQueue
+        - Fn::Sub: ${AWS::StackName}-agent-dlq
+        - Fn::Sub: ${AWS::StackName}-edge-server-dlq
       SqsManagedSseEnabled: true
       MessageRetentionPeriod: 1209600
     Metadata:
@@ -402,6 +442,7 @@ Resources:
         why: Delivers edge server work or quarantines undeliverable work.
         must:
         - Encrypt messages; DB lease remains authoritative
+        - Preserve the deployed physical queue name during upgrades
   WorkQueue:
     Type: AWS::SQS::Queue
     DeletionPolicy: Retain
@@ -412,9 +453,13 @@ Resources:
         must:
         - Receipt handles remain server side
         - DB lease is the source of truth
+        - Preserve the deployed physical queue name during upgrades
     Properties:
       QueueName:
-        Fn::Sub: ${AWS::StackName}-edge-server-initial
+        Fn::If:
+        - LegacyInitialQueue
+        - Fn::Sub: ${AWS::StackName}-agent-initial
+        - Fn::Sub: ${AWS::StackName}-edge-server-initial
       SqsManagedSseEnabled: true
       VisibilityTimeout: 300
       MessageRetentionPeriod: 86400
@@ -436,7 +481,9 @@ Resources:
           Principal: '*'
           Action: sqs:*
           Resource:
-            Fn::GetAtt: [WorkQueue, Arn]
+            Fn::GetAtt:
+            - WorkQueue
+            - Arn
           Condition:
             Bool:
               aws:SecureTransport: 'false'
@@ -458,7 +505,9 @@ Resources:
           Principal: '*'
           Action: sqs:*
           Resource:
-            Fn::GetAtt: [WorkDLQ, Arn]
+            Fn::GetAtt:
+            - WorkDLQ
+            - Arn
           Condition:
             Bool:
               aws:SecureTransport: 'false'
@@ -672,7 +721,10 @@ Resources:
       EndpointConfiguration: REGIONAL
       TracingEnabled: true
       DisableExecuteApiEndpoint:
-        Fn::If: [HasCustomDomain, true, false]
+        Fn::If:
+        - HasCustomDomain
+        - true
+        - false
       Auth:
         DefaultAuthorizer: CognitoAccess
         Authorizers:
@@ -713,7 +765,8 @@ Resources:
       DomainName:
         Ref: DomainName
       EndpointConfiguration:
-        Types: [REGIONAL]
+        Types:
+        - REGIONAL
       RegionalCertificateArn:
         Ref: CertificateArn
       SecurityPolicy: TLS_1_2
@@ -750,9 +803,13 @@ Resources:
       Type: A
       AliasTarget:
         DNSName:
-          Fn::GetAtt: [ApiCustomDomain, RegionalDomainName]
+          Fn::GetAtt:
+          - ApiCustomDomain
+          - RegionalDomainName
         HostedZoneId:
-          Fn::GetAtt: [ApiCustomDomain, RegionalHostedZoneId]
+          Fn::GetAtt:
+          - ApiCustomDomain
+          - RegionalHostedZoneId
         EvaluateTargetHealth: false
     Metadata:
       com.aws.cloudformation.Context:
@@ -806,7 +863,10 @@ Resources:
             - sqs:DeleteMessage
             - sqs:ChangeMessageVisibility
             Resource:
-              Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-edge-server-*
+            - Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-edge-server-*
+            - Fn::GetAtt:
+              - WorkQueue
+              - Arn
     Metadata:
       com.aws.cloudformation.Context:
         why: Preserves the existing service permissions with an explicit deployment role.
@@ -825,9 +885,14 @@ Resources:
       CodeUri: ..
       Handler: dsc.backend.lambda_handler.handler
       ReservedConcurrentExecutions:
-        Fn::If: [IsDev, {Ref: 'AWS::NoValue'}, 10]
+        Fn::If:
+        - IsDev
+        - Ref: AWS::NoValue
+        - 10
       Role:
-        Fn::GetAtt: [ApiFunctionRole, Arn]
+        Fn::GetAtt:
+        - ApiFunctionRole
+        - Arn
       Events:
         Proxy:
           Type: Api
@@ -904,7 +969,10 @@ Resources:
             Action:
             - sqs:SendMessage
             Resource:
-              Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-edge-server-*
+            - Fn::Sub: arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:${AWS::StackName}-edge-server-*
+            - Fn::GetAtt:
+              - WorkQueue
+              - Arn
     Metadata:
       com.aws.cloudformation.Context:
         why: Preserves the existing service permissions with an explicit deployment role.
@@ -924,9 +992,14 @@ Resources:
       Handler: dsc.backend.runtime.maintenance_handler
       Timeout: 120
       ReservedConcurrentExecutions:
-        Fn::If: [IsDev, {Ref: 'AWS::NoValue'}, 1]
+        Fn::If:
+        - IsDev
+        - Ref: AWS::NoValue
+        - 1
       Role:
-        Fn::GetAtt: [MaintenanceFunctionRole, Arn]
+        Fn::GetAtt:
+        - MaintenanceFunctionRole
+        - Arn
       Events:
         Sweep:
           Type: Schedule
@@ -1068,6 +1141,401 @@ Resources:
         why: Reports API or maintenance failures.
         must:
         - Connect the company operations notification route before production
+  RobotQueue:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      QueueName:
+        Fn::Sub: ${AWS::StackName}-edge-server-robot
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 86400
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+          - RobotDLQ
+          - Arn
+        maxReceiveCount: 20
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Isolates robot installation delivery and redrive from other installations.
+        must:
+        - Encrypt messages
+        - Keep DB lease authoritative
+        - Retain pending work on replacement
+  RobotQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+      - Ref: RobotQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: sqs:*
+          Resource:
+            Fn::GetAtt:
+            - RobotQueue
+            - Arn
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Requires HTTPS for the robot queue.
+        must:
+        - No edge IAM credentials
+        - One queue ARN per statement as required by SQS
+  RobotDLQ:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      QueueName:
+        Fn::Sub: ${AWS::StackName}-edge-server-robot-dlq
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 1209600
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Isolates robot installation delivery and redrive from other installations.
+        must:
+        - Encrypt messages
+        - Keep DB lease authoritative
+        - Retain pending work on replacement
+  RobotDLQPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+      - Ref: RobotDLQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: sqs:*
+          Resource:
+            Fn::GetAtt:
+            - RobotDLQ
+            - Arn
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Requires HTTPS for the robot dlq.
+        must:
+        - No edge IAM credentials
+        - One queue ARN per statement as required by SQS
+  RobotClient:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: ResourceServer
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      ClientName:
+        Fn::Sub: ${AWS::StackName}-robot
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+      - client_credentials
+      AllowedOAuthScopes:
+      - dsc/ingest.write
+      - dsc/edge-server.work
+      AccessTokenValidity: 15
+      TokenValidityUnits:
+        AccessToken: minutes
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Gives the robot installation a separate revocable M2M identity.
+        must:
+        - No shared edge server installation secret
+  OfficeQueue:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      QueueName:
+        Fn::Sub: ${AWS::StackName}-edge-server-office
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 86400
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+          - OfficeDLQ
+          - Arn
+        maxReceiveCount: 20
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Isolates office installation delivery and redrive from other installations.
+        must:
+        - Encrypt messages
+        - Keep DB lease authoritative
+        - Retain pending work on replacement
+  OfficeQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+      - Ref: OfficeQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: sqs:*
+          Resource:
+            Fn::GetAtt:
+            - OfficeQueue
+            - Arn
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Requires HTTPS for the office queue.
+        must:
+        - No edge IAM credentials
+        - One queue ARN per statement as required by SQS
+  OfficeDLQ:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      QueueName:
+        Fn::Sub: ${AWS::StackName}-edge-server-office-dlq
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 1209600
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Isolates office installation delivery and redrive from other installations.
+        must:
+        - Encrypt messages
+        - Keep DB lease authoritative
+        - Retain pending work on replacement
+  OfficeDLQPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+      - Ref: OfficeDLQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: sqs:*
+          Resource:
+            Fn::GetAtt:
+            - OfficeDLQ
+            - Arn
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Requires HTTPS for the office dlq.
+        must:
+        - No edge IAM credentials
+        - One queue ARN per statement as required by SQS
+  OfficeClient:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: ResourceServer
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      ClientName:
+        Fn::Sub: ${AWS::StackName}-office
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+      - client_credentials
+      AllowedOAuthScopes:
+      - dsc/edge-server.work
+      AccessTokenValidity: 15
+      TokenValidityUnits:
+        AccessToken: minutes
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Gives the office installation a separate revocable M2M identity.
+        must:
+        - No shared edge server installation secret
+  ReplicaQuarantineFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName:
+        Ref: ApiFunctionLog
+      FilterPattern: '{ $.event = "edge_server_heartbeat" && $.replicaQuarantinedCount > 0 }'
+      MetricTransformations:
+      - MetricName: ReplicaQuarantine
+        MetricNamespace: DSC/Integrity
+        MetricValue: '1'
+        DefaultValue: 0
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Makes reported field storage or integrity faults visible to operations.
+        must:
+        - Never include tokens, paths or clip payloads in metrics
+  ReplicaQuarantineAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Investigate field clip preservation before storage exhaustion or further cleanup.
+      Namespace: DSC/Integrity
+      MetricName: ReplicaQuarantine
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Signals a reported integrity or capacity fault.
+        must:
+        - Connect the operations notification route before production
+  ClipDiskLowFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName:
+        Ref: ApiFunctionLog
+      FilterPattern: '{ $.event = "edge_server_heartbeat" && $.diskFreeBytes < 5368709120 }'
+      MetricTransformations:
+      - MetricName: ClipDiskLow
+        MetricNamespace: DSC/Integrity
+        MetricValue: '1'
+        DefaultValue: 0
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Makes reported field storage or integrity faults visible to operations.
+        must:
+        - Never include tokens, paths or clip payloads in metrics
+  ClipDiskLowAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Investigate field clip preservation before storage exhaustion or further cleanup.
+      Namespace: DSC/Integrity
+      MetricName: ClipDiskLow
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Signals a reported integrity or capacity fault.
+        must:
+        - Connect the operations notification route before production
+  CctvQueue:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      QueueName:
+        Fn::Sub: ${AWS::StackName}-edge-server-cctv
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 86400
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+          - CctvDLQ
+          - Arn
+        maxReceiveCount: 20
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Keeps the new CCTV installation separate from existing legacy installation data.
+        must:
+        - Encrypt messages
+        - Keep DB lease authoritative
+        - Retain pending work on replacement
+  CctvQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+      - Ref: CctvQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: sqs:*
+          Resource:
+            Fn::GetAtt:
+            - CctvQueue
+            - Arn
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Requires HTTPS for the CCTV installation delivery queue.
+        must:
+        - No edge IAM credentials
+        - One queue ARN per statement as required by SQS
+  CctvDLQ:
+    Type: AWS::SQS::Queue
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      QueueName:
+        Fn::Sub: ${AWS::StackName}-edge-server-cctv-dlq
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 1209600
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Keeps the new CCTV installation separate from existing legacy installation data.
+        must:
+        - Encrypt messages
+        - Keep DB lease authoritative
+        - Retain pending work on replacement
+  CctvDLQPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+      - Ref: CctvDLQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Deny
+          Principal: '*'
+          Action: sqs:*
+          Resource:
+            Fn::GetAtt:
+            - CctvDLQ
+            - Arn
+          Condition:
+            Bool:
+              aws:SecureTransport: 'false'
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Requires HTTPS for the CCTV installation delivery queue.
+        must:
+        - No edge IAM credentials
+        - One queue ARN per statement as required by SQS
+  CctvClient:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: ResourceServer
+    Properties:
+      UserPoolId:
+        Ref: UserPool
+      ClientName:
+        Fn::Sub: ${AWS::StackName}-cctv
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+      - client_credentials
+      AllowedOAuthScopes:
+      - dsc/ingest.write
+      - dsc/edge-server.work
+      AccessTokenValidity: 15
+      TokenValidityUnits:
+        AccessToken: minutes
+    Metadata:
+      com.aws.cloudformation.Context:
+        why: Gives the CCTV installation a separate revocable M2M identity.
+        must:
+        - No shared edge server installation secret
 Outputs:
   ApiUrl:
     Value:
@@ -1096,3 +1564,27 @@ Outputs:
   TokenEndpoint:
     Value:
       Fn::Sub: https://${CognitoDomainPrefix}.auth.${AWS::Region}.amazoncognito.com/oauth2/token
+  RobotQueueUrl:
+    Description: Robot installation queue
+    Value:
+      Ref: RobotQueue
+  RobotClientId:
+    Description: Robot installation client
+    Value:
+      Ref: RobotClient
+  OfficeQueueUrl:
+    Description: Office installation queue
+    Value:
+      Ref: OfficeQueue
+  OfficeClientId:
+    Description: Office installation client
+    Value:
+      Ref: OfficeClient
+  CctvQueueUrl:
+    Description: CCTV installation queue
+    Value:
+      Ref: CctvQueue
+  CctvClientId:
+    Description: CCTV installation client
+    Value:
+      Ref: CctvClient

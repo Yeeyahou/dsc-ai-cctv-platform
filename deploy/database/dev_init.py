@@ -1,5 +1,6 @@
 """Temporary IAM-invoked initializer for an isolated DSC development database."""
 
+import hashlib
 import json
 import logging
 import os
@@ -9,6 +10,7 @@ from typing import Any
 from alembic import command
 from alembic.config import Config
 from psycopg import sql
+from sqlalchemy import inspect, text
 from sqlalchemy.engine import URL, make_url
 from sqlalchemy.orm import sessionmaker
 
@@ -85,10 +87,74 @@ def initialize(master: URL, runtime: URL, registration: Registration | None) -> 
         conn.exec_driver_sql("SELECT 1 FROM events LIMIT 1")
 
 
-def handler(event: dict[str, Any], _context: Any) -> dict[str, str]:
+@logged()
+def inspect_database(runtime: URL) -> dict:
+    engine, _ = database(runtime.render_as_string(hide_password=False))
+    try:
+        with engine.connect() as conn:
+            tables = set(inspect(conn).get_table_names())
+            installation_table = "edge_servers" if "edge_servers" in tables else "agents"
+            columns = "id,principal_id,site_id,assets,queue_url"
+            if "role" in {
+                column["name"] for column in inspect(conn).get_columns(installation_table)
+            }:
+                columns += ",role,archive_server_id,archive_url"
+            installations = [
+                dict(row)
+                for row in conn.execute(
+                    text(f"SELECT {columns} FROM {installation_table} ORDER BY id")
+                ).mappings()
+            ]
+            counts = {
+                table: conn.execute(text(f"SELECT COUNT(*) FROM {table}")).scalar_one()
+                for table in (
+                    "events",
+                    "event_assets",
+                    "event_media",
+                    "file_requests",
+                    "job_leases",
+                )
+            }
+            queries = {
+                "events": "SELECT id,payload,payload_hash FROM events ORDER BY id",
+                "event_assets": (
+                    "SELECT event_id,asset_id,role FROM event_assets "
+                    "ORDER BY event_id,asset_id,role"
+                ),
+                "event_media": (
+                    "SELECT event_id,clip_id,revision,payload FROM event_media ORDER BY event_id"
+                ),
+            }
+            content = {
+                table: [dict(row) for row in conn.execute(text(query)).mappings()]
+                for table, query in queries.items()
+            }
+            fingerprint = hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
+            return {
+                "integrityDigest": fingerprint,
+                "clientPrincipals": [
+                    dict(row)
+                    for row in conn.execute(
+                        text(
+                            "SELECT id,active,scopes,sites,assets,submodels,video FROM principals "
+                            "WHERE id LIKE 'client:%' ORDER BY id"
+                        )
+                    ).mappings()
+                ],
+                "schemaRevision": conn.execute(
+                    text("SELECT version_num FROM alembic_version")
+                ).scalar_one(),
+                "installations": installations,
+                "counts": counts,
+            }
+    finally:
+        engine.dispose()
+
+
+def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     configure_logging("dev-db-init")
     try:
-        if set(event) - {"registration"}:
+        if set(event) - {"registration", "inspectOnly"}:
             raise ValueError("unexpected initializer arguments")
         data = (
             Registration.model_validate(event["registration"]) if "registration" in event else None
@@ -98,13 +164,14 @@ def handler(event: dict[str, Any], _context: Any) -> dict[str, str]:
             SecretId=os.environ["MASTER_SECRET_ARN"]
         )
         master = json.loads(master_secret["SecretString"])
-        initialize(
-            runtime.set(username=master["username"], password=master["password"]), runtime, data
-        )
+        master_url = runtime.set(username=master["username"], password=master["password"])
+        if event.get("inspectOnly") is True:
+            return {"status": "inspected", **inspect_database(master_url)}
+        initialize(master_url, runtime, data)
+        return {"status": "initialized", **inspect_database(master_url)}
     except Exception as exc:
         # SQL exceptions can contain the ALTER ROLE statement and its password.
         emit_event("dev_db_init_failed", level=logging.ERROR, errorType=type(exc).__name__)
         raise RuntimeError(
             "Development database initialization failed; see structured logs"
         ) from None
-    return {"status": "initialized"}

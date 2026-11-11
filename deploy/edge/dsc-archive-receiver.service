@@ -1,0 +1,27 @@
+[Unit]
+Description=DSC office clip archive receiver
+After=network-online.target remote-fs.target
+Wants=network-online.target
+RequiresMountsFor=/mnt/dsc-archive
+
+[Service]
+Type=simple
+User=dsc-edge
+Group=dsc-edge
+WorkingDirectory=/opt/dsc
+EnvironmentFile=/etc/dsc/office.env
+ExecStart=/opt/dsc/venv/bin/dsc-archive-receiver --env-file /etc/dsc/office.env
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=180
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/dsc/office /mnt/dsc-archive
+ReadOnlyPaths=/etc/dsc
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

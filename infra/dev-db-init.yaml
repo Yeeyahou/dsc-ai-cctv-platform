@@ -4,6 +4,11 @@ Metadata:
   AWSToolsMetrics:
     AWSAgentToolkit: aws-cloudformation@3
 Parameters:
+  CreateLogGroup:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Set false when reusing the retained initializer log group from an earlier deployment.
   VpcId:
     Type: AWS::EC2::VPC::Id
   PrivateSubnetIds:
@@ -25,6 +30,8 @@ Parameters:
   ArtifactKey:
     Type: String
     MinLength: 1
+Conditions:
+  CreateInitializerLog: !Equals [!Ref CreateLogGroup, 'true']
 Resources:
   InitializerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -85,6 +92,7 @@ Resources:
         - Never reuse for the API function
         - Remove the initializer stack after use
   InitializerLog:
+    Condition: CreateInitializerLog
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
@@ -98,7 +106,7 @@ Resources:
         - Never log secret values or SQL statements
   Initializer:
     Type: AWS::Lambda::Function
-    DependsOn: [DatabaseIngress, InitializerLog]
+    DependsOn: DatabaseIngress
     Properties:
       FunctionName: !Ref AWS::StackName
       Runtime: python3.12
