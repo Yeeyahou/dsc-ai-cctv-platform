@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dsc-ai-cctv-platform"
-version = "1.1.0"
+version = "1.2.0"
 description = "DSC CCTV AWS backend and outbound edge server"
 requires-python = ">=3.12,<3.13"
 dependencies = [
@@ -20,6 +20,7 @@ dev = ["pytest>=8.3,<9", "pytest-cov>=6,<8", "ruff>=0.11,<1", "pip-tools>=7.4,<8
 
 [project.scripts]
 dsc-edge-server = "dsc.edge.main:main"
+dsc-archive-receiver = "dsc.edge.archive:main"
 dsc-admin = "dsc.backend.admin:main"
 
 [tool.hatch.build.targets.wheel]

@@ -6,6 +6,7 @@ import stat
 from pydantic import ValidationError
 
 from dsc.edge.config import EdgeSettings
+from dsc.edge.files import stage_clip
 from dsc.edge.paths import check_path
 from dsc.edge.store import EdgeStore
 from dsc.shared.contracts import EventEnvelope, MediaEnvelope
@@ -46,14 +47,31 @@ def receive_inbox(settings: EdgeSettings, store: EdgeStore) -> int:
                 raise ValueError("filename does not match body identity")
             if envelope.local_media:
                 check_path(settings.nas_root, envelope.local_media.relative_path)
-            store.accept(envelope)
+            staged = None
+            media = envelope.event.media if isinstance(envelope, EventEnvelope) else envelope.media
+            if (
+                settings.role == "field"
+                and envelope.local_media
+                and media
+                and media.status == "AVAILABLE"
+            ):
+                event_id = str(
+                    envelope.event.event_id
+                    if isinstance(envelope, EventEnvelope)
+                    else envelope.event_id
+                )
+                staged = stage_clip(settings, event_id, media, envelope.local_media.relative_path)
+            store.accept(envelope, staged_copy=staged)
             # A crash here leaves an idempotent receipt for the remaining input file.
             os.replace(path, inbox / "accepted" / path.name)
             accepted += 1
         except (ValueError, ValidationError, OSError) as exc:
             # Storage faults leave the input in place for a retry.
             if isinstance(exc, OSError) and exc.errno not in {40, 62}:
-                raise
+                emit_event(
+                    "inbox_storage_pending", level=logging.ERROR, errorType=type(exc).__name__
+                )
+                continue
             reason = {"code": "INVALID_LOCAL_INPUT", "type": type(exc).__name__}
             os.replace(path, inbox / "rejected" / path.name)
             (inbox / "rejected" / f"{path.name}.reason").write_text(json.dumps(reason) + "\n")

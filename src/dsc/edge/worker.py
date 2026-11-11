@@ -14,6 +14,7 @@ import httpx
 
 from dsc.edge.client import EdgeClient, response_code
 from dsc.edge.config import EdgeSettings
+from dsc.edge.files import check_volume, copy_lock
 from dsc.edge.paths import open_clip
 from dsc.edge.store import EdgeStore
 from dsc.shared.observability import contextual, emit_event, logged
@@ -116,12 +117,30 @@ def run_job(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, job: d
     thread.start()
     failure = None
     try:
-        manifest = store.manifest(job["clipId"], job["eventId"])
+        revision = job.get("revision")
+        managed = store.copy(job["eventId"], revision) if revision is not None else None
+        manifest = (
+            managed if revision is not None else store.manifest(job["clipId"], job["eventId"])
+        )
+        if managed and (
+            managed["state"] in {"RETIRING", "DELETED", "QUARANTINED"}
+            or managed["clip_id"] != job["clipId"]
+        ):
+            failure = "SOURCE_NOT_FOUND"
+            return
         if manifest is None:
             failure = "SOURCE_NOT_FOUND"
             return
         try:
-            with open_clip(settings.nas_root, manifest["relative_path"]) as stream:
+            root = (
+                settings.cache_root if settings.role == "field" and managed else settings.nas_root
+            )
+            if settings.role == "archive":
+                check_volume(settings.nas_root, settings.archive_volume_id)
+            with (
+                copy_lock(settings.state_dir, job["eventId"], revision or 0),
+                open_clip(root, manifest["relative_path"]) as stream,
+            ):
                 before = os.fstat(stream.fileno())
                 if not 0 < before.st_size <= settings.max_clip_bytes:
                     failure = "UPLOAD_VERIFICATION_FAILED"
@@ -132,6 +151,13 @@ def run_job(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, job: d
                         return
                     checksum.update(chunk)
                 encoded = base64.b64encode(checksum.digest()).decode()
+                if revision is not None and (
+                    before.st_size != job["sizeBytes"] or encoded != job["checksumSha256"]
+                ):
+                    failure = "UPLOAD_VERIFICATION_FAILED"
+                    return
+                if lost.is_set():
+                    return
                 upload = client.post(
                     f"{path}/upload-url",
                     {
@@ -141,6 +167,8 @@ def run_job(client: EdgeClient, store: EdgeStore, settings: EdgeSettings, job: d
                         "contentType": "video/mp4",
                     },
                 )
+                if lost.is_set():
+                    return
                 stream.seek(0)
                 client.put_clip(upload["uploadUrl"], upload["headers"], stream, before.st_size)
                 after = os.fstat(stream.fileno())

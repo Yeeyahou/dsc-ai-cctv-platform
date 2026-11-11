@@ -197,6 +197,8 @@ class Heartbeat(Contract):
     disk_free_bytes: Annotated[int, Field(strict=True, ge=0)]
     nas_status: Literal["OK", "UNREACHABLE", "READ_ERROR"]
     oldest_pending_at: datetime | None = None
+    replica_pending_count: Annotated[int, Field(strict=True, ge=0)] | None = None
+    replica_quarantined_count: Annotated[int, Field(strict=True, ge=0)] | None = None
 
     @field_validator("observed_at", "oldest_pending_at")
     @classmethod
@@ -220,10 +222,9 @@ class LeaseBody(Contract):
     lease_token: Annotated[str, Field(min_length=20, max_length=256)]
 
 
-class UploadBody(LeaseBody):
+class ClipFingerprint(Contract):
     size_bytes: Annotated[int, Field(strict=True, gt=0, le=512 * 1024 * 1024)]
     checksum_sha256: str
-    content_type: Literal["video/mp4"]
 
     @field_validator("checksum_sha256")
     @classmethod
@@ -235,6 +236,24 @@ class UploadBody(LeaseBody):
         if len(raw) != 32 or base64.b64encode(raw).decode() != value:
             raise ValueError("SHA-256 must encode 32 bytes")
         return value
+
+
+class UploadBody(LeaseBody, ClipFingerprint):
+    content_type: Literal["video/mp4"]
+
+
+class ReplicaBody(ClipFingerprint):
+    event_id: UUID
+    clip_id: UUID
+    revision: Annotated[int, Field(strict=True, ge=0)]
+
+
+class TransferToken(Contract):
+    transfer_token: Annotated[str, Field(min_length=32, max_length=256)]
+
+
+class TransferReceipt(TransferToken, ClipFingerprint):
+    pass
 
 
 class FailureBody(LeaseBody):
