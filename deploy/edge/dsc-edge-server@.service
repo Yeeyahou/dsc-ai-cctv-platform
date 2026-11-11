@@ -1,0 +1,27 @@
+[Unit]
+Description=DSC event and clip worker %i
+After=network-online.target remote-fs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dsc-edge
+Group=dsc-edge
+WorkingDirectory=/opt/dsc
+EnvironmentFile=/etc/dsc/%i.env
+ExecStart=/opt/dsc/venv/bin/dsc-edge-server
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=180
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/dsc /var/spool/dsc
+ReadOnlyPaths=/etc/dsc
+ReadWritePaths=-/mnt/dsc-archive
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

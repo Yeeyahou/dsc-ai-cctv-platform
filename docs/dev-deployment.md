@@ -2,7 +2,7 @@
 
 이 절차는 전용 개발 환경을 처음 설치할 때 사용한다. `develop`에서 검증한 소스를 서울 리전에 배포하고 회사 공용 VPC·DB나 운영 스택을 변경하지 않는다. 애플리케이션 스택 이름은 `dsc-dev-app`이다.
 
-v1.0 개발 스택을 갱신할 때는 [엣지 서버 v1.1 전환 절차](edge-server-upgrade-v1.1.md)에 따라 먼저 DB를 마이그레이션하고 큐와 인증 설정을 함께 변경한다.
+v1.2 사무실·현장 설치는 [사무실 워커 운영 안내](office-worker-operations.md)를 함께 따른다. v1.0 개발 스택을 갱신할 때는 [엣지 서버 v1.1 전환 절차](edge-server-upgrade-v1.1.md)에 따라 먼저 DB를 마이그레이션하고 큐와 인증 설정을 함께 변경한다.
 
 ## 먼저 확인할 항목
 
@@ -39,8 +39,8 @@ cfn-guard validate --data infra/ --rules infra/security.guard
 1. `infra/dev-artifacts.yaml`을 `dsc-dev-artifacts` 스택으로 배포한다. `BucketName` 출력에 ZIP을 올린다. 기존 회사 배포 버킷을 임의로 변경하지 않는다.
 2. `infra/dev-network.yaml`을 `dsc-dev-network`로 배포한다. 출력에서 `VpcId`와 쉼표로 구분한 `PrivateSubnetIds`를 읽는다.
 3. `infra/database.yaml`을 `dsc-dev-db`로 배포한다. 앞에서 읽은 VPC와 서브넷을 전달하고, `MultiAZ=false GenerateDevRuntimeSecret=true`를 지정한다. 출력에서 `DatabaseSecurityGroupId`, `MasterSecretArn`, `DevRuntimeSecretArn`을 읽는다. DB 인스턴스는 비공개·암호화·TLS 강제·삭제 보호를 유지한다.
-4. `db-init.zip`은 해시가 포함된 객체 키로 배포 버킷에 올린다. `infra/dev-db-init.yaml`을 `dsc-dev-app-db-init` 스택으로 배포한다. VPC, 서브넷, DB 보안 그룹, 마스터·런타임 secret ARN, `PermissionsBoundaryArn`, `ArtifactBucket`, `ArtifactKey`를 지정한다. 명명된 실행 역할이 있으므로 `CAPABILITY_NAMED_IAM`을 사용한다.
-5. IAM으로 초기화 함수를 한 번 호출한다. 응답의 `FunctionError`가 없고 결과가 `{"status":"initialized"}`인지 확인한다.
+4. `db-init.zip`은 해시가 포함된 객체 키로 배포 버킷에 올린다. `infra/dev-db-init.yaml`을 `dsc-dev-app-db-init` 스택으로 배포한다. VPC, 서브넷, DB 보안 그룹, 마스터·런타임 secret ARN, `PermissionsBoundaryArn`, `ArtifactBucket`, `ArtifactKey`를 지정한다. 명명된 실행 역할이 있으므로 `CAPABILITY_NAMED_IAM`을 사용한다. 이전 임시 함수의 로그 그룹이 보존돼 있으면 `CreateLogGroup=false`로 재사용한다.
+5. IAM으로 초기화 함수를 한 번 호출한다. 응답의 `FunctionError`가 없고 `status`가 `initialized`, `schemaRevision`이 배포한 Alembic head인지 확인한다. 초기화 응답은 설치 목록, 기존 이벤트·연결·클립의 내용 해시와 건수를 포함하므로 전환 전후를 대조한다. `{"inspectOnly":true}` 호출은 마이그레이션 없이 현재 상태를 읽는다.
 
 ```sh
 aws lambda invoke --function-name dsc-dev-app-db-init \
@@ -64,3 +64,9 @@ aws cloudformation package --template-file build/dev-release/app-local.yaml \
 스택 출력의 Cognito client ID·큐 URL과 실제 테스트 주체 ID를 [등록 예제](../examples/registration.json)에 반영한다. 초기화 함수에 `{"registration": {...}}` 형태로 호출해 등록하고, 인증 실패 응답과 등록된 주체의 이벤트 수신·조회·AAS 조회를 확인한다. 클립 검증은 합성 MP4로 작업 생성부터 S3 임시 링크까지 확인한다. `external` 모드에서는 관리자 trail과 S3 접근 로그에서 해당 접근을 대조한다. 함수 사용이 끝나면 **초기화 함수 스택만** 삭제해 마스터 secret에 접근하는 실행 경로를 없앤다. DB와 앱 스택은 유지한다.
 
 권한·감사 검사나 변경 세트에서 거부되면 오류가 난 자원과 작업을 확인한다. 거부된 회사 정책을 우회하거나 운영 리소스를 변경하지 않는다.
+
+## v1.2 업데이트에서 보존할 항목
+
+v1.0 스택의 초기 큐를 갱신할 때는 `InitialQueueNaming=agent`로 기존 물리 큐와 대기 메시지를 보존한다. 새 환경은 기본값 `edge-server`를 사용한다. 변경 세트에서 WorkQueue·WorkDLQ·UserPool·ClipBucket·RuntimeSecret의 교체가 없음을 확인한다. 기존 설치의 ID와 이벤트 발신 이력은 그대로 유지하고 역할은 legacy로 둔다.
+
+새 출력 CctvClientId·RobotClientId·OfficeClientId와 각각의 QueueUrl을 새 설치 등록에 사용한다. 사무실 client에는 work scope만 부여한다. 실제 HTTPS와 NAS가 준비되기 전에는 합성 데이터 전용 설치로 시험하고 현장 설치 검수는 별도로 남긴다. 배포 전 DB 복구 지점을 확보하고 원본 이벤트·자산 연결·클립의 건수와 integrityDigest를 대조한다. 초기화 작업 후 임시 함수 스택을 삭제하고 기존 감사 로그는 유지한다.

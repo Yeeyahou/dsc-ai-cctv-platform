@@ -52,6 +52,9 @@ class EdgeServer(Base):
     queue_url: Mapped[str] = mapped_column(Text)
     last_seen: Mapped[int | None] = mapped_column(BigInteger)
     heartbeat: Mapped[dict | None] = mapped_column(JSON)
+    role: Mapped[str] = mapped_column(String(16), default="legacy", server_default="legacy")
+    archive_url: Mapped[str | None] = mapped_column(Text)
+    archive_server_id: Mapped[str | None] = mapped_column(ForeignKey("edge_servers.id"))
 
 
 class Event(Base):
@@ -86,6 +89,35 @@ class EventMedia(Base):
     payload: Mapped[dict] = mapped_column(JSON)
 
 
+class ClipReplica(Base):
+    __tablename__ = "clip_replicas"
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id"), primary_key=True)
+    revision: Mapped[int] = mapped_column(Integer, primary_key=True)
+    edge_server_id: Mapped[str] = mapped_column(ForeignKey("edge_servers.id"), primary_key=True)
+    clip_id: Mapped[str] = mapped_column(String(36))
+    size_bytes: Mapped[int] = mapped_column(BigInteger)
+    checksum: Mapped[str] = mapped_column(String(44))
+    present: Mapped[bool] = mapped_column(Boolean, default=True)
+    verified_at: Mapped[int] = mapped_column(BigInteger)
+    created_at: Mapped[int] = mapped_column(BigInteger)
+
+
+class ArchiveTransfer(Base):
+    __tablename__ = "archive_transfers"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id"), index=True)
+    clip_id: Mapped[str] = mapped_column(String(36))
+    revision: Mapped[int] = mapped_column(Integer)
+    source_id: Mapped[str] = mapped_column(ForeignKey("edge_servers.id"))
+    receiver_id: Mapped[str] = mapped_column(ForeignKey("edge_servers.id"))
+    size_bytes: Mapped[int] = mapped_column(BigInteger)
+    checksum: Mapped[str] = mapped_column(String(44))
+    token_hash: Mapped[str] = mapped_column(String(64))
+    expires_at: Mapped[int] = mapped_column(BigInteger, index=True)
+    created_at: Mapped[int] = mapped_column(BigInteger)
+    completed_at: Mapped[int | None] = mapped_column(BigInteger)
+
+
 class FileJob(Base):
     __tablename__ = "file_requests"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -103,6 +135,10 @@ class FileJob(Base):
     failure_code: Mapped[str | None] = mapped_column(String(64))
     retryable: Mapped[bool] = mapped_column(Boolean, default=False)
     object_expires_at: Mapped[int | None] = mapped_column(BigInteger)
+    media_revision: Mapped[int | None] = mapped_column(Integer)
+    expected_size: Mapped[int | None] = mapped_column(BigInteger)
+    expected_checksum: Mapped[str | None] = mapped_column(String(44))
+    assigned_at: Mapped[int | None] = mapped_column(BigInteger)
 
 
 class Attempt(Base):

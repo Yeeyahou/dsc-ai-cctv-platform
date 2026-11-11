@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "DSC CCTV Backend",
-    "version": "1.1.0"
+    "version": "1.2.0"
   },
   "paths": {
     "/ingest": {
@@ -817,6 +817,225 @@
         }
       }
     },
+    "/edge-server/replicas": {
+      "post": {
+        "tags": [
+          "replicas"
+        ],
+        "summary": "Register Replica",
+        "operationId": "register_replica_edge_server_replicas_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplicaBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/edge-server/replicas/retire": {
+      "post": {
+        "tags": [
+          "replicas"
+        ],
+        "summary": "Retire Replica",
+        "operationId": "retire_replica_edge_server_replicas_retire_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplicaBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/edge-server/archive/prepare": {
+      "post": {
+        "tags": [
+          "archive"
+        ],
+        "summary": "Prepare Archive",
+        "operationId": "prepare_archive_edge_server_archive_prepare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplicaBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/edge-server/archive/{transfer_id}/authorize": {
+      "post": {
+        "tags": [
+          "archive"
+        ],
+        "summary": "Authorize Archive",
+        "operationId": "authorize_archive_edge_server_archive__transfer_id__authorize_post",
+        "parameters": [
+          {
+            "name": "transfer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Transfer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferToken"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/edge-server/archive/{transfer_id}/complete": {
+      "post": {
+        "tags": [
+          "archive"
+        ],
+        "summary": "Complete Archive",
+        "operationId": "complete_archive_edge_server_archive__transfer_id__complete_post",
+        "parameters": [
+          {
+            "name": "transfer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Transfer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferReceipt"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/description": {
       "get": {
         "tags": [
@@ -1465,6 +1684,30 @@
               }
             ],
             "title": "Oldestpendingat"
+          },
+          "replicaPendingCount": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replicapendingcount"
+          },
+          "replicaQuarantinedCount": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replicaquarantinedcount"
           }
         },
         "additionalProperties": false,
@@ -1649,14 +1892,8 @@
         ],
         "title": "MediaUpdate"
       },
-      "UploadBody": {
+      "ReplicaBody": {
         "properties": {
-          "leaseToken": {
-            "type": "string",
-            "maxLength": 256,
-            "minLength": 20,
-            "title": "Leasetoken"
-          },
           "sizeBytes": {
             "type": "integer",
             "maximum": 536870912.0,
@@ -1667,6 +1904,95 @@
             "type": "string",
             "title": "Checksumsha256"
           },
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Eventid"
+          },
+          "clipId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Clipid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "sizeBytes",
+          "checksumSha256",
+          "eventId",
+          "clipId",
+          "revision"
+        ],
+        "title": "ReplicaBody"
+      },
+      "TransferReceipt": {
+        "properties": {
+          "sizeBytes": {
+            "type": "integer",
+            "maximum": 536870912.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Sizebytes"
+          },
+          "checksumSha256": {
+            "type": "string",
+            "title": "Checksumsha256"
+          },
+          "transferToken": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 32,
+            "title": "Transfertoken"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "sizeBytes",
+          "checksumSha256",
+          "transferToken"
+        ],
+        "title": "TransferReceipt"
+      },
+      "TransferToken": {
+        "properties": {
+          "transferToken": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 32,
+            "title": "Transfertoken"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "transferToken"
+        ],
+        "title": "TransferToken"
+      },
+      "UploadBody": {
+        "properties": {
+          "sizeBytes": {
+            "type": "integer",
+            "maximum": 536870912.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Sizebytes"
+          },
+          "checksumSha256": {
+            "type": "string",
+            "title": "Checksumsha256"
+          },
+          "leaseToken": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 20,
+            "title": "Leasetoken"
+          },
           "contentType": {
             "type": "string",
             "const": "video/mp4",
@@ -1676,9 +2002,9 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "leaseToken",
           "sizeBytes",
           "checksumSha256",
+          "leaseToken",
           "contentType"
         ],
         "title": "UploadBody"

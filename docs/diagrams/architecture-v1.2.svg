@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#222"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<rect x="25" y="25" width="700" height="550" rx="12" fill="white" stroke="#333" stroke-width="2" stroke-dasharray="9 7"/>
+<text x="375.0" y="63" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="31" font-weight="700" fill="#111">산업 현장</text>
+<rect x="850" y="25" width="725" height="550" rx="12" fill="white" stroke="#333" stroke-width="2" stroke-dasharray="9 7"/>
+<text x="1212.5" y="63" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="31" font-weight="700" fill="#111">사무실</text>
+<rect x="25" y="715" width="1550" height="340" rx="12" fill="white" stroke="#333" stroke-width="2" stroke-dasharray="9 7"/>
+<text x="800.0" y="753" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="31" font-weight="700" fill="#111">AWS</text>
+<rect x="65" y="110" width="280" height="90" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="205.0" y="165.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">CCTV 디텍션 프로그램</text>
+<rect x="400" y="110" width="280" height="90" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="540.0" y="165.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">로봇 디텍션 프로그램</text>
+<rect x="65" y="290" width="280" height="130" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="205.0" y="348.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">CCTV 엣지</text>
+<text x="205.0" y="382.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">outbox · 관리 사본</text>
+<rect x="400" y="290" width="280" height="130" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="540.0" y="348.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">로봇 엣지</text>
+<text x="540.0" y="382.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">outbox · 관리 사본</text>
+<text x="375" y="475" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="400" fill="#111">같은 코드 · 별도 식별자와 상태</text>
+<text x="375" y="525" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="400" fill="#111">현장 사본 기본 30일 보관</text>
+<polyline points="205,200 205,290" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="205" y="250" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">이벤트 · 클립 매핑</text>
+<polyline points="540,200 540,290" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="540" y="250" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">이벤트 · 클립 매핑</text>
+<rect x="900" y="120" width="260" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="1030.0" y="168.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">사무실 NAS</text>
+<text x="1030.0" y="202.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">검증 클립 보관</text>
+<rect x="1230" y="120" width="300" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="1380.0" y="168.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">HTTPS 수신기</text>
+<text x="1380.0" y="202.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">크기 · SHA-256 검증</text>
+<rect x="1030" y="370" width="340" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="1200.0" y="418.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">업로드 워커</text>
+<text x="1200.0" y="452.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">요청된 클립만 업로드</text>
+<polyline points="1230,175 1160,175" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="1030,230 1030,320 1120,320 1120,370" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="940" y="350" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">클립 읽기</text>
+<polyline points="725,350 780,350 780,270 1380,270 1380,230" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="1080" y="305" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">클립 복제 · 완료 확인</text>
+<rect x="80" y="790" width="310" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="235.0" y="838.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">WAF · API Gateway</text>
+<text x="235.0" y="872.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">Cognito 인증</text>
+<rect x="480" y="790" width="310" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="635.0" y="838.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">Lambda 백엔드</text>
+<text x="635.0" y="872.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">이벤트 · 사본 · lease</text>
+<rect x="925" y="790" width="275" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="1062.5" y="838.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">설치별 SQS</text>
+<text x="1062.5" y="872.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">클립 작업 전달</text>
+<rect x="1280" y="790" width="250" height="110" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="1405.0" y="838.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">비공개 S3</text>
+<text x="1405.0" y="872.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">임시 클립</text>
+<rect x="480" y="960" width="310" height="70" rx="12" fill="#F2F4F6" stroke="#333" stroke-width="2"/>
+<text x="635.0" y="1005.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="400" fill="#111">클라우드 DB</text>
+<polyline points="390,845 480,845" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="790,845 925,845" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="635,900 635,960" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="160,420 160,790" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="280" y="635" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">이벤트 HTTPS</text>
+<polyline points="540,420 540,610 310,610 310,790" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<polyline points="1030,425 820,425 820,675 350,675 350,790" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="1100" y="655" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">작업 API 폴링</text>
+<polyline points="1240,480 1240,620 1405,620 1405,790" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="1395" y="655" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">서명 URL로 직접 업로드</text>
+<polyline points="650,575 650,700 1405,700 1405,790" fill="none" stroke="#222" stroke-width="2.5" marker-end="url(#arrow)" stroke-dasharray="9 7"/>
+<text x="1100" y="690" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="400" fill="#111">사무실 장애 시 현장 사본 직접 업로드</text>
+</svg>

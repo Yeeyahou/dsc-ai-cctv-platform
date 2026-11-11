@@ -1,0 +1,124 @@
+{
+  "assets": [
+    {
+      "assetId": "cctv-01",
+      "siteId": "incheon-01",
+      "assetType": "camera",
+      "displayName": "센터 CCTV 01",
+      "aas": {
+        "aasId": "urn:f2x:aas:cctv-01",
+        "globalAssetId": "urn:f2x:asset:cctv-01",
+        "idShort": "Cctv01",
+        "submodels": {
+          "Nameplate": {
+            "id": "urn:f2x:submodel:cctv-01:Nameplate",
+            "semanticId": "urn:f2x:dsc:semantic:Nameplate:1"
+          },
+          "TechnicalData": {
+            "id": "urn:f2x:submodel:cctv-01:TechnicalData",
+            "semanticId": "urn:f2x:dsc:semantic:TechnicalData:1"
+          },
+          "TimeSeries": {
+            "id": "urn:f2x:submodel:cctv-01:TimeSeries",
+            "semanticId": "urn:f2x:dsc:semantic:TimeSeries:1"
+          }
+        },
+        "values": {
+          "Nameplate": {},
+          "TechnicalData": {
+            "assetType": "camera"
+          }
+        }
+      }
+    },
+    {
+      "assetId": "robot-01",
+      "siteId": "incheon-01",
+      "assetType": "robot",
+      "displayName": "로봇 01",
+      "aas": {
+        "aasId": "urn:f2x:aas:robot-01",
+        "globalAssetId": "urn:f2x:asset:robot-01",
+        "idShort": "Cctv01",
+        "submodels": {
+          "Nameplate": {
+            "id": "urn:f2x:submodel:robot-01:Nameplate",
+            "semanticId": "urn:f2x:dsc:semantic:Nameplate:1"
+          },
+          "TechnicalData": {
+            "id": "urn:f2x:submodel:robot-01:TechnicalData",
+            "semanticId": "urn:f2x:dsc:semantic:TechnicalData:1"
+          },
+          "TimeSeries": {
+            "id": "urn:f2x:submodel:robot-01:TimeSeries",
+            "semanticId": "urn:f2x:dsc:semantic:TimeSeries:1"
+          }
+        },
+        "values": {
+          "Nameplate": {},
+          "TechnicalData": {
+            "assetType": "robot"
+          }
+        }
+      }
+    }
+  ],
+  "principals": [
+    {
+      "principalId": "client:REPLACE_CCTV_CLIENT_ID",
+      "scopes": [
+        "dsc/ingest.write",
+        "dsc/edge-server.work"
+      ]
+    },
+    {
+      "principalId": "client:REPLACE_ROBOT_CLIENT_ID",
+      "scopes": [
+        "dsc/ingest.write",
+        "dsc/edge-server.work"
+      ]
+    },
+    {
+      "principalId": "client:REPLACE_OFFICE_CLIENT_ID",
+      "scopes": [
+        "dsc/edge-server.work"
+      ]
+    }
+  ],
+  "edgeServers": [
+    {
+      "edgeServerId": "cctv-incheon-01",
+      "principalId": "client:REPLACE_CCTV_CLIENT_ID",
+      "siteId": "incheon-01",
+      "assets": [
+        "cctv-01"
+      ],
+      "queueUrl": "https://sqs.ap-northeast-2.amazonaws.com/REPLACE_ACCOUNT/REPLACE_STACK-edge-server-cctv",
+      "role": "field",
+      "archiveServerId": "office-incheon-01"
+    },
+    {
+      "edgeServerId": "robot-incheon-01",
+      "principalId": "client:REPLACE_ROBOT_CLIENT_ID",
+      "siteId": "incheon-01",
+      "assets": [
+        "robot-01"
+      ],
+      "queueUrl": "https://sqs.ap-northeast-2.amazonaws.com/REPLACE_ACCOUNT/REPLACE_STACK-edge-server-robot",
+      "role": "field",
+      "archiveServerId": "office-incheon-01"
+    },
+    {
+      "edgeServerId": "office-incheon-01",
+      "principalId": "client:REPLACE_OFFICE_CLIENT_ID",
+      "siteId": "incheon-01",
+      "assets": [
+        "cctv-01",
+        "robot-01"
+      ],
+      "queueUrl": "https://sqs.ap-northeast-2.amazonaws.com/REPLACE_ACCOUNT/REPLACE_STACK-edge-server-office",
+      "role": "archive",
+      "archiveUrl": "https://archive.example.invalid"
+    }
+  ]
+}

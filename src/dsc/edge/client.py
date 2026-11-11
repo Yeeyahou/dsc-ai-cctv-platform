@@ -38,7 +38,11 @@ class EdgeClient:
                 auth=httpx.BasicAuth(self.settings.client_id, secret),
                 data={
                     "grant_type": "client_credentials",
-                    "scope": "dsc/ingest.write dsc/edge-server.work",
+                    "scope": (
+                        "dsc/edge-server.work"
+                        if self.settings.role == "archive"
+                        else "dsc/ingest.write dsc/edge-server.work"
+                    ),
                 },
             )
             response.raise_for_status()

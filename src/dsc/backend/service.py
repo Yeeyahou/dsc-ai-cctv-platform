@@ -19,6 +19,7 @@ from dsc.backend.db import (
     Asset,
     Attempt,
     Audit,
+    ClipReplica,
     EdgeServer,
     Event,
     EventAsset,
@@ -27,6 +28,7 @@ from dsc.backend.db import (
     Principal,
 )
 from dsc.backend.errors import Problem, missing
+from dsc.backend.replicas import Replicas, uploader_allowed
 from dsc.shared.contracts import (
     EventInput,
     FailureBody,
@@ -74,6 +76,7 @@ class Platform:
         self.storage = storage
         self.queue = queue
         self.clock = clock
+        self.replicas = Replicas(self)
 
     def _edge_server(self, access: Access) -> EdgeServer:
         access.require("dsc/edge-server.work")
@@ -92,7 +95,11 @@ class Platform:
     def ingest(self, access: Access, body: EventInput) -> tuple[dict, int]:
         access.require("dsc/ingest.write")
         edge_server = access.edge_server
-        if edge_server is None or body.site_id != edge_server.site_id:
+        if (
+            edge_server is None
+            or edge_server.role == "archive"
+            or body.site_id != edge_server.site_id
+        ):
             raise Problem(403, "SITE_MISMATCH", "등록 센터와 일치하지 않습니다")
         payload = body.wire()
         event_id = str(body.event_id)
@@ -206,7 +213,25 @@ class Platform:
                     raise Problem(
                         409, "MEDIA_REVISION_CONFLICT", "오래되었거나 충돌하는 revision입니다"
                     )
+                pinned = session.scalar(
+                    select(ClipReplica).where(ClipReplica.event_id == event_id).limit(1)
+                )
+                if body.status == "AVAILABLE" and pinned and body.size_bytes != pinned.size_bytes:
+                    raise Problem(
+                        409, "REPLICA_CONTENT_CONFLICT", "확정된 클립 크기는 변경할 수 없습니다"
+                    )
                 media.revision, media.payload = body.revision, body.wire()
+                jobs = session.scalars(
+                    select(FileJob)
+                    .where(
+                        FileJob.event_id == event_id, FileJob.status.in_(["QUEUED", "UPLOADING"])
+                    )
+                    .with_for_update()
+                )
+                for job in jobs:
+                    if job.media_revision is not None and job.media_revision != body.revision:
+                        self._terminal(job, "FAILED", "MEDIA_REVISION_CONFLICT")
+                        job.retryable = True
             else:
                 session.add(
                     EventMedia(
@@ -232,6 +257,8 @@ class Platform:
             oldestPendingAt=body.wire().get("oldestPendingAt"),
             diskFreeBytes=body.disk_free_bytes,
             nasStatus=body.nas_status,
+            replicaPendingCount=body.replica_pending_count,
+            replicaQuarantinedCount=body.replica_quarantined_count,
         )
         return {"edgeServerId": edge_server.id, "serverTime": iso(self.clock())}
 
@@ -423,6 +450,8 @@ class Platform:
                     dispatch_version=1,
                     dispatched_version=0,
                     retryable=False,
+                    media_revision=media.revision,
+                    expected_size=media.payload["sizeBytes"],
                 )
                 session.add(job)
                 session.flush()
@@ -510,17 +539,76 @@ class Platform:
         else:
             self._terminal(job, "FAILED", code)
 
+    def worker_healthy(self, server: EdgeServer) -> bool:
+        return bool(
+            server.last_seen is not None
+            and server.last_seen + self.settings.worker_offline_seconds * 1000 > self.clock()
+            and server.heartbeat
+            and server.heartbeat.get("nasStatus") == "OK"
+        )
+
+    def _dispatch_target(self, session, job: FileJob) -> EdgeServer | None:
+        event = session.get(Event, job.event_id)
+        source = session.get(EdgeServer, event.edge_server_id)
+        if source.role == "legacy":
+            return source if uploader_allowed(session, source, event) else None
+        copies = list(
+            session.scalars(
+                select(ClipReplica).where(
+                    ClipReplica.event_id == job.event_id,
+                    ClipReplica.revision == job.media_revision,
+                    ClipReplica.present.is_(True),
+                )
+            )
+        )
+        candidates = []
+        for copy in copies:
+            server = session.get(EdgeServer, copy.edge_server_id)
+            if (
+                copy.size_bytes != job.expected_size
+                or (job.expected_checksum and copy.checksum != job.expected_checksum)
+                or server.id not in {source.id, source.archive_server_id}
+                or not uploader_allowed(session, server, event)
+                or not self.worker_healthy(server)
+            ):
+                continue
+            candidates.append((server, copy))
+        candidates.sort(key=lambda item: (item[0].role != "archive", item[0].id))
+        if not candidates:
+            return None
+        current = session.get(EdgeServer, job.edge_server_id)
+        waiting = (
+            job.dispatched_version == job.dispatch_version
+            and job.assigned_at is not None
+            and job.assigned_at + self.settings.assignment_seconds * 1000 <= self.clock()
+        )
+        retrying = bool(job.failure_code and job.attempt > 0)
+        if waiting or retrying or not self.worker_healthy(current):
+            alternatives = [item for item in candidates if item[0].id != current.id]
+            if alternatives:
+                candidates = alternatives
+        server, copy = candidates[0]
+        job.expected_checksum = copy.checksum
+        return server
+
     def _try_dispatch(self, job_id: str) -> None:
         try:
             with self.sessions.begin() as session:
                 job = session.scalar(select(FileJob).where(FileJob.id == job_id).with_for_update())
-                if job and job.status == "QUEUED" and job.dispatched_version < job.dispatch_version:
-                    edge_server = session.get(EdgeServer, job.edge_server_id)
-                    self.queue.send(edge_server.queue_url, job.id, job.dispatch_version)
-                    # A crash before this marker commits causes a fenced duplicate delivery.
+                if job is None or job.status != "QUEUED":
+                    return
+                target = self._dispatch_target(session, job)
+                if target is None:
+                    return
+                if job.edge_server_id != target.id:
+                    job.edge_server_id = target.id
+                    job.dispatch_version += 1
+                    job.assigned_at = None
+                if job.dispatched_version < job.dispatch_version:
+                    self.queue.send(target.queue_url, job.id, job.dispatch_version)
                     job.dispatched_version = job.dispatch_version
+                    job.assigned_at = self.clock()
         except Exception:
-            # DB already accepted the request; maintenance recovers this explicit delivery gap.
             emit_event("queue_dispatch_pending", level=logging.WARNING, requestId=job_id)
 
     def claim(self, access: Access) -> dict | None:
@@ -556,8 +644,19 @@ class Platform:
                     self.queue.delete(edge_server.queue_url, receipt)
                     continue
                 event = session.get(Event, job.event_id)
-                if event.edge_server_id != edge_server.id or event.site_id != edge_server.site_id:
+                current = session.get(EdgeServer, edge_server.id)
+                if not uploader_allowed(session, current, event):
                     raise missing()
+                if current.role != "legacy":
+                    replica = session.get(ClipReplica, (event.id, job.media_revision, current.id))
+                    if (
+                        replica is None
+                        or not replica.present
+                        or replica.checksum != job.expected_checksum
+                        or replica.size_bytes != job.expected_size
+                        or not self.worker_healthy(current)
+                    ):
+                        continue
                 job.attempt += 1
                 job.status = "UPLOADING"
                 token = secrets.token_urlsafe(32)
@@ -580,6 +679,12 @@ class Platform:
                     "leaseToken": token,
                     "leaseExpiresAt": iso(until),
                 }
+                if job.expected_checksum:
+                    result.update(
+                        revision=job.media_revision,
+                        sizeBytes=job.expected_size,
+                        checksumSha256=job.expected_checksum,
+                    )
             return result
         return None
 
@@ -599,6 +704,9 @@ class Platform:
         edge_server = self._edge_server(access)
         job = session.scalar(select(FileJob).where(FileJob.id == job_id).with_for_update())
         if job is None or job.edge_server_id != edge_server.id:
+            raise missing()
+        current = session.get(EdgeServer, edge_server.id)
+        if not uploader_allowed(session, current, session.get(Event, job.event_id)):
             raise missing()
         attempt = self._attempt(session, job)
         if attempt is None or not hmac.compare_digest(attempt.token_hash, digest(token)):
@@ -629,7 +737,13 @@ class Platform:
             media = session.get(EventMedia, job.event_id)
             if media is None or media.payload["status"] != "AVAILABLE":
                 raise missing("CLIP_UNAVAILABLE")
-            if body.size_bytes != media.payload["sizeBytes"]:
+            if job.media_revision is not None and media.revision != job.media_revision:
+                raise Problem(
+                    409, "MEDIA_REVISION_CONFLICT", "배정된 클립 revision이 변경되었습니다"
+                )
+            if job.expected_checksum and body.checksum_sha256 != job.expected_checksum:
+                raise Problem(409, "UPLOAD_VERIFICATION_FAILED", "검증된 사본의 해시와 다릅니다")
+            if body.size_bytes != (job.expected_size or media.payload["sizeBytes"]):
                 raise Problem(409, "UPLOAD_SIZE_MISMATCH", "등록된 클립 크기와 다릅니다")
             if attempt.checksum and (
                 attempt.checksum != body.checksum_sha256 or attempt.size_bytes != body.size_bytes
@@ -668,7 +782,8 @@ class Platform:
     def fail(self, access: Access, job_id: str, body: FailureBody) -> dict:
         with self.sessions.begin() as session:
             job, attempt = self._leased(session, access, job_id, body.lease_token)
-            retryable = body.failure_code != "SOURCE_NOT_FOUND"
+            source = session.get(EdgeServer, session.get(Event, job.event_id).edge_server_id)
+            retryable = source.role != "legacy" or body.failure_code != "SOURCE_NOT_FOUND"
             self._retry(job, body.failure_code, retryable)
             status = job.status
         self._delete_receipt(access.edge_server.queue_url, attempt.receipt)
@@ -693,7 +808,7 @@ class Platform:
             and_(FileJob.status.in_(["QUEUED", "UPLOADING"]), FileJob.deadline <= self.clock()),
             and_(FileJob.status == "UPLOADING", expired_lease),
             and_(FileJob.status == "READY", FileJob.object_expires_at <= self.clock()),
-            and_(FileJob.status == "QUEUED", FileJob.dispatched_version < FileJob.dispatch_version),
+            FileJob.status == "QUEUED",
         )
         with self.sessions() as session:
             ids = list(

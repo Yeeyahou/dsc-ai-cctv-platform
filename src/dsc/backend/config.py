@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     clip_retention_seconds: int = Field(default=86400, ge=300)
     put_url_seconds: int = Field(default=900, ge=60, le=3600)
     get_url_seconds: int = Field(default=300, ge=1, le=300)
+    worker_offline_seconds: int = Field(default=180, ge=30)
+    assignment_seconds: int = Field(default=60, ge=10)
+    archive_transfer_seconds: int = Field(default=900, ge=60, le=3600)
+    local_retention_days: int = Field(default=30, ge=1, le=365)
 
     @model_validator(mode="after")
     def production(self) -> "Settings":

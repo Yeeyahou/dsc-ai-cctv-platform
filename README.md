@@ -1,6 +1,6 @@
 # DSC AI CCTV 플랫폼
 
-퓨처렉스 DSC 센터의 이벤트를 수집·조회하고 요청한 녹화 클립을 전달하는 Python 백엔드와 엣지 서버다. 구현 계약은 [연동 규격서](docs/aws-backend-edge-server-spec-v1.1.md)를 따른다.
+퓨처렉스 DSC 센터의 이벤트를 수집·조회하고 요청한 녹화 클립을 전달하는 Python 백엔드, CCTV·로봇 공통 엣지 서버와 사무실 업로드 워커다. 구현 계약은 [연동 규격서](docs/aws-backend-edge-server-spec-v1.2.md)를 따른다.
 
 ## 구현 구성
 
@@ -10,7 +10,7 @@
 | 백엔드 | FastAPI, Mangum, API Gateway REST API, Lambda |
 | 인증 | Cognito access token, 회사 SAML/OIDC 연동, M2M client credentials |
 | 데이터 | PostgreSQL 17, SQLAlchemy 2, Alembic |
-| 영상 작업 | 설치별 SQS 큐, DB lease, S3 서명 PUT/GET URL |
+| 영상 작업 | 설치별 SQS 큐, DB lease, 검증 사본별 주·예비 배정, S3 서명 PUT/GET URL |
 | 현장 엣지 서버 | HTTPX, SQLite WAL outbox·manifest, POSIX 파일 접근, Linux systemd |
 | 운영 | SAM/CloudFormation, WAF, CloudWatch, S3 접근 로그·CloudTrail 데이터 이벤트 |
 | 검증 | pytest, Ruff, cfn-lint, CloudFormation Guard 규칙 |
@@ -62,11 +62,12 @@ uvicorn dsc.backend.api:create_app --factory --host 127.0.0.1 --port 8000
 - `/shells`, `/submodels`, Registry·Discovery 읽기: 같은 자산·이력 DB에 대한 AAS 어댑터
 - `/files/.../requests`, `/file-requests`: 클립 요청 중복 제한, 상태 조회, 만료 전용 다운로드 링크
 - `/edge-server/jobs/...`: 작업 claim·lease 연장·조건부 업로드·완료 검증·실패 재배정
+- `/edge-server/replicas`, `/edge-server/archive/...`: 검증 사본 등록, 전송 권한, NAS 저장 확인과 정리 보호
 - `/edge-server/heartbeat`: 엣지 서버 관측 시각과 서버 수신 시각을 구분한 상태 보고
 
 센터 전체 또는 이벤트에 연결된 모든 자산의 읽기 권한을 확인한다. 일부 자산만 허용된 사용자는 해당 이벤트 전체·클립을 볼 수 없다. 파트너의 이력·영상 접근은 별도로 등록한다.
 
-영상 원본은 NAS에 남는다. 요청한 기본 클립만 S3에 업로드하며 엣지 서버에 AWS 장기 자격 증명을 넣지 않는다. 클립 요청은 30분 안에서 최대 3회 시도하고 lease를 60초마다 연장한다. 완료 시 실제 크기와 SHA-256을 대조한다. 업로드 URL 15분, 다운로드 URL 최대 5분, READY 이후 접근 보관 24시간이 기본값이다.
+클립은 사무실 NAS에 보관하고 현장 서비스 전용 영역에 기본 30일의 예비 사본을 유지한다. 사무실 워커를 우선하고 장애 시 검증된 현장 사본으로 업로드한다. 요청한 기본 클립만 S3에 업로드하며 엣지 서버에 AWS 장기 자격 증명을 넣지 않는다. 클립 요청은 30분 안에서 최대 3회 시도하고 lease를 60초마다 연장한다. 완료 시 실제 크기와 SHA-256을 대조한다. 업로드 URL 15분, 다운로드 URL 최대 5분, READY 이후 접근 보관 24시간이 기본값이다.
 
 ## 배포와 현장 설치
 
@@ -76,7 +77,9 @@ FutureX의 개발 역할 경계에 맞춘 신규 SAM 배포는 [개발 환경 �
 
 v1.0 설치를 갱신할 때는 [v1.1 연동 변경 이력과 전환 절차](docs/edge-server-upgrade-v1.1.md)를 확인한다.
 
-Linux 현장은 `examples/edge.env.example`과 `deploy/edge/dsc-edge-server.service`를 사용한다. `client-secret` 파일 권한은 `0600`으로 두고 NAS는 읽기 전용으로 마운트한다. 업데이트 시 outbox·manifest 경로를 보존한다.
+신규 CCTV·로봇 현장은 `examples/field.env.example`, 사무실 수신기·워커는 `examples/office.env.example`을 사용한다. 설치·HTTPS·NAS 마커·30일 관리 사본 정리와 장애 복구는 [사무실·현장 운영 안내](docs/office-worker-operations.md)를 따른다. 기존 legacy 설치는 `examples/edge.env.example`과 기존 서비스 파일을 유지할 수 있다. 비밀 파일 권한은 `0600`으로 두고 업데이트 시 outbox·manifest·관리 사본 경로를 보존한다.
+
+2026년 11월 11일 AWS 개발 스택을 v1.2로 갱신하고 실제 AWS 업로드·장애 전환·다운로드 만료를 확인했다. 배포 해시와 데이터 보존 및 남은 물리 장비 검수는 [개발 배포 기록](docs/office-worker-deployment-v1.2.md)에 있다. 현장·사무실 장비 설치는 NAS와 접속·네트워크 정보가 준비된 뒤 수행한다.
 
 ```sh
 dsc-edge-server --env-file /etc/dsc/edge.env
@@ -105,4 +108,4 @@ cfn-guard validate --rules infra/security.guard --data infra/template.yaml --out
 cfn-guard validate --rules infra/security.guard --data infra/database.yaml --output-format json
 ```
 
-검수 항목별 자동 시험과 실제 환경 확인 범위는 [검증 기록](docs/verification.md)을 참고한다. 실제 회사 IdP, 현장 NAS, AWS 통합·부하·재해 복구 시험은 운영 환경값과 함께 확인해야 한다.
+검수 항목별 자동 시험과 실제 AWS 연동 범위는 [검증 기록](docs/verification.md)을 참고한다. 실제 회사 IdP, 현장 NAS·회선·전원, 부하와 재해 복구 시험은 운영 환경값과 함께 확인해야 한다.

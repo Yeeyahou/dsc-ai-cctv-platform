@@ -1,0 +1,9 @@
+*
+!pyproject.toml
+!requirements.lock
+!requirements-dev.lock
+!src/
+!src/**
+!deploy/
+!deploy/edge/
+!deploy/edge/Dockerfile

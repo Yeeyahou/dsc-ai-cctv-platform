@@ -24,6 +24,9 @@ from dsc.shared.contracts import (
     Heartbeat,
     LeaseBody,
     MediaUpdate,
+    ReplicaBody,
+    TransferReceipt,
+    TransferToken,
     UploadBody,
     milliseconds,
 )
@@ -92,7 +95,7 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
     local_docs = platform.settings.environment == "local"
     app = FastAPI(
         title="DSC CCTV Backend",
-        version="1.1.0",
+        version="1.2.0",
         docs_url="/docs" if local_docs else None,
         redoc_url=None,
         openapi_url="/openapi.json" if local_docs else None,
@@ -301,6 +304,26 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
     @app.post("/edge-server/jobs/{request_id}/fail", tags=["jobs"])
     def fail(request_id: UUID, body: FailureBody, actor: Access = Depends(access)):
         return platform.fail(actor, str(request_id), body)
+
+    @app.post("/edge-server/replicas", tags=["replicas"])
+    def register_replica(body: ReplicaBody, actor: Access = Depends(access)):
+        return platform.replicas.register(actor, body)
+
+    @app.post("/edge-server/replicas/retire", tags=["replicas"])
+    def retire_replica(body: ReplicaBody, actor: Access = Depends(access)):
+        return platform.replicas.retire(actor, body)
+
+    @app.post("/edge-server/archive/prepare", tags=["archive"])
+    def prepare_archive(body: ReplicaBody, actor: Access = Depends(access)):
+        return platform.replicas.prepare(actor, body)
+
+    @app.post("/edge-server/archive/{transfer_id}/authorize", tags=["archive"])
+    def authorize_archive(transfer_id: UUID, body: TransferToken, actor: Access = Depends(access)):
+        return platform.replicas.authorize(actor, str(transfer_id), body.transfer_token)
+
+    @app.post("/edge-server/archive/{transfer_id}/complete", tags=["archive"])
+    def complete_archive(transfer_id: UUID, body: TransferReceipt, actor: Access = Depends(access)):
+        return platform.replicas.complete(actor, str(transfer_id), body)
 
     @app.get("/description", tags=["aas"])
     def description(actor: Access = Depends(access)):

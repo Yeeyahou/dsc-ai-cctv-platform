@@ -1,0 +1,35 @@
+services:
+  uploader:
+    image: dsc-edge-server:1.2.0
+    build:
+      context: ../..
+      dockerfile: deploy/edge/Dockerfile
+    command: [dsc-edge-server, --env-file, /etc/dsc/office.env]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 180s
+    tmpfs: [/tmp]
+    volumes:
+      - ${DSC_OFFICE_CONFIG_DIR:?set config directory}:/etc/dsc:ro
+      - ${DSC_OFFICE_STATE_DIR:?set state directory}:/var/lib/dsc/office
+      - ${DSC_OFFICE_NAS_ROOT:?set mounted NAS directory}:/mnt/dsc-archive
+  receiver:
+    image: dsc-edge-server:1.2.0
+    command: [dsc-archive-receiver, --env-file, /etc/dsc/office.env]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 180s
+    tmpfs: [/tmp]
+    environment:
+      DSC_EDGE_RECEIVER_HOST: 0.0.0.0
+    ports: ['127.0.0.1:8080:8080']
+    volumes:
+      - ${DSC_OFFICE_CONFIG_DIR:?set config directory}:/etc/dsc:ro
+      - ${DSC_OFFICE_STATE_DIR:?set state directory}:/var/lib/dsc/office
+      - ${DSC_OFFICE_NAS_ROOT:?set mounted NAS directory}:/mnt/dsc-archive

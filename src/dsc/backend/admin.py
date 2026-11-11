@@ -3,6 +3,8 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import Field, field_validator
 from sqlalchemy import select
@@ -78,6 +80,28 @@ class EdgeServerRegistration(Contract):
     site_id: Identifier
     assets: list[Identifier] = Field(min_length=1)
     queue_url: str
+    role: Literal["legacy", "field", "archive"] = "legacy"
+    archive_url: str | None = None
+    archive_server_id: Identifier | None = None
+
+    @field_validator("archive_url")
+    @classmethod
+    def secure_receiver(cls, value: str | None) -> str | None:
+        if value is not None:
+            url = urlsplit(value)
+            if (
+                url.scheme != "https"
+                or not url.hostname
+                or url.username
+                or url.password
+                or url.query
+                or url.fragment
+            ):
+                raise ValueError(
+                    "archiveUrl requires a registered HTTPS endpoint without credentials"
+                )
+            return value.rstrip("/")
+        return value
 
 
 class Registration(Contract):
@@ -132,7 +156,8 @@ def register(sessions, data: Registration) -> None:
             if (
                 principal is None
                 or not entry.principal_id.startswith("client:")
-                or not {"dsc/ingest.write", "dsc/edge-server.work"}.issubset(principal.scopes)
+                or "dsc/edge-server.work" not in principal.scopes
+                or (entry.role != "archive" and "dsc/ingest.write" not in principal.scopes)
             ):
                 raise ValueError(
                     "edge server requires a registered M2M principal with ingest/work scopes"
@@ -143,6 +168,12 @@ def register(sessions, data: Registration) -> None:
                 asset = session.get(Asset, asset_id)
                 if asset is None or asset.site_id != entry.site_id:
                     raise ValueError("edge server asset belongs to another site")
+            if entry.role == "archive" and (not entry.archive_url or entry.archive_server_id):
+                raise ValueError(
+                    "archive workers require archiveUrl and cannot target another archive"
+                )
+            if entry.role != "archive" and entry.archive_url:
+                raise ValueError("only archive workers expose an archive endpoint")
             prior = session.get(EdgeServer, entry.edge_server_id)
             if prior and (
                 prior.site_id != entry.site_id or prior.principal_id != entry.principal_id
@@ -152,6 +183,7 @@ def register(sessions, data: Registration) -> None:
                 )
             if prior:
                 prior.assets, prior.queue_url = entry.assets, entry.queue_url
+                prior.role, prior.archive_url = entry.role, entry.archive_url
             else:
                 session.add(
                     EdgeServer(
@@ -160,8 +192,28 @@ def register(sessions, data: Registration) -> None:
                         site_id=entry.site_id,
                         assets=entry.assets,
                         queue_url=entry.queue_url,
+                        role=entry.role,
+                        archive_url=entry.archive_url,
                     )
                 )
+        session.flush()
+        for entry in data.edge_servers:
+            row = session.get(EdgeServer, entry.edge_server_id)
+            if entry.archive_server_id:
+                target = session.get(EdgeServer, entry.archive_server_id)
+                if (
+                    target is None
+                    or target.role != "archive"
+                    or target.site_id != entry.site_id
+                    or not set(entry.assets).issubset(target.assets)
+                ):
+                    raise ValueError(
+                        "archive target must cover this installation's site and assets"
+                    )
+            row.archive_server_id = entry.archive_server_id
+        queues = list(session.scalars(select(EdgeServer.queue_url)))
+        if len(queues) != len(set(queues)):
+            raise ValueError("each installation requires a distinct SQS queue")
         session.add(
             Audit(
                 principal_id="operator",
