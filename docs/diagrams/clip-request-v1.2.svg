@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2700" height="1268" viewBox="0 0 2700 1268" role="img">
+<title>고객 클립 요청과 작업 배정 및 업로드 URL 발급</title><desc>고객 요청을 DB에 보존하고 설치별 큐와 단일 lease로 처리자를 정한다. 다음 도면은 실제 PUT·완료 검증·고객 다운로드를 잇는다.</desc>
+<rect width="100%" height="100%" fill="white"/>
+<text x="45" y="48" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="34" font-weight="700" fill="#172431">고객 클립 요청과 작업 배정 및 업로드 URL 발급</text>
+<text x="45" y="91" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">고객 요청을 DB에 보존하고 설치별 큐와 단일 lease로 처리자를 정한다. 다음 도면은 실제 PUT·완료 검증·고객 다운로드를 잇는다.</text>
+<rect x="50.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
+<text x="250.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">고객</text>
+<text x="250.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">직원 / 영상 허용 파트너</text>
+<path d="M250.0,230 V1162" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
+<rect x="600.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
+<text x="800.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">AWS 제어 API</text>
+<text x="800.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">ApiFunction / DB / SQS</text>
+<path d="M800.0,230 V1162" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
+<rect x="1150.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
+<text x="1350.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">선택된 업로더</text>
+<text x="1350.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">사무실 우선 / 해당 현장 예비</text>
+<path d="M1350.0,230 V1162" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
+<rect x="1700.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
+<text x="1900.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">로컬 검증 사본</text>
+<text x="1900.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">사무실 NAS 또는 field cache</text>
+<path d="M1900.0,230 V1162" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
+<rect x="2250.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
+<text x="2450.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">비공개 S3</text>
+<text x="2450.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">시도별 클립 객체</text>
+<path d="M2450.0,230 V1162" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
+<polyline points="250.0,328 800.0,328" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="800.0,328 788.0,323 788.0,333" fill="#235D92"/>
+<text x="525.0" y="300" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">C01 POST /files/{eventId}/requests</text>
+<polyline points="800.0,405 930.0,405 930.0,432 800.0,432" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="800.0,432 812.0,427 812.0,437" fill="#235D92"/>
+<text x="1055.0" y="371" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">C02 권한·media 검사; 작업 영속 저장 후 설치별</text>
+<text x="1055.0" y="398" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">큐 발행</text>
+<polyline points="800.0,524 250.0,524" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="250.0,524 262.0,519 262.0,529" fill="#586575"/>
+<text x="525.0" y="469" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">C03 신규 202 + requestId·상태 URL; READY</text>
+<text x="525.0" y="496" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">재사용 시 200</text>
+<polyline points="1350.0,622 800.0,622" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="800.0,622 812.0,617 812.0,627" fill="#235D92"/>
+<text x="1075.0" y="594" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">C04 POST /edge-server/jobs/claim</text>
+<polyline points="800.0,699 930.0,699 930.0,726 800.0,726" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="800.0,726 812.0,721 812.0,731" fill="#235D92"/>
+<text x="1055.0" y="665" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">C05 자기 설치 큐 Receive; DB 잠금·배정·단일</text>
+<text x="1055.0" y="692" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">lease 검사</text>
+<polyline points="800.0,818 1350.0,818" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="1350.0,818 1338.0,813 1338.0,823" fill="#586575"/>
+<text x="1075.0" y="763" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">C06</text>
+<text x="1075.0" y="790" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">requestId·eventId·clipId·revision·leaseToken·attempt</text>
+<polyline points="1350.0,916 1900.0,916" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="1900.0,916 1888.0,911 1888.0,921" fill="#A44F11"/>
+<text x="1625.0" y="861" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#A44F11">C07 manifest·경로·크기·SHA-256을 확인하며</text>
+<text x="1625.0" y="888" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#A44F11">클립 읽기</text>
+<polyline points="1350.0,1014 800.0,1014" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="800.0,1014 812.0,1009 812.0,1019" fill="#235D92"/>
+<text x="1075.0" y="959" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">C08 POST .../jobs/{id}/upload-url; 필요 시</text>
+<text x="1075.0" y="986" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">/lease 연장</text>
+<polyline points="800.0,1112 1350.0,1112" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="1350.0,1112 1338.0,1107 1338.0,1117" fill="#586575"/>
+<text x="1075.0" y="1057" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">C09 이번 시도의 객체 키와 제한된 PUT URL·필수</text>
+<text x="1075.0" y="1084" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">헤더</text>
+<text x="45" y="1233" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">C02의 큐 발행 실패는 영속 DB 표식으로 재발행한다. C04는 업로더의 HTTPS 폴링이며 SQS 직접 접속이 아니다.</text>
+</svg>

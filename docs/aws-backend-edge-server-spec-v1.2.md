@@ -53,9 +53,15 @@ v1.1 백엔드와 v1.0 엣지 서버는 직접 호환되지 않는다. 백엔드
 
 ### 2 1 전체 아키텍처
 
-![그림 1 전체 시스템 아키텍처](diagrams/architecture-v1.2.png)
+직원·허용된 파트너는 Cognito access token으로 이벤트·TimeSeries·AAS 조회와 클립 요청·상태 조회를 수행한다. API Gateway 뒤의 ApiFunction 한 개에 이벤트·조회·AAS·작업·사본의 논리 기능이 함께 있고, MaintenanceFunction은 별도 Lambda다. AAS 어댑터는 기존 고객 기능으로 유지하며 같은 PostgreSQL의 등록 자산·권한·이벤트를 사용한다. AAS를 별도 Lambda나 별도 DB로 배포하지 않는다.
 
-현장 엣지 서버는 외부로 시작하는 HTTPS 연결만 사용한다. NAS 관리 포트, SMB 및 NFS를 인터넷에 공개하지 않는다. AWS 백엔드는 NAS를 직접 마운트하지 않는다. 엣지 서버는 작업 API를 통해 업로드 요청을 확인하고, 서버가 발급한 S3 PUT URL로 클립을 전송한다.
+구성도의 화살표는 요청 시작 방향이며 HTTPS 응답은 같은 연결로 돌아온다. A02 회색 점선은 Cognito authorizer의 User Pool 설정 관계다. A03은 고객 조회와 클립 요청, A08은 고객의 S3 직접 다운로드다. F03·F04·O01·O02는 설치별 제어 API, A06은 백엔드만 수행하는 SQS 송수신이다. 모든 선의 시작·도착·의미와 9개 상세 도식은 [시스템 아키텍처 상세 설계](system-architecture-v1.2.md)에 있다.
+
+![그림 1A 전체 시스템 구성과 제어 흐름](diagrams/architecture-v1.2.png)
+
+![그림 1B 클립 저장 위치와 주 업로드 및 예비 경로](diagrams/media-paths-v1.2.png)
+
+현장 엣지 서버는 외부로 시작하는 HTTPS 연결만 사용한다. NAS 관리 포트, SMB 및 NFS를 인터넷에 공개하지 않는다. AWS 백엔드는 NAS를 직접 마운트하지 않는다. field 엣지는 완성 클립의 관리 사본을 확정한 뒤 사무실 HTTPS 수신기로 복제한다. 사무실 워커는 작업 API로 요청을 확인하고 NAS 클립을 S3 PUT URL로 직접 전송한다. 사무실 장애 시에는 같은 이벤트의 검증 현장 사본을 가진 엣지가 S3로 직접 업로드한다. 고객은 API의 READY 응답에서 받은 S3 GET URL로 직접 다운로드한다. 영상 바이트는 API Gateway·Lambda·DB를 경유하지 않는다.
 
 ### 2 2 구성 요소
 
@@ -77,6 +83,24 @@ v1.1 백엔드와 v1.0 엣지 서버는 직접 호환되지 않는다. 백엔드
 이벤트와 관련 자산의 연결은 클라우드 DB가 관리한다. AAS는 같은 DB를 조회해 응답을 조립하며 이벤트를 별도로 복제 저장하지 않는다. 클립 경로는 각 현장 엣지와 사무실 수신기·워커의 로컬 manifest에서 관리하고 NAS 계정은 사무실 설치에서만 관리한다.
 
 NAS나 현장 인터넷이 중단돼도 클라우드에 저장된 이벤트와 자산 정보는 조회할 수 있다. 단절 중 새로 발생한 이벤트는 outbox에 보관하고 복구 후 전송한다. 클립은 사무실과 현장 중 가용한 검증 사본으로 제공한다. 양쪽 사본에 접근할 수 없으면 연결 복구 후 처리한다.
+
+### 2 4 고객 요청과 AAS 경계
+
+고객의 이벤트 목록·단건·기간 집계, 자산별 current·archive와 AAS Discovery·Registry·Shell·Submodel·$value는 모두 인증된 API다. Nameplate·TechnicalData·TimeSeries 제공 범위를 유지한다. TimeSeries는 같은 DB의 이벤트 조회와 인증된 이력 endpoint를 사용한다. AAS endpoint에 NAS 경로나 S3 서명 URL을 저장하지 않는다. 직원과 파트너에게 기능 scope 외에 활성 등록 주체·센터·모든 연결 자산·공개 Submodel을 검사하고, 클립은 video 권한도 요구한다.
+
+클립은 POST /files/{eventId}/requests로 요청하고 GET /file-requests/{requestId} 또는 GET /files/{eventId}로 상태를 확인한다. 조회만으로 작업을 만들지 않는다. 신규 202·기존 READY 재사용 200, 작업 claim·lease·업로드 완료 검증, 고객의 직접 GET까지 전체 절차는 8장과 상세 설계의 고객 클립 흐름도를 따른다.
+
+### 2 5 복제와 장애 전환 및 정리 경계
+
+로컬 접수 ACK, 이벤트 DB 저장 ACK, NAS 파일 확정, 사무실 manifest 확정, 서버 STORED와 field receipt 확인은 서로 다른 단계다. 파일·로컬 SQLite·클라우드 DB 전체를 하나의 분산 트랜잭션으로 묶었다고 가정하지 않고 영속 단계와 재검증·재시도로 조정한다. 부분 전송·ACK 유실·재시작·중복·변조의 보존 조건과 작업·사본의 상태 전이는 상세 설계의 복제·전환·정리 도식을 따른다.
+
+현재 lease가 유효하면 사무실 장애만으로 두 업로더의 완료를 동시에 인정하지 않는다. 실패·만료·미수락 처리 뒤 dispatchVersion·attempt·S3 객체 키를 분리해 해당 field로 전환한다. 기본 30일이 지나도 NAS 재검증·STORED 사본·사무실 건강·진행 중 작업 보호·서버 RETIRED를 만족한 관리 사본만 삭제한다. 생성 프로그램의 원본 정리는 별도 정책이다.
+
+### 2 6 실제 배포와 운영 조건
+
+API와 유지관리 Lambda는 private VPC 연결과 각자의 IAM 역할을 사용하고 RDS에 TLS로 접근한다. 개발 템플릿은 두 private subnet, 단일 public NAT와 S3 Gateway Endpoint를 사용하며 RDS 개발 배포는 MultiAZ=false다. EventBridge는 유지관리를 1분마다 호출하고 CloudWatch·X-Ray·S3 감사 경로는 로그·오류·사본 격리·디스크 부족·접근을 관측한다. 개발 구성과 운영의 가용성 목표를 구분한다.
+
+Route 53·ACM·custom domain은 관련 설정을 공급한 경우에 적용한다. 회사 IdP 연동, 물리 NAS·현장 설치·HTTPS·회선·전원·용량·백업 복원은 환경 설정과 인수가 필요하다. 구현·개발 AWS 실연동과 실제 장비 인수를 구분해 보고한다.
 
 ## 3 인증 및 접근 제어
 
@@ -376,7 +400,9 @@ AAS Endpoint에 NAS 경로나 S3 서명 URL을 저장하지 않는다. 이력과
 
 ### 8 1 요청 및 처리 흐름
 
-![그림 3 클립 요청과 전달 흐름](diagrams/clip-flow-v1.2.png)
+![그림 3A 고객 클립 요청과 작업 배정 및 업로드 URL 발급](diagrams/clip-request-v1.2.png)
+
+![그림 3B S3 업로드 완료 검증과 고객 직접 다운로드](diagrams/clip-completion-v1.2.png)
 
 클립 전달은 작업 접수, 현장 업로드, 서버 검증, 임시 링크 발급으로 처리한다. 기본 제공 단위는 이벤트당 기본 클립 한 개이며 원본 녹화 전체와 임의 시간 범위 편집은 제공하지 않는다.
 

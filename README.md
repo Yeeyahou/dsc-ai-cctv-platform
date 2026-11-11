@@ -17,6 +17,8 @@
 
 DB는 이벤트·자산 관계와 작업 lease를 같은 트랜잭션으로 관리하기 위해 PostgreSQL을 선택했다. 규격의 미정 구현 선택과 운영 조건은 [구현 결정](docs/implementation-decisions.md)에 정리했다.
 
+전체 구성과 고객의 이벤트·시계열·AAS 조회, NAS 복제, 클립 요청·다운로드, 장애 전환·정리 및 AWS 배포·관측을 8개 관점의 9개 도식으로 정리했다. 각 연결의 의미는 [시스템 아키텍처 상세 설계](docs/system-architecture-v1.2.md)에 있다. 큰 도식은 함께 제공하는 Word 문서의 A3 가로 도면 페이지에서 볼 수 있다.
+
 ## 브랜치 운영
 
 기본 개발 브랜치는 `develop`이다. 최신 `develop`에서 기능별 `codex/feature/...` 또는 수정·설정 작업 브랜치를 만들고, PR과 자동 검사를 거쳐 `develop`에 통합한다. 검증과 배포 승인이 끝난 코드는 `develop → main` PR로 승격한다. `main`과 `develop`에 직접 푸시하지 않는다. 브랜치 보호, 병합 방식과 승인 기준은 [브랜치 운영 안내](docs/branching.md)를 따른다.

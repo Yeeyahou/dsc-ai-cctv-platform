@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1640" viewBox="0 0 2400 1640" role="img">
+<title>AWS 배포 경계와 유지관리 및 운영 관측</title><desc>네트워크·예약 처리·관측의 세 관계를 나누어 표시한다. 반복 표시는 같은 리소스이며 별도 복제 서버를 뜻하지 않는다.</desc>
+<rect width="100%" height="100%" fill="white"/>
+<text x="45" y="48" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="34" font-weight="700" fill="#172431">AWS 배포 경계와 유지관리 및 운영 관측</text>
+<text x="45" y="91" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">네트워크·예약 처리·관측의 세 관계를 나누어 표시한다. 반복 표시는 같은 리소스이며 별도 복제 서버를 뜻하지 않는다.</text>
+<rect x="35" y="135" width="2330" height="490" rx="8" fill="#F7F9FB" stroke="#A3ADB8" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="57" y="174" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="700" fill="#172431">네트워크 경로  |  Lambda·DB private / NAT public / 나머지는 AWS 관리 서비스</text>
+<rect x="100" y="290" width="430" height="170" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="315.0" y="329" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">API / Maintenance Lambda</text>
+<text x="315.0" y="367" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">private subnet A/B에 VPC 연결</text>
+<text x="315.0" y="409" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">서로 다른 실행 역할 / SG 공유</text>
+<text x="315.0" y="451" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">Lambda 서비스 호출로 실행</text>
+<rect x="760" y="260" width="430" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="975.0" y="299" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">RDS PostgreSQL</text>
+<text x="975.0" y="337" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">private · 암호화 · TLS 5432</text>
+<text x="975.0" y="379" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">Lambda SG만 허용 / 백업 14일</text>
+<rect x="760" y="465" width="430" height="140" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="975.0" y="504" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">개발 NAT Gateway</text>
+<text x="975.0" y="542" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">public subnet / 단일 AZ</text>
+<text x="975.0" y="584" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">두 private subnet의 outbound</text>
+<rect x="1400" y="260" width="350" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="1575.0" y="299" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">S3 Gateway Endpoint</text>
+<text x="1575.0" y="337" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">private route table 연결</text>
+<text x="1575.0" y="379" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">두 함수의 S3 경로</text>
+<rect x="1950" y="260" width="350" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="2125.0" y="299" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">S3 ClipBucket</text>
+<text x="2125.0" y="337" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">HEAD 실제 크기·SHA-256</text>
+<text x="2125.0" y="379" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">이전 객체 DELETE</text>
+<rect x="1400" y="465" width="900" height="140" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="1850.0" y="504" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">AWS HTTPS Endpoint</text>
+<text x="1850.0" y="542" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">SQS 설치별 큐·DLQ / Secrets Manager / Cognito JWKS</text>
+<text x="1850.0" y="584" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">SQS 송수신·재발행 / DB·cursor 비밀 / 검증용 공개키</text>
+<polyline points="530,350 760,350" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="760,350 748,345 748,355" fill="#235D92"/>
+<text x="645" y="323" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">E02  SQL/TLS 5432</text>
+<polyline points="530,415 650,415 650,535 760,535" fill="none" stroke="#586575" stroke-width="2.6" />
+<polygon points="760,535 748,530 748,540" fill="#586575"/>
+<text x="655" y="570" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#586575">E04  egress</text>
+<polyline points="315,290 315,220 1575,220 1575,260" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="1575,260 1570,248 1580,248" fill="#A44F11"/>
+<text x="1000" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#A44F11">E06a  S3 서비스 호출</text>
+<polyline points="1750,335 1950,335" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="1950,335 1938,330 1938,340" fill="#A44F11"/>
+<text x="1850" y="308" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#A44F11">E06b  S3 HTTPS</text>
+<polyline points="1190,535 1400,535" fill="none" stroke="#586575" stroke-width="2.6" />
+<polygon points="1400,535 1388,530 1388,540" fill="#586575"/>
+<text x="1295" y="508" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#586575">E05  HTTPS 443</text>
+<rect x="35" y="675" width="2330" height="410" rx="8" fill="#F7F9FB" stroke="#A3ADB8" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="57" y="714" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="700" fill="#172431">유지관리 논리 호출  |  동일 DB·큐·버킷을 재표시</text>
+<rect x="100" y="775" width="400" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="300.0" y="814" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">EventBridge 예약 규칙</text>
+<text x="300.0" y="852" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">rate(1 minute)</text>
+<text x="300.0" y="894" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">SAM Schedule</text>
+<rect x="710" y="775" width="430" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="925.0" y="814" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">MaintenanceFunction</text>
+<text x="925.0" y="852" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">lease·기한·미수락 점검</text>
+<text x="925.0" y="894" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">재발행·재배정 / 정리</text>
+<rect x="1410" y="775" width="400" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="1610.0" y="814" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">PostgreSQL / 설치별 SQS</text>
+<text x="1610.0" y="852" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">DB 상태·배정 갱신</text>
+<text x="1610.0" y="894" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">전송 실패 작업 재발행</text>
+<rect x="1960" y="775" width="340" height="150" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="2130.0" y="814" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">S3 이전 시도 객체</text>
+<text x="2130.0" y="852" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">현재 작업·URL 기한 보호</text>
+<text x="2130.0" y="894" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">삭제 가능 시점 후 DELETE</text>
+<polyline points="500,850 710,850" fill="none" stroke="#586575" stroke-width="2.6" />
+<polygon points="710,850 698,845 698,855" fill="#586575"/>
+<text x="605" y="823" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#586575">E01  매 1분 호출</text>
+<polyline points="1140,850 1410,850" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="1410,850 1398,845 1398,855" fill="#235D92"/>
+<text x="1275" y="823" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#235D92">E03  상태·큐 처리</text>
+<polyline points="925,925 925,1010 2130,1010 2130,925" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="2130,925 2125,937 2135,937" fill="#A44F11"/>
+<text x="1530" y="1048" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#A44F11">E08  안전 조건 후 객체 정리</text>
+<rect x="35" y="1135" width="2330" height="430" rx="8" fill="#F7F9FB" stroke="#A3ADB8" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="57" y="1174" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="27" font-weight="700" fill="#172431">관측과 감사 경로  |  현장·사무실의 로컬 로그는 journal 또는 컨테이너 로그에 남음</text>
+<rect x="100" y="1240" width="420" height="190" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="310.0" y="1279" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">API Gateway / 두 Lambda</text>
+<text x="310.0" y="1317" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">API 접근 로그 / 구조화 실행 로그</text>
+<text x="310.0" y="1359" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">함수 추적 / heartbeat 통계</text>
+<text x="310.0" y="1401" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">비밀·본문·서명 URL 미기록</text>
+<rect x="730" y="1240" width="420" height="190" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="940.0" y="1279" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="26" font-weight="700" fill="#172431">CloudWatch / X-Ray</text>
+<text x="940.0" y="1317" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">API·함수 로그와 메트릭</text>
+<text x="940.0" y="1359" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">분산 요청 추적</text>
+<text x="940.0" y="1401" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">이벤트·작업 추적 ID 구분</text>
+<rect x="1370" y="1240" width="380" height="190" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="1560.0" y="1279" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="24" font-weight="700" fill="#172431">CloudWatch 경보</text>
+<text x="1560.0" y="1317" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">API 5xx / 유지관리 오류</text>
+<text x="1560.0" y="1359" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">사본 격리 / 디스크 부족</text>
+<text x="1560.0" y="1401" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#172431">메시지 자동 발송은 현 범위 밖</text>
+<rect x="1870" y="1240" width="430" height="250" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="2085.0" y="1279" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">S3 접근 감사 경로</text>
+<text x="2085.0" y="1317.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">ClipBucket → AuditBucket</text>
+<text x="2085.0" y="1358.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">S3 서버 접근 로그</text>
+<text x="2085.0" y="1399.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">CloudTrail 데이터 이벤트는</text>
+<text x="2085.0" y="1440.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">ClipAuditMode에 따라 구성</text>
+<text x="2085.0" y="1481.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">synthetic 개발은 합성 클립만</text>
+<polyline points="520,1335 730,1335" fill="none" stroke="#586575" stroke-width="2.6" />
+<polygon points="730,1335 718,1330 718,1340" fill="#586575"/>
+<text x="625" y="1308" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#586575">E07a  로그·추적</text>
+<polyline points="1150,1335 1370,1335" fill="none" stroke="#586575" stroke-width="2.6" />
+<polygon points="1370,1335 1358,1330 1358,1340" fill="#586575"/>
+<text x="1260" y="1308" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="21" font-weight="400" fill="#586575">E07b  지표·필터</text>
+<text x="45" y="1605" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#172431">E09는 각 실행 역할·설치별 인증·버킷/큐 정책의 권한 관계다. 네트워크 선으로 표현하지 않으며 문서의 역할별 권한표를 따른다.</text>
+</svg>
