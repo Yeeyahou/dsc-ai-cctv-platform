@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1180" viewBox="0 0 1000 1180" role="img">
+<title>AAS 조회 기능과 데이터 연결</title><desc></desc>
+<rect width="100%" height="100%" fill="white"/>
+<text x="24" y="39" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="28" font-weight="700" fill="#172431">AAS 조회 기능과 데이터 연결</text>
+<rect x="20" y="360" width="960" height="630" rx="8" fill="#F7F9FB" stroke="#A3ADB8" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="36" y="389" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">ApiFunction 내부의 AAS 처리</text>
+<rect x="340" y="90" width="320" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="118.69999999999999" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">AAS 고객</text>
+<text x="500.0" y="148.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">직원·허용 파트너</text>
+<rect x="340" y="240" width="320" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="268.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">보호 API</text>
+<text x="500.0" y="298.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">Gateway·권한 검사</text>
+<rect x="340" y="420" width="320" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="448.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">AAS 어댑터</text>
+<text x="500.0" y="478.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">AasAdapter</text>
+<rect x="50" y="650" width="250" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="175.0" y="678.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">Discovery</text>
+<text x="175.0" y="708.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">Shell 식별자 검색</text>
+<rect x="375" y="650" width="250" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="678.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">Registry</text>
+<text x="500.0" y="708.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">Descriptor 조회</text>
+<rect x="700" y="650" width="250" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="825.0" y="678.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">Repository</text>
+<text x="825.0" y="708.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">Shell 조회</text>
+<rect x="50" y="850" width="250" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="175.0" y="878.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">자산 ID 조회</text>
+<text x="175.0" y="908.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">허용 자산 검색</text>
+<rect x="375" y="850" width="250" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="878.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">Endpoint 조립</text>
+<text x="500.0" y="908.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">Shell·Submodel</text>
+<rect x="700" y="850" width="250" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="825.0" y="878.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">Submodel 조립</text>
+<text x="825.0" y="908.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">명판·기술·시계열</text>
+<rect x="340" y="1070" width="320" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="1098.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">PostgreSQL</text>
+<text x="500.0" y="1128.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">등록 자산·이벤트</text>
+<polyline points="500,162 500,240" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="500,240 495,228 505,228" fill="#235D92"/>
+<text x="580" y="210" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U01 조회</text>
+<polyline points="500,312 500,420" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="500,420 495,408 505,408" fill="#235D92"/>
+<text x="600" y="345" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U02 라우팅</text>
+<polyline points="400,492 400,560 175,560 175,650" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="175,650 170,638 180,638" fill="#235D92"/>
+<text x="175" y="545" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U03</text>
+<polyline points="500,492 500,650" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="500,650 495,638 505,638" fill="#235D92"/>
+<text x="550" y="610" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U04</text>
+<polyline points="600,492 600,560 825,560 825,650" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="825,650 820,638 830,638" fill="#235D92"/>
+<text x="825" y="545" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U05</text>
+<polyline points="175,722 175,850" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="175,850 170,838 180,838" fill="#235D92"/>
+<text x="220" y="790" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U06</text>
+<polyline points="500,722 500,850" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="500,850 495,838 505,838" fill="#235D92"/>
+<text x="550" y="790" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U07</text>
+<polyline points="825,722 825,850" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="825,850 820,838 830,838" fill="#235D92"/>
+<text x="875" y="790" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U08</text>
+<polyline points="175,922 175,1010 400,1010 400,1070" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="400,1070 395,1058 405,1058" fill="#235D92"/>
+<text x="240" y="1045" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U09</text>
+<polyline points="500,922 500,1070" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="500,1070 495,1058 505,1058" fill="#235D92"/>
+<text x="550" y="1035" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U10</text>
+<polyline points="825,922 825,1010 600,1010 600,1070" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="600,1070 595,1058 605,1058" fill="#235D92"/>
+<text x="765" y="1045" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">U11</text>
+</svg>

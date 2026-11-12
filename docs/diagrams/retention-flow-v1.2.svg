@@ -1,52 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1250" viewBox="0 0 2400 1250" role="img">
-<title>30일 현장 사본 정리와 중단 후 복구</title><desc>기간 만료만으로 지우지 않는다. NAS 재검증·작업 보호·서버의 신규 배정 차단을 확인한 관리 사본만 제거한다.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="914" viewBox="0 0 1000 914" role="img">
+<title>30일 현장 사본 정리</title><desc></desc>
 <rect width="100%" height="100%" fill="white"/>
-<text x="45" y="48" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="34" font-weight="700" fill="#172431">30일 현장 사본 정리와 중단 후 복구</text>
-<text x="45" y="91" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">기간 만료만으로 지우지 않는다. NAS 재검증·작업 보호·서버의 신규 배정 차단을 확인한 관리 사본만 제거한다.</text>
-<rect x="50.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="250.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">field 엣지</text>
-<text x="250.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">SQLite / cache / 파일 잠금</text>
-<path d="M250.0,230 V1108" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="683.3333333333334" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="883.3333333333334" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">사무실 수신기</text>
-<text x="883.3333333333334" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">정확한 전송·볼륨 확인</text>
-<path d="M883.3333333333334,230 V1108" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="1316.6666666666667" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="1516.6666666666667" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">사무실 NAS</text>
-<text x="1516.6666666666667" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">완성된 같은 내용의 파일</text>
-<path d="M1516.6666666666667,230 V1108" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="1950.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="2150.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">AWS 제어 API</text>
-<text x="2150.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">사본·전송·작업 DB 잠금</text>
-<path d="M2150.0,230 V1108" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<polyline points="250.0,307 380.0,307 380.0,334 250.0,334" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="250.0,334 262.0,329 262.0,339" fill="#235D92"/>
-<text x="546.6666666666667" y="273" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">T01 endedAt 기준 기본 30일 도래; 미전송 outbox는 별도</text>
-<text x="546.6666666666667" y="300" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">보존</text>
-<polyline points="250.0,420 883.3333333333334,420" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="883.3333333333334,420 871.3333333333334,415 871.3333333333334,425" fill="#235D92"/>
-<text x="566.6666666666667" y="392" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">T02 유효 transfer로 POST /archive/transfers/{id}/verify</text>
-<polyline points="883.3333333333334,512 1516.6666666666667,512" fill="none" stroke="#A44F11" stroke-width="2.6" />
-<polygon points="1516.6666666666667,512 1504.6666666666667,507 1504.6666666666667,517" fill="#A44F11"/>
-<text x="1200.0" y="484" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#A44F11">T03 NAS 실제 바이트 재읽기; 크기·SHA-256·볼륨 확인</text>
-<polyline points="883.3333333333334,604 2150.0,604" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="2150.0,604 2138.0,599 2138.0,609" fill="#235D92"/>
-<text x="1516.6666666666667" y="576" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">T04 전송 authorize / complete로 같은 사본 STORED 확인</text>
-<polyline points="883.3333333333334,696 250.0,696" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
-<polygon points="250.0,696 262.0,691 262.0,701" fill="#586575"/>
-<text x="566.6666666666667" y="668" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">T05 동일 metadata의 STORED receipt 반환</text>
-<polyline points="250.0,788 2150.0,788" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="2150.0,788 2138.0,783 2138.0,793" fill="#235D92"/>
-<text x="1200.0" y="760" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">T06 POST /edge-server/replicas/retire</text>
-<polyline points="2150.0,859 2020.0,859 2020.0,886 2150.0,886" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="2150.0,886 2138.0,881 2138.0,891" fill="#235D92"/>
-<text x="1853.3333333333333" y="852" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">T07 건강한 NAS·STORED 사본·진행 중 작업·경쟁 검사</text>
-<polyline points="2150.0,972 250.0,972" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
-<polygon points="250.0,972 262.0,967 262.0,977" fill="#586575"/>
-<text x="1200.0" y="944" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">T08 RETIRED 반환 — 이 현장 사본의 신규 배정 차단</text>
-<polyline points="250.0,1043 380.0,1043 380.0,1070 250.0,1070" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="250.0,1070 262.0,1065 262.0,1075" fill="#235D92"/>
-<text x="546.6666666666667" y="1036" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">T09 로컬 RETIRING 기록 → 해시 확인·삭제 → DELETED</text>
-<text x="45" y="1179" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">전송·NAS·권한·작업 조건 불충족 시 보존한다. retire ACK 유실·정리 중 종료는 RETIRING 상태와 서버 응답으로 조정한다.</text>
-<text x="45" y="1215" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">생성 프로그램 원본은 이 정리 대상이 아니다. 원본+관리 사본의 합산 용량과 장기 장애 누적량, 별도 NAS 백업을 산정한다.</text>
+<text x="24" y="39" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="28" font-weight="700" fill="#172431">30일 현장 사본 정리</text>
+<rect x="5.0" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="100.0" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">현장 엣지</text>
+<text x="100.0" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">로컬 사본·잠금</text>
+<path d="M100.0,157 V894" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="271.6666666666667" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="366.6666666666667" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">사무실 수신기</text>
+<text x="366.6666666666667" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">전송 재검증</text>
+<path d="M366.6666666666667,157 V894" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="538.3333333333334" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="633.3333333333334" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">사무실 NAS</text>
+<text x="633.3333333333334" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">동일 클립</text>
+<path d="M633.3333333333334,157 V894" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="805.0" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="900.0" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">AWS API</text>
+<text x="900.0" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">사본·작업 잠금</text>
+<path d="M900.0,157 V894" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<polyline points="100.0,225 156.0,225 156.0,245 100.0,245" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="100.0,245 112.0,240 112.0,250" fill="#235D92"/>
+<text x="224.33333333333334" y="215" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">T01 보관 기간 도래</text>
+<polyline points="100.0,321 366.6666666666667,321" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="366.6666666666667,321 354.6666666666667,316 354.6666666666667,326" fill="#235D92"/>
+<text x="233.33333333333334" y="291" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">T02 verify 요청</text>
+<polyline points="366.6666666666667,397 633.3333333333334,397" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="633.3333333333334,397 621.3333333333334,392 621.3333333333334,402" fill="#A44F11"/>
+<text x="500.0" y="367" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#A44F11">T03 바이트 재검증</text>
+<polyline points="366.6666666666667,473 900.0,473" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="900.0,473 888.0,468 888.0,478" fill="#235D92"/>
+<text x="500.0" y="443" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">T04 동일 사본 확인</text>
+<polyline points="366.6666666666667,549 100.0,549" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="100.0,549 112.0,544 112.0,554" fill="#586575"/>
+<text x="233.33333333333334" y="519" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">T05 STORED receipt</text>
+<polyline points="100.0,625 900.0,625" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="900.0,625 888.0,620 888.0,630" fill="#235D92"/>
+<text x="233.33333333333334" y="595" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">T06 retire 요청</text>
+<polyline points="900.0,681 844.0,681 844.0,701 900.0,701" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="900.0,701 888.0,696 888.0,706" fill="#235D92"/>
+<text x="775.6666666666666" y="671" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">T07 건강·작업 검사</text>
+<polyline points="900.0,777 100.0,777" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="100.0,777 112.0,772 112.0,782" fill="#586575"/>
+<text x="766.6666666666666" y="747" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">T08 RETIRED 확정</text>
+<polyline points="100.0,833 156.0,833 156.0,853 100.0,853" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="100.0,853 112.0,848 112.0,858" fill="#235D92"/>
+<text x="224.33333333333334" y="823" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">T09 RETIRING·삭제</text>
 </svg>

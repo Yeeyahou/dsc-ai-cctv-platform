@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1020" viewBox="0 0 1000 1020" role="img">
+<title>백엔드 기능과 공통 권한</title><desc></desc>
+<rect width="100%" height="100%" fill="white"/>
+<text x="24" y="39" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="28" font-weight="700" fill="#172431">백엔드 기능과 공통 권한</text>
+<rect x="20" y="210" width="960" height="560" rx="8" fill="#F7F9FB" stroke="#A3ADB8" stroke-width="2" stroke-dasharray="10 7"/>
+<text x="36" y="239" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">ApiFunction 내부</text>
+<rect x="350" y="90" width="300" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="118.69999999999999" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">API Gateway</text>
+<text x="500.0" y="148.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">보호된 HTTPS API</text>
+<rect x="350" y="265" width="300" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="293.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">FastAPI 라우터</text>
+<text x="500.0" y="323.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">경로·기능 선택</text>
+<rect x="350" y="410" width="300" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="438.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">인증·데이터 권한</text>
+<text x="500.0" y="468.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">주체·센터·자산</text>
+<rect x="50" y="600" width="200" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="150.0" y="628.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">이벤트 수신</text>
+<text x="150.0" y="658.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">Ingest API</text>
+<rect x="285" y="600" width="200" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="385.0" y="628.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">이벤트·시계열</text>
+<text x="385.0" y="658.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">조회 API</text>
+<rect x="515" y="600" width="200" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="615.0" y="628.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">AAS 조회</text>
+<text x="615.0" y="658.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">AasAdapter</text>
+<rect x="750" y="600" width="200" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="850.0" y="628.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">클립·사본</text>
+<text x="850.0" y="658.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">작업·전송 제어</text>
+<rect x="350" y="880" width="300" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="908.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="700" fill="#172431">PostgreSQL</text>
+<text x="500.0" y="938.7" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">업무 상태·권한</text>
+<polyline points="500,162 500,265" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="500,265 495,253 505,253" fill="#235D92"/>
+<text x="580" y="198" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">B01 호출</text>
+<polyline points="500,337 500,410" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="500,410 495,398 505,398" fill="#235D92"/>
+<text x="580" y="385" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">B02 권한 검사</text>
+<polyline points="380,482 380,525 150,525 150,600" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="150,600 145,588 155,588" fill="#235D92"/>
+<text x="150" y="510" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">B03</text>
+<polyline points="460,482 460,550 385,550 385,600" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="385,600 380,588 390,588" fill="#235D92"/>
+<text x="425" y="585" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">B04</text>
+<polyline points="540,482 540,550 615,550 615,600" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="615,600 610,588 620,588" fill="#235D92"/>
+<text x="660" y="585" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">B05</text>
+<polyline points="620,482 620,525 850,525 850,600" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="850,600 845,588 855,588" fill="#235D92"/>
+<text x="850" y="510" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">B06</text>
+<polyline points="150,672 150,790 390,790 390,880" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="390,880 385,868 395,868" fill="#235D92"/>
+<text x="230" y="750" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">B07 저장</text>
+<polyline points="385,672 385,730 445,730 445,880" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="445,880 440,868 450,868" fill="#235D92"/>
+<text x="325" y="715" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">B08 조회</text>
+<polyline points="615,672 615,730 555,730 555,880" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="555,880 550,868 560,868" fill="#235D92"/>
+<text x="685" y="715" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">B09 조회</text>
+<polyline points="850,672 850,790 610,790 610,880" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="610,880 605,868 615,868" fill="#235D92"/>
+<text x="790" y="750" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">B10 상태</text>
+<text x="24" y="1000" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">네 기능은 한 Lambda 안의 모듈이며 동일 DB·권한 정책을 사용한다.</text>
+</svg>
