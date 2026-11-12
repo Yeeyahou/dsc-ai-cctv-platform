@@ -1,56 +1,51 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1342" viewBox="0 0 2400 1342" role="img">
-<title>사무실 장애와 오래된 시도의 차단</title><desc>예비 업로더는 같은 이벤트의 검증 현장 사본을 가진 발신 엣지다. 사무실과 독립된 현장→AWS 회선이 필요하다.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="990" viewBox="0 0 1000 990" role="img">
+<title>사무실 장애와 현장 예비 전환</title><desc></desc>
 <rect width="100%" height="100%" fill="white"/>
-<text x="45" y="48" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="34" font-weight="700" fill="#172431">사무실 장애와 오래된 시도의 차단</text>
-<text x="45" y="91" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">예비 업로더는 같은 이벤트의 검증 현장 사본을 가진 발신 엣지다. 사무실과 독립된 현장→AWS 회선이 필요하다.</text>
-<rect x="50.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="250.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">AWS 제어·유지관리</text>
-<text x="250.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">DB 상태 / 설치별 SQS</text>
-<path d="M250.0,230 V1200" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="683.3333333333334" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="883.3333333333334" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">사무실 업로더</text>
-<text x="883.3333333333334" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">주 담당 / 중단 또는 실패</text>
-<path d="M883.3333333333334,230 V1200" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="1316.6666666666667" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="1516.6666666666667" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">해당 field 엣지</text>
-<text x="1516.6666666666667" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">CCTV 또는 로봇의 자기 사본</text>
-<path d="M1516.6666666666667,230 V1200" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="1950.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="2150.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">S3</text>
-<text x="2150.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">시도별 분리된 객체</text>
-<path d="M2150.0,230 V1200" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<polyline points="883.3333333333334,328 250.0,328" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="250.0,328 262.0,323 262.0,333" fill="#235D92"/>
-<text x="566.6666666666667" y="273" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">H01 heartbeat NAS 비정상 또는 /fail</text>
-<text x="566.6666666666667" y="300" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">SOURCE_UNREACHABLE</text>
-<polyline points="250.0,399 380.0,399 380.0,426 250.0,426" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="250.0,426 262.0,421 262.0,431" fill="#235D92"/>
-<text x="546.6666666666667" y="392" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">H02 또는 heartbeat·미수락·lease 기한 경과를 점검</text>
-<polyline points="250.0,491 380.0,491 380.0,518 250.0,518" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="250.0,518 262.0,513 262.0,523" fill="#235D92"/>
-<text x="546.6666666666667" y="484" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">H03 유효 lease는 보호; 만료·실패 시 재시도·배정 갱신</text>
-<polyline points="250.0,583 380.0,583 380.0,610 250.0,610" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="250.0,610 262.0,605 262.0,615" fill="#235D92"/>
-<text x="546.6666666666667" y="549" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">H04 동일 event·clip·revision·크기·해시의 건강한 현장</text>
-<text x="546.6666666666667" y="576" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">선택</text>
-<polyline points="1516.6666666666667,696 250.0,696" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="250.0,696 262.0,691 262.0,701" fill="#235D92"/>
-<text x="883.3333333333334" y="668" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">H05 작업 claim — 새 dispatchVersion과 단일 lease 확인</text>
-<polyline points="250.0,788 1516.6666666666667,788" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
-<polygon points="1516.6666666666667,788 1504.6666666666667,783 1504.6666666666667,793" fill="#586575"/>
-<text x="883.3333333333334" y="760" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">H06 새 attempt·leaseToken·이번 시도의 서명 PUT URL</text>
-<polyline points="1516.6666666666667,880 2150.0,880" fill="none" stroke="#A44F11" stroke-width="2.6" />
-<polygon points="2150.0,880 2138.0,875 2138.0,885" fill="#A44F11"/>
-<text x="1833.3333333333335" y="852" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#A44F11">H07 사무실 NAS를 거치지 않고 현장 사본 PUT</text>
-<polyline points="883.3333333333334,972 250.0,972" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="250.0,972 262.0,967 262.0,977" fill="#235D92"/>
-<text x="566.6666666666667" y="944" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">H08 이전 attempt의 complete / fail / lease 통지</text>
-<polyline points="250.0,1064 883.3333333333334,1064" fill="none" stroke="#AD3333" stroke-width="2.6" />
-<polygon points="883.3333333333334,1064 871.3333333333334,1059 871.3333333333334,1069" fill="#AD3333"/>
-<text x="566.6666666666667" y="1036" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#AD3333">H09 404 또는 409; 현재 작업·사본·완료 상태 변경 금지</text>
-<polyline points="1516.6666666666667,1156 250.0,1156" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="250.0,1156 262.0,1151 262.0,1161" fill="#235D92"/>
-<text x="883.3333333333334" y="1128" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">H10 정상 complete → S3 실물 검증 → READY</text>
-<text x="45" y="1271" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">기본값: heartbeat 유효 180초, 미수락 재배정 60초, lease 300초·60초 갱신, 유지관리 1분 주기. 즉시 전환을 보장하지 않는다.</text>
-<text x="45" y="1307" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">양쪽 사본·회선이 모두 불가하면 기한·재시도 정책에 따라 대기 또는 실패한다. 30일 밖 사본은 NAS·백업 가용성에 따른다.</text>
+<text x="24" y="39" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="28" font-weight="700" fill="#172431">사무실 장애와 현장 예비 전환</text>
+<rect x="5.0" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="100.0" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">AWS 제어</text>
+<text x="100.0" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">API·유지관리</text>
+<path d="M100.0,157 V970" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="271.6666666666667" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="366.6666666666667" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">사무실 워커</text>
+<text x="366.6666666666667" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">주 업로더</text>
+<path d="M366.6666666666667,157 V970" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="538.3333333333334" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="633.3333333333334" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">해당 현장</text>
+<text x="633.3333333333334" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">예비 업로더</text>
+<path d="M633.3333333333334,157 V970" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="805.0" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="900.0" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">비공개 S3</text>
+<text x="900.0" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">시도별 객체</text>
+<path d="M900.0,157 V970" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<polyline points="366.6666666666667,245 100.0,245" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="100.0,245 112.0,240 112.0,250" fill="#235D92"/>
+<text x="233.33333333333334" y="215" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">H01 비정상·실패 보고</text>
+<polyline points="100.0,301 156.0,301 156.0,321 100.0,321" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="100.0,321 112.0,316 112.0,326" fill="#235D92"/>
+<text x="224.33333333333334" y="291" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">H02 기한·상태 점검</text>
+<polyline points="100.0,377 156.0,377 156.0,397 100.0,397" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="100.0,397 112.0,392 112.0,402" fill="#235D92"/>
+<text x="224.33333333333334" y="367" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">H03 lease 보호·만료</text>
+<polyline points="100.0,453 156.0,453 156.0,473 100.0,473" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="100.0,473 112.0,468 112.0,478" fill="#235D92"/>
+<text x="224.33333333333334" y="443" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">H04 유효 사본 선택</text>
+<polyline points="633.3333333333334,549 100.0,549" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="100.0,549 112.0,544 112.0,554" fill="#235D92"/>
+<text x="500.0" y="519" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">H05 새 배정 claim</text>
+<polyline points="100.0,625 633.3333333333334,625" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="633.3333333333334,625 621.3333333333334,620 621.3333333333334,630" fill="#586575"/>
+<text x="233.33333333333334" y="595" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">H06 새 lease·URL</text>
+<polyline points="633.3333333333334,701 900.0,701" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="900.0,701 888.0,696 888.0,706" fill="#A44F11"/>
+<text x="766.6666666666667" y="671" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#A44F11">H07 현장 직접 PUT</text>
+<polyline points="366.6666666666667,777 100.0,777" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="100.0,777 112.0,772 112.0,782" fill="#235D92"/>
+<text x="233.33333333333334" y="747" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">H08 이전 시도 통지</text>
+<polyline points="100.0,853 366.6666666666667,853" fill="none" stroke="#AD3333" stroke-width="2.6" />
+<polygon points="366.6666666666667,853 354.6666666666667,848 354.6666666666667,858" fill="#AD3333"/>
+<text x="233.33333333333334" y="823" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#AD3333">H09 404·409 거부</text>
+<polyline points="633.3333333333334,929 100.0,929" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="100.0,929 112.0,924 112.0,934" fill="#235D92"/>
+<text x="500.0" y="899" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">H10 완료·실물 검증</text>
 </svg>

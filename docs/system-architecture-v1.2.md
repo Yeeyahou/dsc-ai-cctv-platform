@@ -8,7 +8,7 @@
 
 ## 1 도식 읽는 방법
 
-구성도에서는 화살표를 요청·쓰기의 시작 방향으로 읽는다. `GET`과 파일 읽기는 요청 반대 방향으로 데이터가 돌아오는 같은 연결이다. 순서도에서는 실선이 요청·처리, 회색 점선이 반환이고, 옅은 세로 점선은 참여자의 생명선이다. 생명선과 가로 메시지가 교차하는 지점은 새로운 네트워크 연결이나 분기가 아니다.
+구성도에서는 화살표를 요청·쓰기의 시작 방향으로 읽는다. `GET`과 파일 읽기는 요청 반대 방향으로 데이터가 돌아오는 같은 연결이다. 노드는 제목을 포함해 최대 두 줄이며 상세 역할은 별도 노드·연결과 본문 대응표로 설명한다. 순서도에서는 실선이 요청·처리, 회색 점선이 반환이고, 옅은 세로 점선은 참여자의 생명선이다. 생명선과 가로 메시지가 교차하는 지점은 새로운 네트워크 연결이나 분기가 아니다.
 
 파랑은 제어 API·DB·큐 요청, 주황은 클립 전송·파일 접근, 보라는 토큰 발급, 빨간 점선은 조건부 예비 업로드다. 전체 구성도의 회색 점선 A02는 Cognito authorizer의 설정 관계이며 토큰을 발급하는 HTTP 호출이 아니다. 영역 테두리는 설치·관리 경계이고 전송의 시작점이 아니다. 각 기능 선은 명시된 구성 요소의 가장자리에 연결된다. 선의 식별자는 아래 대응표와 상세 절차를 연결한다.
 
@@ -37,6 +37,25 @@ SQS는 CCTV·로봇·사무실별 큐와 DLQ를 사용한다. 기존 legacy 설�
 | A07 | ApiFunction → S3 | 완료 시 HEAD로 ContentLength·ChecksumSHA256·ContentType 확인. PUT·GET URL 생성 자체는 SDK 서명 연산이며 영상 중계가 아님 |
 | A08 | 고객 → S3 | API가 반환한 짧은 객체별 GET URL로 직접 다운로드. 바이트는 S3에서 고객에게 반환 |
 | A09 | EventBridge → MaintenanceFunction | 1분 주기 예약 호출. 미수락·lease 만료·기한·재발행·객체 정리 처리는 9장 참조 |
+
+### 2 1 백엔드 내부 연결
+
+![백엔드 내부 기능과 공통 권한](diagrams/backend-components-v1.2.png)
+
+아래 기능은 ApiFunction 한 개 안의 처리 관계다. 각 API는 경계에서 토큰·기능 권한을 검사하고 서비스의 데이터 접근에서도 활성 주체·센터·자산 권한을 적용한다. 공통 권한 노드는 이 공통 정책을 표시하며, 인증을 한 번 통과하면 이후 검사를 생략한다는 뜻이 아니다.
+
+| 선 | 시작과 도착 | 의미 |
+|---|---|---|
+| B01 | API Gateway → FastAPI 라우터 | Lambda proxy로 들어온 요청의 API 경로 선택 |
+| B02 | 라우터 → 인증·데이터 권한 | JWT·client·scope·활성 주체·센터·자산 권한을 API와 서비스에서 검사 |
+| B03 | 인증·데이터 권한 → 이벤트 수신 | 허용된 ingest와 media·heartbeat 입력 처리 |
+| B04 | 인증·데이터 권한 → 이벤트·시계열 | 허용 범위의 목록·단건·현재값·기간 이력과 집계 |
+| B05 | 인증·데이터 권한 → AAS 조회 | 허용된 Discovery·Registry·Shell·Submodel·값 조회 |
+| B06 | 인증·데이터 권한 → 클립·사본 | 허용된 클립·작업·사본·전송·retire 처리 |
+| B07 | 이벤트 수신 → PostgreSQL | 이벤트·자산 연결·초기 영상의 원자 저장과 상태 갱신 |
+| B08 | 이벤트·시계열 → PostgreSQL | 같은 데이터 권한으로 이벤트·자산 조회 |
+| B09 | AAS → PostgreSQL | 허용 자산·Submodel 메타데이터와 이벤트 조회 |
+| B10 | 클립·사본 → PostgreSQL | 작업·배정·lease·사본·전송 상태를 잠금과 트랜잭션으로 관리 |
 
 ## 3 클립 바이트 경로와 저장 책임
 
@@ -85,6 +104,26 @@ Q03~Q08은 일반 조회와 AAS 조회에 공통인 인증·데이터 권한 흐
 | 클립 상태·링크 | GET /file-requests/{requestId}, GET /files/{eventId} | 같은 읽기·video 권한. 조회 자체는 새 작업을 생성하지 않음 |
 
 AAS는 등록 자산 메타데이터와 같은 PostgreSQL의 이벤트 조회를 사용해 응답을 조립한다. Nameplate·TechnicalData는 등록된 식별·사양값을 제공하고 TimeSeries는 현재·기간 조회와 연결된다. AAS ID는 등록 URI를 base64url로 인코딩해 경로에 사용한다. 권한 없는 TimeSeries는 Shell 참조와 Registry에서도 제외한다. AAS endpoint에 NAS 경로나 S3 서명 URL을 저장하지 않는다. AAS에서 이력이나 클립을 따라가도 자체 API의 인증·권한 검사를 다시 받는다.
+
+### 4 1 AAS 기능과 데이터 연결
+
+![AAS 기능 분기와 데이터 연결](diagrams/aas-components-v1.2.png)
+
+U03~U08은 AAS 기능 분기와 데이터 조립 관계다. Discovery·Registry·Repository를 차례로 호출해야 한다는 필수 순서를 의미하지 않는다. Repository는 같은 AasAdapter가 제공하는 Shell·Submodel 조회 기능이며 별도 서버를 생성하지 않는다. `/description`은 같은 보호 API의 서비스 설명 응답이다.
+
+| 선 | 시작과 도착 | 의미 |
+|---|---|---|
+| U01 | 고객 → 보호 API | Bearer access token과 aas.read로 AAS 조회 |
+| U02 | 보호 API → AAS 어댑터 | Gateway authorizer와 백엔드 권한을 확인한 AAS 경로 처리 |
+| U03 | 어댑터 → Discovery | 식별 조건으로 허용된 Shell ID 검색 |
+| U04 | 어댑터 → Registry | Shell·Submodel descriptor 조회 |
+| U05 | 어댑터 → Repository | Shell·참조·Submodel 본문·값 조회 |
+| U06 | Discovery → 자산 ID 조회 | URI와 등록 자산에 권한 필터 적용 |
+| U07 | Registry → Endpoint 조립 | 허용된 Shell·Submodel과 인증된 endpoint만 응답 |
+| U08 | Repository → Submodel 조립 | Nameplate·TechnicalData·TimeSeries와 $value 조립 |
+| U09 | 자산 ID 조회 → PostgreSQL | 등록 식별자와 허용 자산 검색 |
+| U10 | Endpoint 조립 → PostgreSQL | 자산·Submodel 공개 범위·권한 조회 |
+| U11 | Submodel 조립 → PostgreSQL | 등록 사양과 이벤트 기반 시계열 조회 |
 
 ## 5 로컬 접수와 NAS 복제의 무결성
 
@@ -162,7 +201,8 @@ retire 응답 유실이나 삭제 도중 재시작은 같은 retire 요청과 RE
 | E06a·E06b | 두 함수 → S3 Gateway Endpoint → ClipBucket | private route table을 통한 S3 HEAD·DELETE. 외부 업로더·고객의 PUT·GET은 이 VPC 경로를 거치지 않음 |
 | E08 | 유지관리 → S3 이전 시도 객체 | 현재 작업과 살아 있는 PUT URL을 보호한 뒤 삭제. DB 만료가 물리 삭제와 같은 순간이라고 가정하지 않음 |
 | E07a·E07b | Gateway·함수 → CloudWatch·X-Ray → 경보 | 접근·실행 로그, 오류·격리·디스크 부족 지표와 추적. 직원·파트너 메시지 자동 발송은 구현 범위 밖 |
-| 감사 경로 | ClipBucket → AuditBucket | 서버 접근 로그. CloudTrail 데이터 이벤트는 ClipAuditMode=managed이면 생성하고 external이면 운영 측 보장을 사용. synthetic 개발에서는 합성 클립만 허용 |
+| E10 | ClipBucket → AuditBucket | S3 서버 접근 로그 기록 |
+| E11 | CloudTrail → AuditBucket | ClipAuditMode=managed일 때 클립 데이터 이벤트 기록. external은 운영 측 보장을 사용하고 synthetic 개발에서는 합성 클립만 허용 |
 | E09 | 각 실행 역할·주체 → 허용 서비스·데이터 | 아래 권한표. 네트워크 연결선과 IAM 허용 관계는 구분 |
 
 | 실행 주체 | 인증·허용 범위 | 보유하지 않는 권한 |
@@ -205,9 +245,13 @@ Route 53·ACM·API Gateway custom domain은 DomainName·HostedZoneId·Certificat
 python scripts/render_architecture.py --font /path/to/NanumGothic-Regular.ttf
 # Sharp가 있는 문서 작업용 Node 환경과 한글 폰트 설정을 사용한다.
 node scripts/rasterize_architecture.cjs
+# python-docx와 Pillow가 있는 문서 작업 환경에서 원래 양식으로 작성한다.
+python scripts/build_architecture_docs.py
 ```
 
-SVG를 PNG로 렌더링해 모든 그림을 시각 확인한다. 구성도·저장 경로도·AWS 경로도는 시작·종료의 노드 가장자리 연결, 다른 노드·선·경계 제목·설명 관통과 선의 겹침을 생성 시 검사한다. 순서도는 행별 메시지와 줄바꿈 폭을 확인하며 생명선 교차를 기능 선의 분기로 보지 않는다. Word의 큰 도식은 A3 가로 도면 페이지에 배치해 작은 세로 본문 폭으로 압축하지 않는다.
+SVG를 PNG로 렌더링해 모든 그림을 시각 확인한다. 모든 노드는 제목을 포함해 두 줄 이하인지 생성 시 검사한다. 구성도·백엔드 내부·AAS·저장 경로·AWS 경로는 시작·종료의 노드 가장자리 연결, 다른 노드·선·경계 제목·설명 관통과 선의 겹침을 검사한다. 순서도는 행별 메시지와 줄바꿈 폭을 확인하고 메시지 문구는 생명선 사이에 배치한다. 생명선 교차를 기능 선의 분기로 보지 않는다. Word는 기존 A4 세로 용지·여백·스타일·머리말·꼬리말을 유지하고 그림을 본문 폭 안에 배치한다. 전체 구성과 백엔드·AAS 내부 기능을 여러 그림으로 나누며 용지 확대나 가로 전환을 사용하지 않는다.
+
+Word 생성기는 v1.1 규격서의 양식을 기준으로 사용한다. 스타일 정의와 단일 A4 섹션의 용지·여백·머리말·꼬리말 위치가 원본과 같은지, 모든 그림이 본문 폭 안인지 검사한다. 버전과 문서명 외의 꼬리말 형식과 PAGE 필드는 유지한다. 표는 원본의 검은 테두리·흰 제목 행·글꼴·셀 여백을 사용한다.
 
 ## 12 코드와 API 대응
 

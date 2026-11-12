@@ -1,52 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1158" viewBox="0 0 2400 1158" role="img">
-<title>고객 인증과 이벤트 및 AAS 조회</title><desc>직원·파트너·현장 설치의 인증 주체를 구분하고, API Gateway 검사 뒤에도 백엔드가 기능·데이터 권한을 확인한다.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="838" viewBox="0 0 1000 838" role="img">
+<title>고객 인증과 일반·AAS 조회</title><desc></desc>
 <rect width="100%" height="100%" fill="white"/>
-<text x="45" y="48" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="34" font-weight="700" fill="#172431">고객 인증과 이벤트 및 AAS 조회</text>
-<text x="45" y="91" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">직원·파트너·현장 설치의 인증 주체를 구분하고, API Gateway 검사 뒤에도 백엔드가 기능·데이터 권한을 확인한다.</text>
-<rect x="50.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="250.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">고객 클라이언트</text>
-<text x="250.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">직원 웹·앱 / 파트너 서버</text>
-<path d="M250.0,230 V1016" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="683.3333333333334" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="883.3333333333334" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">Cognito / 회사 IdP</text>
-<text x="883.3333333333334" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">직원 연동은 설정 후 사용</text>
-<path d="M883.3333333333334,230 V1016" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="1316.6666666666667" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="1516.6666666666667" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">API Gateway + ApiFunction</text>
-<text x="1516.6666666666667" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">보호된 HTTPS 요청</text>
-<path d="M1516.6666666666667,230 V1016" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="1950.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="2150.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">PostgreSQL</text>
-<text x="2150.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">권한·자산·이벤트</text>
-<path d="M2150.0,230 V1016" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<polyline points="250.0,328 883.3333333333334,328" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="883.3333333333334,328 871.3333333333334,323 871.3333333333334,333" fill="#235D92"/>
-<text x="566.6666666666667" y="273" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">Q01 직원 Auth Code + PKCE 또는 파트너</text>
-<text x="566.6666666666667" y="300" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">client_credentials</text>
-<polyline points="883.3333333333334,420 250.0,420" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
-<polygon points="250.0,420 262.0,415 262.0,425" fill="#586575"/>
-<text x="566.6666666666667" y="392" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">Q02 access token 반환; 직원은 회사 IdP 연동 로그인</text>
-<polyline points="250.0,512 1516.6666666666667,512" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="1516.6666666666667,512 1504.6666666666667,507 1504.6666666666667,517" fill="#235D92"/>
-<text x="883.3333333333334" y="484" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">Q03 Bearer JWT로 이벤트·TimeSeries 또는 AAS 읽기 요청</text>
-<polyline points="1516.6666666666667,583 1646.6666666666667,583 1646.6666666666667,610 1516.6666666666667,610" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="1516.6666666666667,610 1528.6666666666667,605 1528.6666666666667,615" fill="#235D92"/>
-<text x="1813.3333333333335" y="549" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">Q04 Gateway Authorizer + 백엔드 JWT·client·scope</text>
-<text x="1813.3333333333335" y="576" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">검증</text>
-<polyline points="1516.6666666666667,696 2150.0,696" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="2150.0,696 2138.0,691 2138.0,701" fill="#235D92"/>
-<text x="1833.3333333333335" y="641" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">Q05 활성 주체·센터·모든 연결 자산·공개 Submodel 범위</text>
-<text x="1833.3333333333335" y="668" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">조회</text>
-<polyline points="2150.0,788 1516.6666666666667,788" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
-<polygon points="1516.6666666666667,788 1528.6666666666667,783 1528.6666666666667,793" fill="#586575"/>
-<text x="1833.3333333333335" y="760" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">Q06 권한 필터를 적용할 등록 정보·이벤트·자산 데이터</text>
-<polyline points="1516.6666666666667,859 1646.6666666666667,859 1646.6666666666667,886 1516.6666666666667,886" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="1516.6666666666667,886 1528.6666666666667,881 1528.6666666666667,891" fill="#235D92"/>
-<text x="1813.3333333333335" y="825" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">Q07 일반 조회 또는 같은 Lambda의 AAS 어댑터로 응답</text>
-<text x="1813.3333333333335" y="852" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">조립</text>
-<polyline points="1516.6666666666667,972 250.0,972" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
-<polygon points="250.0,972 262.0,967 262.0,977" fill="#586575"/>
-<text x="883.3333333333334" y="944" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">Q08 이벤트 JSON 또는 AAS Shell·Submodel·Registry·Discovery</text>
-<text x="45" y="1087" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">AAS TimeSeries는 같은 DB의 조회 결과와 인증된 /timeseries 경로를 제공한다. 별도 AAS DB나 별도 AAS Lambda는 없다.</text>
-<text x="45" y="1123" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">영상 요청·다운로드는 클립 요청 흐름도를 따른다. 파트너의 이력·영상 접근은 별도 등록 권한을 요구한다.</text>
+<text x="24" y="39" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="28" font-weight="700" fill="#172431">고객 인증과 일반·AAS 조회</text>
+<rect x="5.0" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="100.0" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">고객</text>
+<text x="100.0" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">직원·파트너</text>
+<path d="M100.0,157 V818" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="271.6666666666667" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="366.6666666666667" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">Cognito</text>
+<text x="366.6666666666667" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">회사 IdP 연동</text>
+<path d="M366.6666666666667,157 V818" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="538.3333333333334" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="633.3333333333334" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">보호 API</text>
+<text x="633.3333333333334" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">Gateway·Lambda</text>
+<path d="M633.3333333333334,157 V818" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="805.0" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="900.0" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">PostgreSQL</text>
+<text x="900.0" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">권한·자산·이벤트</text>
+<path d="M900.0,157 V818" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<polyline points="100.0,245 366.6666666666667,245" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="366.6666666666667,245 354.6666666666667,240 354.6666666666667,250" fill="#235D92"/>
+<text x="233.33333333333334" y="215" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">Q01 로그인·토큰 요청</text>
+<polyline points="366.6666666666667,321 100.0,321" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="100.0,321 112.0,316 112.0,326" fill="#586575"/>
+<text x="233.33333333333334" y="291" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">Q02 access token</text>
+<polyline points="100.0,397 633.3333333333334,397" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="633.3333333333334,397 621.3333333333334,392 621.3333333333334,402" fill="#235D92"/>
+<text x="233.33333333333334" y="367" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">Q03 조회 요청</text>
+<polyline points="633.3333333333334,453 689.3333333333334,453 689.3333333333334,473 633.3333333333334,473" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="633.3333333333334,473 645.3333333333334,468 645.3333333333334,478" fill="#235D92"/>
+<text x="757.6666666666667" y="443" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">Q04 토큰·scope 검사</text>
+<polyline points="633.3333333333334,549 900.0,549" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="900.0,549 888.0,544 888.0,554" fill="#235D92"/>
+<text x="766.6666666666667" y="519" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">Q05 주체·자산 권한</text>
+<polyline points="900.0,625 633.3333333333334,625" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="633.3333333333334,625 645.3333333333334,620 645.3333333333334,630" fill="#586575"/>
+<text x="766.6666666666666" y="595" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">Q06 허용 데이터</text>
+<polyline points="633.3333333333334,681 689.3333333333334,681 689.3333333333334,701 633.3333333333334,701" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="633.3333333333334,701 645.3333333333334,696 645.3333333333334,706" fill="#235D92"/>
+<text x="757.6666666666667" y="671" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">Q07 일반·AAS 조립</text>
+<polyline points="633.3333333333334,777 100.0,777" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="100.0,777 112.0,772 112.0,782" fill="#586575"/>
+<text x="500.0" y="747" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">Q08 조회 응답</text>
 </svg>

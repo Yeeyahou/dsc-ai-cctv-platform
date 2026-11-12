@@ -55,11 +55,13 @@ v1.1 백엔드와 v1.0 엣지 서버는 직접 호환되지 않는다. 백엔드
 
 직원·허용된 파트너는 Cognito access token으로 이벤트·TimeSeries·AAS 조회와 클립 요청·상태 조회를 수행한다. API Gateway 뒤의 ApiFunction 한 개에 이벤트·조회·AAS·작업·사본의 논리 기능이 함께 있고, MaintenanceFunction은 별도 Lambda다. AAS 어댑터는 기존 고객 기능으로 유지하며 같은 PostgreSQL의 등록 자산·권한·이벤트를 사용한다. AAS를 별도 Lambda나 별도 DB로 배포하지 않는다.
 
-구성도의 화살표는 요청 시작 방향이며 HTTPS 응답은 같은 연결로 돌아온다. A02 회색 점선은 Cognito authorizer의 User Pool 설정 관계다. A03은 고객 조회와 클립 요청, A08은 고객의 S3 직접 다운로드다. F03·F04·O01·O02는 설치별 제어 API, A06은 백엔드만 수행하는 SQS 송수신이다. 모든 선의 시작·도착·의미와 9개 상세 도식은 [시스템 아키텍처 상세 설계](system-architecture-v1.2.md)에 있다.
+구성도의 화살표는 요청 시작 방향이며 HTTPS 응답은 같은 연결로 돌아온다. A02 회색 점선은 Cognito authorizer의 User Pool 설정 관계다. A03은 고객 조회와 클립 요청, A08은 고객의 S3 직접 다운로드다. F03·F04·O01·O02는 설치별 제어 API, A06은 백엔드만 수행하는 SQS 송수신이다. 모든 선의 시작·도착·의미와 11개 상세 도식은 [시스템 아키텍처 상세 설계](system-architecture-v1.2.md)에 있다.
 
-![그림 1A 전체 시스템 구성과 제어 흐름](diagrams/architecture-v1.2.png)
+![그림 1 전체 시스템 구성과 제어 흐름](diagrams/architecture-v1.2.png)
 
-![그림 1B 클립 저장 위치와 주 업로드 및 예비 경로](diagrams/media-paths-v1.2.png)
+![그림 2 클립 저장 위치와 주 업로드 및 예비 경로](diagrams/media-paths-v1.2.png)
+
+![그림 3 백엔드 내부 기능과 공통 권한](diagrams/backend-components-v1.2.png)
 
 현장 엣지 서버는 외부로 시작하는 HTTPS 연결만 사용한다. NAS 관리 포트, SMB 및 NFS를 인터넷에 공개하지 않는다. AWS 백엔드는 NAS를 직접 마운트하지 않는다. field 엣지는 완성 클립의 관리 사본을 확정한 뒤 사무실 HTTPS 수신기로 복제한다. 사무실 워커는 작업 API로 요청을 확인하고 NAS 클립을 S3 PUT URL로 직접 전송한다. 사무실 장애 시에는 같은 이벤트의 검증 현장 사본을 가진 엣지가 S3로 직접 업로드한다. 고객은 API의 READY 응답에서 받은 S3 GET URL로 직접 다운로드한다. 영상 바이트는 API Gateway·Lambda·DB를 경유하지 않는다.
 
@@ -189,7 +191,7 @@ AAS ID와 Submodel ID는 등록된 URI를 사용한다. URL 경로의 식별자�
 
 ### 5 1 이벤트 전송 흐름
 
-![그림 2 이벤트 접수와 재전송 흐름](diagrams/event-flow.png)
+![그림 4 이벤트 접수와 재전송 흐름](diagrams/event-flow.png)
 
 POST /ingest는 이벤트 한 건을 수신한다. dsc/ingest.write 및 엣지 서버의 센터 권한을 검사한 뒤 이벤트 본문, 자산 연결과 초기 클립 정보를 하나의 영속화 단위로 저장한다. 저장 완료 후에만 201을 반환한다.
 
@@ -380,6 +382,8 @@ current는 UTC 당일 00시부터 asOf까지의 occurredAt를 집계한다. 응�
 
 AAS 어댑터는 IDTA HTTP/REST API v3.1.2의 식별자 및 직렬화 규칙을 적용한다. 쓰기 API는 제공하지 않는다. Shell, Submodel과 Registry 응답은 등록 자산 메타데이터와 이벤트 조회 결과로 조립한다.
 
+![그림 5 AAS 기능 분기와 데이터 연결](diagrams/aas-components-v1.2.png)
+
 | API | 제공 내용 |
 |---|---|
 | GET /lookup/shells | assetIds를 통한 AAS ID 검색 |
@@ -400,9 +404,9 @@ AAS Endpoint에 NAS 경로나 S3 서명 URL을 저장하지 않는다. 이력과
 
 ### 8 1 요청 및 처리 흐름
 
-![그림 3A 고객 클립 요청과 작업 배정 및 업로드 URL 발급](diagrams/clip-request-v1.2.png)
+![그림 6 고객 클립 요청과 작업 배정 및 업로드 URL 발급](diagrams/clip-request-v1.2.png)
 
-![그림 3B S3 업로드 완료 검증과 고객 직접 다운로드](diagrams/clip-completion-v1.2.png)
+![그림 7 S3 업로드 완료 검증과 고객 직접 다운로드](diagrams/clip-completion-v1.2.png)
 
 클립 전달은 작업 접수, 현장 업로드, 서버 검증, 임시 링크 발급으로 처리한다. 기본 제공 단위는 이벤트당 기본 클립 한 개이며 원본 녹화 전체와 임의 시간 범위 편집은 제공하지 않는다.
 
@@ -429,7 +433,7 @@ GET /file-requests/{requestId}는 작업 상태를 조회한다. GET /files/{eve
 
 ### 8 3 작업 상태
 
-![그림 4 클립 작업 상태 전이](diagrams/job-state.png)
+![그림 8 클립 작업 상태 전이](diagrams/job-state.png)
 
 | 상태 | 정의 | 전이 |
 |---|---|---|

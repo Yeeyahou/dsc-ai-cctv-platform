@@ -1,65 +1,57 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1526" viewBox="0 0 2400 1526" role="img">
-<title>이벤트 접수와 사무실 NAS 복제의 완료 조건</title><desc>CCTV·로봇 각각 동일 절차를 수행한다. 로컬 파일 확정·DB 저장·NAS 저장·서버 STORED 확인을 서로 다른 단계로 구분한다.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1142" viewBox="0 0 1000 1142" role="img">
+<title>이벤트 접수와 NAS 복제 확인</title><desc></desc>
 <rect width="100%" height="100%" fill="white"/>
-<text x="45" y="48" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="34" font-weight="700" fill="#172431">이벤트 접수와 사무실 NAS 복제의 완료 조건</text>
-<text x="45" y="91" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">CCTV·로봇 각각 동일 절차를 수행한다. 로컬 파일 확정·DB 저장·NAS 저장·서버 STORED 확인을 서로 다른 단계로 구분한다.</text>
-<rect x="50.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="250.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">field 엣지</text>
-<text x="250.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">AI inbox / 관리 사본 / SQLite</text>
-<path d="M250.0,230 V1384" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="683.3333333333334" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="883.3333333333334" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">AWS 제어 API</text>
-<text x="883.3333333333334" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">ApiFunction + PostgreSQL</text>
-<path d="M883.3333333333334,230 V1384" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="1316.6666666666667" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="1516.6666666666667" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">사무실 수신기</text>
-<text x="1516.6666666666667" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">HTTPS / 로컬 manifest</text>
-<path d="M1516.6666666666667,230 V1384" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<rect x="1950.0" y="130" width="400" height="100" rx="5" fill="#F0F4F8" stroke="#A3ADB8" stroke-width="1.5"/>
-<text x="2150.0" y="171" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="25" font-weight="700" fill="#172431">사무실 NAS</text>
-<text x="2150.0" y="207" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="22" font-weight="400" fill="#172431">서비스 전용 마운트·볼륨</text>
-<path d="M2150.0,230 V1384" fill="none" stroke="#C0C7CF" stroke-width="1.5" stroke-dasharray="5 7"/>
-<polyline points="250.0,307 380.0,307 380.0,334 250.0,334" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="250.0,334 262.0,329 262.0,339" fill="#235D92"/>
-<text x="546.6666666666667" y="300" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">R01 완성 JSON만 접수; 클립 관리 사본·outbox 영속 확정</text>
-<polyline points="250.0,420 883.3333333333334,420" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="883.3333333333334,420 871.3333333333334,415 871.3333333333334,425" fill="#235D92"/>
-<text x="566.6666666666667" y="392" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">R02 POST /ingest — 동일 eventId·최초 본문 유지</text>
-<polyline points="883.3333333333334,512 250.0,512" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
-<polygon points="250.0,512 262.0,507 262.0,517" fill="#586575"/>
-<text x="566.6666666666667" y="457" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">R03 이벤트·자산·영상 트랜잭션 commit 후 201 / 중복</text>
-<text x="566.6666666666667" y="484" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">200</text>
-<polyline points="250.0,604 883.3333333333334,604" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="883.3333333333334,604 871.3333333333334,599 871.3333333333334,609" fill="#235D92"/>
-<text x="566.6666666666667" y="549" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">R04 POST /edge-server/replicas — 현장 크기·SHA-256</text>
-<text x="566.6666666666667" y="576" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">등록</text>
-<polyline points="250.0,696 883.3333333333334,696" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="883.3333333333334,696 871.3333333333334,691 871.3333333333334,701" fill="#235D92"/>
-<text x="566.6666666666667" y="641" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">R05 POST /edge-server/archive/prepare — 수신자·전송</text>
-<text x="566.6666666666667" y="668" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">권한</text>
-<polyline points="883.3333333333334,788 250.0,788" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
-<polygon points="250.0,788 262.0,783 262.0,793" fill="#586575"/>
-<text x="566.6666666666667" y="760" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">R06 transferId·수신 URL·짧은 전송 capability 반환</text>
-<polyline points="250.0,880 1516.6666666666667,880" fill="none" stroke="#A44F11" stroke-width="2.6" />
-<polygon points="1516.6666666666667,880 1504.6666666666667,875 1504.6666666666667,885" fill="#A44F11"/>
-<text x="883.3333333333334" y="852" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#A44F11">R07 기존 파일 verify; 404이면 PUT /archive/transfers/{id}</text>
-<polyline points="1516.6666666666667,972 883.3333333333334,972" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="883.3333333333334,972 895.3333333333334,967 895.3333333333334,977" fill="#235D92"/>
-<text x="1200.0" y="917" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">R08 POST .../archive/{id}/authorize — 수신기 자체</text>
-<text x="1200.0" y="944" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">JWT로 검증</text>
-<polyline points="1516.6666666666667,1064 2150.0,1064" fill="none" stroke="#A44F11" stroke-width="2.6" />
-<polygon points="2150.0,1064 2138.0,1059 2138.0,1069" fill="#A44F11"/>
-<text x="1833.3333333333335" y="1036" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#A44F11">R09 크기·SHA-256·볼륨 검증; fsync·원자 확정</text>
-<polyline points="1516.6666666666667,1156 883.3333333333334,1156" fill="none" stroke="#235D92" stroke-width="2.6" />
-<polygon points="883.3333333333334,1156 895.3333333333334,1151 895.3333333333334,1161" fill="#235D92"/>
-<text x="1200.0" y="1101" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">R10 로컬 manifest 확정 후 POST</text>
-<text x="1200.0" y="1128" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#235D92">.../archive/{id}/complete</text>
-<polyline points="883.3333333333334,1248 1516.6666666666667,1248" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
-<polygon points="1516.6666666666667,1248 1504.6666666666667,1243 1504.6666666666667,1253" fill="#586575"/>
-<text x="1200.0" y="1220" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">R11 정확한 클립·revision·수신자의 STORED receipt</text>
-<polyline points="1516.6666666666667,1340 250.0,1340" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
-<polygon points="250.0,1340 262.0,1335 262.0,1345" fill="#586575"/>
-<text x="883.3333333333334" y="1312" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">R12 서버 확인을 마친 receipt; field도 일치 검사 후 기록</text>
-<text x="45" y="1455" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">R07의 verify도 R08~R12의 재검증·보고를 거친다. ACK 유실·부분 전송·재시작은 같은 식별자와 내용으로 조정한다.</text>
-<text x="45" y="1491" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="23" font-weight="400" fill="#586575">클립 바이트는 field→사무실로 전송하며 AWS Lambda를 경유하지 않는다. 원본 생성 프로그램의 보관 정책은 별도다.</text>
+<text x="24" y="39" text-anchor="start" font-family="Nanum Gothic, sans-serif" font-size="28" font-weight="700" fill="#172431">이벤트 접수와 NAS 복제 확인</text>
+<rect x="5.0" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="100.0" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">현장 엣지</text>
+<text x="100.0" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">outbox·관리 사본</text>
+<path d="M100.0,157 V1122" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="271.6666666666667" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="366.6666666666667" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">AWS API</text>
+<text x="366.6666666666667" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">DB·전송 권한</text>
+<path d="M366.6666666666667,157 V1122" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="538.3333333333334" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="633.3333333333334" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">사무실 수신기</text>
+<text x="633.3333333333334" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">manifest</text>
+<path d="M633.3333333333334,157 V1122" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<rect x="805.0" y="85" width="190" height="72" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="900.0" y="114.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="700" fill="#172431">사무실 NAS</text>
+<text x="900.0" y="142.0" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#172431">검증 클립</text>
+<path d="M900.0,157 V1122" fill="none" stroke="#B7C1CD" stroke-width="1.3" stroke-dasharray="4 6"/>
+<polyline points="100.0,225 156.0,225 156.0,245 100.0,245" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="100.0,245 112.0,240 112.0,250" fill="#235D92"/>
+<text x="224.33333333333334" y="215" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">R01 로컬 접수 확정</text>
+<polyline points="100.0,321 366.6666666666667,321" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="366.6666666666667,321 354.6666666666667,316 354.6666666666667,326" fill="#235D92"/>
+<text x="233.33333333333334" y="291" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">R02 이벤트 전송</text>
+<polyline points="366.6666666666667,397 100.0,397" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="100.0,397 112.0,392 112.0,402" fill="#586575"/>
+<text x="233.33333333333334" y="367" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">R03 DB 저장 ACK</text>
+<polyline points="100.0,473 366.6666666666667,473" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="366.6666666666667,473 354.6666666666667,468 354.6666666666667,478" fill="#235D92"/>
+<text x="233.33333333333334" y="443" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">R04 현장 사본 등록</text>
+<polyline points="100.0,549 366.6666666666667,549" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="366.6666666666667,549 354.6666666666667,544 354.6666666666667,554" fill="#235D92"/>
+<text x="233.33333333333334" y="519" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">R05 전송 준비</text>
+<polyline points="366.6666666666667,625 100.0,625" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="100.0,625 112.0,620 112.0,630" fill="#586575"/>
+<text x="233.33333333333334" y="595" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">R06 수신 권한·URL</text>
+<polyline points="100.0,701 633.3333333333334,701" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="633.3333333333334,701 621.3333333333334,696 621.3333333333334,706" fill="#A44F11"/>
+<text x="233.33333333333334" y="671" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#A44F11">R07 verify·클립 PUT</text>
+<polyline points="633.3333333333334,777 366.6666666666667,777" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="366.6666666666667,777 378.6666666666667,772 378.6666666666667,782" fill="#235D92"/>
+<text x="500.0" y="747" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">R08 수신 권한 확인</text>
+<polyline points="633.3333333333334,853 900.0,853" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="900.0,853 888.0,848 888.0,858" fill="#A44F11"/>
+<text x="766.6666666666667" y="823" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#A44F11">R09 검증·원자 확정</text>
+<polyline points="633.3333333333334,929 366.6666666666667,929" fill="none" stroke="#235D92" stroke-width="2.6" />
+<polygon points="366.6666666666667,929 378.6666666666667,924 378.6666666666667,934" fill="#235D92"/>
+<text x="500.0" y="899" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#235D92">R10 완료 보고</text>
+<polyline points="366.6666666666667,1005 633.3333333333334,1005" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="633.3333333333334,1005 621.3333333333334,1000 621.3333333333334,1010" fill="#586575"/>
+<text x="500.0" y="975" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">R11 STORED 확인</text>
+<polyline points="633.3333333333334,1081 100.0,1081" fill="none" stroke="#586575" stroke-width="2.6" stroke-dasharray="9 6"/>
+<polygon points="100.0,1081 112.0,1076 112.0,1086" fill="#586575"/>
+<text x="500.0" y="1051" text-anchor="middle" font-family="Nanum Gothic, sans-serif" font-size="20" font-weight="400" fill="#586575">R12 복제 receipt</text>
 </svg>

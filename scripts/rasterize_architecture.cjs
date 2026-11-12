@@ -8,7 +8,7 @@ const sources = fs.readdirSync(folder).filter((name) => name.endsWith("-v1.2.svg
 
 (async () => {
   for (const name of sources) {
-    await sharp(path.join(folder, name)).png().toFile(path.join(folder, name.replace(/\.svg$/, ".png")));
+    await sharp(path.join(folder, name), { density: 144 }).png().toFile(path.join(folder, name.replace(/\.svg$/, ".png")));
   }
   process.stdout.write(`Rendered ${sources.length} architecture diagrams\n`);
 })().catch((error) => {
