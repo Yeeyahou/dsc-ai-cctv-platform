@@ -1,0 +1,15 @@
+{
+  "base_url": "https://example.execute-api.ap-northeast-2.amazonaws.com/dev",
+  "aas_id": "urn:dsc:aas:camera-1",
+  "global_asset_id": "urn:dsc:asset:camera-1",
+  "submodel_ids": [
+    "urn:dsc:submodel:camera-1:Nameplate",
+    "urn:dsc:submodel:camera-1:TechnicalData"
+  ],
+  "forbidden_aas_id": "urn:dsc:aas:other-camera",
+  "forbidden_submodel_id": "urn:dsc:submodel:camera-1:TimeSeries",
+  "token_url": "https://example.auth.ap-northeast-2.amazoncognito.com/oauth2/token",
+  "client_id": "replace-with-dev-partner-client-id",
+  "client_secret_file": "runtime/secrets/partner-client-secret",
+  "scopes": "dsc/aas.read"
+}
