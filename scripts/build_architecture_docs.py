@@ -75,7 +75,14 @@ def inline(paragraph, text: str) -> None:
             run.font.size = Pt(9)
 
 
-def build(source: Path, target: Path, *, architecture: bool = False) -> None:
+def build(
+    source: Path,
+    target: Path,
+    *,
+    architecture: bool = False,
+    document_title: str | None = None,
+    page_break_before: tuple[str, ...] = (),
+) -> None:
     doc = Document(TEMPLATE)
     template_table = deepcopy(doc.tables[0]._tbl.tblPr)
     template_header = deepcopy(doc.tables[0].rows[0].cells[0]._tc.tcPr)
@@ -173,10 +180,12 @@ def build(source: Path, target: Path, *, architecture: bool = False) -> None:
             run.font.size = Pt(8.5)
         else:
             paragraph = doc.add_paragraph(style=kind)
+            if content in page_break_before:
+                paragraph.paragraph_format.page_break_before = True
             if kind == "Heading 2" and str(content).startswith("11 1 사무실"):
                 paragraph.paragraph_format.page_break_before = True
             if kind == "Title":
-                content = (
+                content = document_title or (
                     "DSC 시스템 아키텍처\n상세 설계"
                     if architecture
                     else "퓨처렉스 DSC AI CCTV\n백엔드 및 엣지 서버 연동 규격서"
@@ -187,17 +196,25 @@ def build(source: Path, target: Path, *, architecture: bool = False) -> None:
             run.text = run.text.replace("Rev 1.1", "Rev 1.2")
             if architecture:
                 run.text = run.text.replace("F2X DSC CCTV INT 001", "DSC 시스템 아키텍처")
+            elif document_title:
+                run.text = run.text.replace("F2X DSC CCTV INT 001", "DSC 연동 준비")
     used_images = {
         node.get(qn("r:embed")) for node in doc._element.body.findall(".//" + qn("a:blip"))
     }
     for identity, relationship in list(doc.part.rels.items()):
         if relationship.reltype.endswith("/image") and identity not in used_images:
             doc.part.drop_rel(identity)
-    doc.core_properties.title = (
+    doc.core_properties.title = document_title or (
         "DSC 시스템 아키텍처 상세 설계"
         if architecture
         else "퓨처렉스 DSC AI CCTV 백엔드 및 엣지 서버 연동 규격서"
     )
+    if document_title:
+        update = doc.settings.element.find(qn("w:updateFields"))
+        if update is None:
+            update = OxmlElement("w:updateFields")
+            doc.settings.element.append(update)
+        update.set(qn("w:val"), "true")
     assert len(doc.sections) == 1
     assert deepcopy(doc.sections[0]._sectPr).xml == original_section.xml
     assert all(shape.width <= width for shape in doc.inline_shapes)
