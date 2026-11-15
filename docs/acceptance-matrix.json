@@ -1,0 +1,279 @@
+[
+  {
+    "id": "AT01",
+    "title": "정상 이벤트 수신",
+    "expected": "201 후 재조회 가능. 자산과 시각 일치",
+    "tests": [
+      "test_ingest_durable_duplicate_and_conflict"
+    ],
+    "fieldWork": "현장 AI와 실제 이벤트 수신",
+    "localScope": "영속 저장 후 201, 재조회, 시각·자산 일치"
+  },
+  {
+    "id": "AT02",
+    "title": "응답 유실 후 재전송",
+    "expected": "200 duplicate. 이벤트와 연결 중복 없음",
+    "tests": [
+      "test_ingest_durable_duplicate_and_conflict",
+      "test_real_socket_fault_proxy_preserves_duplicate_event"
+    ],
+    "fieldWork": "회선 응답 유실 재현",
+    "localScope": "같은 ID·본문 재수신 200, 중복 없음"
+  },
+  {
+    "id": "AT03",
+    "title": "동일 ID의 다른 본문",
+    "expected": "409. 기존 감지 본문 변경 없음",
+    "tests": [
+      "test_ingest_durable_duplicate_and_conflict"
+    ],
+    "fieldWork": "없음",
+    "localScope": "다른 본문 409, 최초 기록 유지"
+  },
+  {
+    "id": "AT04",
+    "title": "인터넷 단절과 엣지 서버 재시작",
+    "expected": "outbox 복원 및 동일 ID 전송",
+    "tests": [
+      "test_atomic_inbox_and_restart_recovery",
+      "test_sigkill_sender_recovers_after_backend_commit_and_lost_ack"
+    ],
+    "fieldWork": "OS 강제 종료와 현장 정전",
+    "localScope": "SENDING 재시작 복구, 같은 ID·본문 유지"
+  },
+  {
+    "id": "AT05",
+    "title": "다른 센터 자산과 위조 siteId",
+    "expected": "저장 및 조회 거부",
+    "tests": [
+      "test_cross_site_denied_atomically",
+      "test_other_site_and_other_field_cannot_register_or_confirm"
+    ],
+    "fieldWork": "실제 센터 등록 값",
+    "localScope": "센터 위조·다른 센터 자산 저장 거부"
+  },
+  {
+    "id": "AT06",
+    "title": "직원 및 파트너 권한",
+    "expected": "목록, 집계, 단건, AAS와 파일 작업에 같은 정책",
+    "tests": [
+      "test_acl_all_linked_assets_and_aggregates",
+      "test_aas_normative_schema_and_time_series_acl",
+      "test_revoked_requester_blocks_completion"
+    ],
+    "fieldWork": "실제 직원·파트너 권한표",
+    "localScope": "단건·목록·집계·AAS·영상 권한 일관성"
+  },
+  {
+    "id": "AT07",
+    "title": "주체 비활성화와 만료 토큰",
+    "expected": "접근 거부. 비밀 로그 없음",
+    "tests": [
+      "test_invalid_token_claims",
+      "test_valid_access_token_and_signature",
+      "test_disabled_principal_and_body_secrets_not_echoed"
+    ],
+    "fieldWork": "회사 IdP·퇴사자 처리·로그 관제",
+    "localScope": "만료·다른 issuer·서명·client·토큰 종류 거부, 비활성 주체 거부"
+  },
+  {
+    "id": "AT08",
+    "title": "발생과 해소 순서 역전",
+    "expected": "원본 보관 및 incidentId 연결",
+    "tests": [
+      "test_resolve_before_start_preserves_both",
+      "test_producer_replay_into_real_inbox_is_idempotent"
+    ],
+    "fieldWork": "AI의 사건 식별 유지",
+    "localScope": "해소 먼저 수신해도 발생·해소 원본과 incidentId 유지"
+  },
+  {
+    "id": "AT09",
+    "title": "녹화 중 또는 원본 누락",
+    "expected": "지정 오류 반환. 성공 링크 없음",
+    "tests": [
+      "test_unavailable_source_has_no_success_link"
+    ],
+    "fieldWork": "NAS 삭제·권한·마운트 장애",
+    "localScope": "녹화 중·누락·제공 불가 상태의 오류와 링크 미발급"
+  },
+  {
+    "id": "AT10",
+    "title": "반복 클립 요청과 중복 큐",
+    "expected": "중복 활성 작업 없음. lease 한 개만 유효",
+    "tests": [
+      "test_concurrent_clip_requests_one_active_job",
+      "test_duplicate_queue_messages_one_lease"
+    ],
+    "fieldWork": "실제 SQS 중복·DLQ 복구",
+    "localScope": "PostgreSQL 동시 요청·중복 큐에서 작업·lease 단일성"
+  },
+  {
+    "id": "AT11",
+    "title": "업로드 중단과 lease 만료",
+    "expected": "재배정 가능. 오래된 완료 통지 거부",
+    "tests": [
+      "test_lease_expiry_reassignment_fences_old_completion",
+      "test_active_lease_fences_failover_until_expiry"
+    ],
+    "fieldWork": "실제 장시간 전송 중단",
+    "localScope": "lease 만료 후 재배정, 이전 완료 통지 거부"
+  },
+  {
+    "id": "AT12",
+    "title": "허위 완료와 checksum 불일치",
+    "expected": "READY 및 링크 발급 거부",
+    "tests": [
+      "test_false_complete_and_checksum_mismatch_never_ready",
+      "test_head_verification_requires_sha256_not_etag"
+    ],
+    "fieldWork": "실제 S3 PUT·HEAD 통합",
+    "localScope": "S3 HEAD 크기·SHA-256 검증, ETag만으로 완료 불가"
+  },
+  {
+    "id": "AT13",
+    "title": "URL 및 객체 접근 만료",
+    "expected": "신규 링크 중단, 만료 및 정리 기록 확인",
+    "tests": [
+      "test_verified_upload_and_expiry",
+      "test_get_never_creates_job_and_deadline"
+    ],
+    "fieldWork": "실제 URL 만료·객체 물리 삭제",
+    "localScope": "접근 만료와 신규 링크 중단, 정리 기록"
+  },
+  {
+    "id": "AT14",
+    "title": "AAS 직렬화",
+    "expected": "고정 스키마와 소비자 연동 시험 통과",
+    "tests": [
+      "test_aas_normative_schema_and_time_series_acl",
+      "test_consumer_exercises_backend_registry_discovery_and_permissions",
+      "test_aas_consumer_cli_uses_real_socket_and_writes_safe_report"
+    ],
+    "fieldWork": "파트너 소비자와 실제 AAS 연동",
+    "localScope": "고정 IDTA metamodel 스키마로 Shell·Submodel 검증, 권한 필터"
+  },
+  {
+    "id": "AT15",
+    "title": "DB 장애와 큐 전달 중단",
+    "expected": "저장 미완료 성공 응답 없음. 미전달 작업 복구",
+    "tests": [
+      "test_db_failure_never_acknowledges",
+      "test_enqueue_gap_recovery"
+    ],
+    "fieldWork": "AWS 장애·네트워크·권한 오류",
+    "localScope": "DB 저장 실패 시 성공 응답 없음, SQS 전송 실패 표식 재발행"
+  },
+  {
+    "id": "AT16",
+    "title": "로컬 inbox 중복과 불완전 파일",
+    "expected": ".tmp 무시. DB 접수 후 중복 처리 방지",
+    "tests": [
+      "test_inbox_invalid_file_quarantine",
+      "test_producer_replay_into_real_inbox_is_idempotent",
+      "test_atomic_inbox_and_restart_recovery"
+    ],
+    "fieldWork": "실제 녹화 프로그램의 atomic rename",
+    "localScope": "불완전 파일 무시, 로컬 접수 중복 방지, JSON 오류 격리"
+  },
+  {
+    "id": "AT17",
+    "title": "용량 및 복구 시험",
+    "expected": "운영 매니페스트 조건과 측정 결과 일치",
+    "tests": [
+      "test_concurrent_ingest_unique_event",
+      "test_edge_server_migration_preserves_installed_data"
+    ],
+    "fieldWork": "실제 용량·부하·DB/NAS 백업 복원·RPO·RTO 측정",
+    "localScope": "동시성·상태 복구의 자동 시험"
+  },
+  {
+    "id": "AT18",
+    "title": "CCTV·로봇 별도 설치",
+    "expected": "코드 공통, 식별자·상태·권한·큐 분리, 사무실 공통 업로드",
+    "tests": [
+      "test_robot_event_is_assigned_to_same_office_without_cctv_identity",
+      "test_complete_replication_and_primary_assignment"
+    ],
+    "fieldWork": "실제 디텍션 프로그램 입력·설치",
+    "localScope": "CCTV·로봇 별도 주체와 사본, 공통 사무실 배정"
+  },
+  {
+    "id": "AT19",
+    "title": "NAS 전송 중단·재시작·ACK 유실",
+    "expected": "같은 클립·해시로 복구, 잘못된 STORED 없음",
+    "tests": [
+      "test_partial_wrong_and_oversized_bytes_never_confirm",
+      "test_retry_after_lost_ack_and_restart_preserves_identity"
+    ],
+    "fieldWork": "실제 WAN 단절·전원 차단",
+    "localScope": "부분·초과·변조 바이트 거부, ACK 유실과 재시작 조정"
+  },
+  {
+    "id": "AT20",
+    "title": "파일 확정과 DB 보고 사이 장애",
+    "expected": "파일·manifest·서버 사본을 재시도로 일치시킴",
+    "tests": [
+      "test_crash_between_file_commit_and_manifest_is_recovered",
+      "test_file_commit_survives_backend_confirmation_failure"
+    ],
+    "fieldWork": "실제 NAS fsync·hard link 영속성",
+    "localScope": "파일 확정 후 manifest·서버 완료 보고 실패와 재시도"
+  },
+  {
+    "id": "AT21",
+    "title": "사무실 워커·NAS·회선 장애",
+    "expected": "검증된 현장 사본으로 전환, 유효 lease 단일성",
+    "tests": [
+      "test_queued_primary_failure_routes_to_field",
+      "test_primary_and_fallback_simultaneous_claim_one_valid_lease"
+    ],
+    "fieldWork": "실제 독립 현장→AWS 회선",
+    "localScope": "사무실 미응답·NAS 비정상·오프라인 전환, PostgreSQL 주·예비 동시 claim 단일 lease"
+  },
+  {
+    "id": "AT22",
+    "title": "오래된 메시지·lease·revision",
+    "expected": "현재 작업·새 사본을 변경하지 않음",
+    "tests": [
+      "test_changed_revision_fences_existing_upload_and_preserves_pinned_bytes",
+      "test_pinned_hash_and_revoked_uploader_cannot_complete"
+    ],
+    "fieldWork": "실제 장시간 S3 업로드 중단",
+    "localScope": "오래된 큐·배정·lease·revision 및 회수된 업로더 권한 거부"
+  },
+  {
+    "id": "AT23",
+    "title": "30일 정리와 요청 경쟁",
+    "expected": "NAS 재검증·배정 차단 후 삭제, 미확인·작업 중 데이터 보존",
+    "tests": [
+      "test_cleanup_waits_for_nas_and_active_jobs",
+      "test_retirement_racing_request_preserves_an_available_copy",
+      "test_retirement_ack_loss_is_reconciled_without_reupload"
+    ],
+    "fieldWork": "실제 일별 생성량·30일 및 장기 장애 누적 용량",
+    "localScope": "NAS 미확인·진행 중 작업 정리 거부, retire ACK 유실, 정리와 요청의 PostgreSQL 경쟁"
+  },
+  {
+    "id": "AT24",
+    "title": "변조·잘못된 볼륨·경로 우회",
+    "expected": "ACK·READY·정리 금지, 사본 보존 및 격리·경고",
+    "tests": [
+      "test_corrupt_managed_copy_is_quarantined_before_any_remote_upload",
+      "test_office_symlink_and_wrong_volume_cannot_acknowledge"
+    ],
+    "fieldWork": "실제 NAS 마운트 교체·디스크 오류",
+    "localScope": "관리 사본 변조 격리, 잘못된 볼륨·심볼릭 링크 차단, 이전 outbox의 관리 사본 복구"
+  },
+  {
+    "id": "AT25",
+    "title": "실제 NAS·현장 전원·회선·용량",
+    "expected": "30일 및 장애 누적량, fsync·hard link·백업 복원·RPO/RTO 현장 검수",
+    "tests": [
+      "test_partial_crash_file_is_cleaned_only_under_same_clip_lock",
+      "test_cleanup_crash_after_server_retirement_resumes"
+    ],
+    "fieldWork": "NAS 장비·현장 PC·전원·회선·부하·백업 복원 및 RPO/RTO 측정",
+    "localScope": "로컬 상태·동시성·단계별 복구 프로토콜 검증"
+  }
+]

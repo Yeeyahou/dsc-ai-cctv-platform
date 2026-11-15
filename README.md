@@ -102,6 +102,13 @@ CCTV·로봇별 합성 MP4와 기존 inbox 형식의 JSON을 만들며, `--repla
 [외부 AAS 소비자 목업](docs/aas-consumer-guide.md)은 개발용 파트너 자격 증명으로
 Discovery·Registry·Shell·Submodel·$value와 금지 자산의 접근 거부를 검사하고 JSON 결과를 남긴다.
 
+전체 실행 순서는 [장비 도착 전 준비 작업](docs/preparation-work-guide.md)에 있다.
+[장애 재현](docs/fault-rehearsal-guide.md)은 실제 loopback 소켓의 유실·지연과 별도 프로세스의
+강제 종료 복구를 검증한다. [검수 보고서 도구](docs/acceptance-report-guide.md)는
+AT01~AT25를 pytest JUnit 결과와 연결해 `report.json`·`report.md`를 만든다.
+실제 장비·AWS·파트너 검수에는 [기록 양식](docs/acceptance-report-template.md)을 함께 사용한다.
+각 세부 안내에는 같은 이름의 Word 문서도 제공한다. 기존 규격서와 아키텍처 Word는 재생성하지 않는다.
+
 ## 실행 로그
 
 API 전체와 백엔드·엣지의 기능 실행에 공통 AOP 로깅을 적용한다. 시작·정상 반환·예외·소요시간을 JSON으로 기록하고, `traceId`와 호출별 `spanId`로 연결한다. 이벤트의 `eventId`, 영상 작업의 `requestId`, Lambda의 `awsRequestId`는 별도 필드다. 로그는 stderr로 출력하며 Lambda에서는 CloudWatch, systemd에서는 journal에서 확인한다.

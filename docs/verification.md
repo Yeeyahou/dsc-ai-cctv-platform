@@ -1,5 +1,25 @@
 # 구현 검증 기록
 
+## 장비 도착 전 준비 도구 검증
+
+2026년 11월 16일 분석·녹화 목업, 외부 AAS 소비자, JSON 제어 API 장애 프록시와 AT01~AT25 보고서 도구를 추가했다. 소스 커밋 `e3a6c7b0be1f3f2adde6a7b25f83ed89334cfb38`의 추적 파일 변경이 없는 상태에서 새 보고서 CLI로 전체 시험을 실행했다. 아래 결과는 기존 v1.2의 실제 AWS 배포 기록과 별도의 격리 시험이다.
+
+| 검사 | 결과 |
+|---|---|
+| 임시 SQLite 전체 시험 | 124 passed, PostgreSQL 전용 8 skipped, 기존 경고 1건 |
+| 임시 PostgreSQL 17 전체 시험 | 132 passed, skipped 없음, 기존 경고 1건 |
+| AT 대응 보고서 | SQLite 자동 범위 21 PASS·4 INCOMPLETE, PostgreSQL 자동 범위 25 PASS. 실제 환경 상태는 두 보고서 모두 25 NOT_RUN |
+| 프로세스와 소켓 | 실제 loopback TCP에서 요청 전 차단·저장 후 ACK 유실·지연 재현. 별도 송신 프로세스 SIGKILL 후 최초 본문 그대로 200 duplicate·ACKED 복구 |
+| AAS 소비자 | 실제 API·권한·고정 스키마를 격리 transport로 확인하고 별도 CLI도 loopback 소켓으로 실행. 금지 자산·Submodel 404 및 비밀 없는 보고서 확인 |
+| 생산자 | CCTV·로봇 구분, 발생·해소 incidentId, RECORDING→AVAILABLE, 실제 inbox·관리 사본 접수, replay 중복 방지·변조·충돌·사전 확인 이후 변경 거부 |
+| 합성 MP4 | FFmpeg 9.0으로 CCTV 랜덤 색상·길이 MP4 4개 생성 후 전부 디코딩 성공. 실제 CCTV 코덱·모델 시험은 아님 |
+| 정적·포맷 | Ruff 통과, 대상 62개 파일 |
+| Word | 세부 문서 6개·11페이지를 렌더링 후 전부 확인. 원본 A4 섹션·여백·스타일·번호 정의·테마 유지, 기존 규격서·아키텍처 Word 미변경 |
+
+원본 JUnit·pytest 로그와 AT별 report.json·report.md는 로컬 `runtime/acceptance/20261116-sqlite` 및 `runtime/acceptance/20261116-postgres`에 생성했다. 생성 결과는 Git에 커밋하지 않으며 같은 명령으로 새 output 디렉터리에 다시 만들 수 있다. [검수 보고서 안내](acceptance-report-guide.md)와 [전체 실행 순서](preparation-work-guide.md)를 따른다.
+
+이번 도구로 실제 AWS를 새로 배포하거나 실제 NAS·현장 회선·전원·파트너 제품을 시험하지 않았다. 현재 개발 자격 증명·등록 자산과 물리 장비가 준비되면 별도 [실제 검수 양식](acceptance-report-template.md)에 결과를 남긴다. 기존 Starlette TestClient의 HTTPX 폐기 예정 경고는 남아 있다.
+
 검증일 2026년 11월 8일
 
 ## 수행한 검사

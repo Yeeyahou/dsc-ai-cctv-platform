@@ -6,6 +6,7 @@ import argparse
 import fcntl
 import hashlib
 import json
+import math
 import os
 import random
 import shutil
@@ -224,7 +225,7 @@ def prepare_run(
 
 @logged()
 def replay(run_dir: Path, inbox: Path, clip_root: Path, interval: float = 0) -> dict:
-    if interval < 0 or interval > 3600:
+    if not math.isfinite(interval) or interval < 0 or interval > 3600:
         raise ValueError("interval must be between 0 and 3600 seconds")
     plan = json.loads((run_dir / "plan.json").read_text())
     # Check every saved input before exposing any of this run to the consumer.
@@ -264,9 +265,18 @@ def replay(run_dir: Path, inbox: Path, clip_root: Path, interval: float = 0) -> 
                 raise ValueError("filename identity mismatch")
     for index, entry in enumerate(plan["entries"]):
         relative = entry["relativePath"]
-        publish(clip_root / relative, (run_dir / "clips" / relative).read_bytes())
+        clip_data = (run_dir / "clips" / relative).read_bytes()
+        if (
+            len(clip_data) != entry["sizeBytes"]
+            or hashlib.sha256(clip_data).hexdigest() != entry["sha256"]
+        ):
+            raise ValueError("saved clip changed during replay")
+        publish(clip_root / relative, clip_data)
         for name in entry["envelopes"]:
-            publish(inbox / name, (run_dir / "envelopes" / name).read_bytes())
+            data = (run_dir / "envelopes" / name).read_bytes()
+            if hashlib.sha256(data).hexdigest() != entry["envelopeHashes"][name]:
+                raise ValueError("saved envelope changed during replay")
+            publish(inbox / name, data)
         if interval and index + 1 < len(plan["entries"]):
             time.sleep(interval)
     return {
