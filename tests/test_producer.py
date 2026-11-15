@@ -120,3 +120,23 @@ def test_existing_plan_requires_explicit_replay(tmp_path):
             started_at=datetime.now(UTC),
         )
     assert json.loads((directory / "plan.json").read_text()) == value
+
+
+def test_replay_detects_source_change_after_preflight(tmp_path, monkeypatch):
+    from dsc.devtools import producer
+
+    directory, value = plan(tmp_path, count=2)
+    clip_root, inbox = tmp_path / "input", tmp_path / "inbox"
+    second = value["entries"][1]
+    source = directory / "clips" / second["relativePath"]
+
+    def publish_then_corrupt(path, data):
+        publish(path, data)
+        if path == clip_root / value["entries"][0]["relativePath"]:
+            source.write_bytes(source.read_bytes() + b"changed after preflight")
+
+    monkeypatch.setattr(producer, "publish", publish_then_corrupt)
+    with pytest.raises(ValueError, match="changed during replay"):
+        replay(directory, inbox, clip_root)
+    assert not (clip_root / second["relativePath"]).exists()
+    assert not (inbox / second["envelopes"][1]).exists()
