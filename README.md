@@ -99,6 +99,9 @@ dsc-edge-server --env-file /etc/dsc/edge.env --retry 123
 CCTV·로봇별 합성 MP4와 기존 inbox 형식의 JSON을 만들며, `--replay`로 같은 입력을 재전송한다.
 목업은 개발 도구이며 별도 HTTP 입력 API나 운영 인증 우회를 추가하지 않는다.
 
+[외부 AAS 소비자 목업](docs/aas-consumer-guide.md)은 개발용 파트너 자격 증명으로
+Discovery·Registry·Shell·Submodel·$value와 금지 자산의 접근 거부를 검사하고 JSON 결과를 남긴다.
+
 ## 실행 로그
 
 API 전체와 백엔드·엣지의 기능 실행에 공통 AOP 로깅을 적용한다. 시작·정상 반환·예외·소요시간을 JSON으로 기록하고, `traceId`와 호출별 `spanId`로 연결한다. 이벤트의 `eventId`, 영상 작업의 `requestId`, Lambda의 `awsRequestId`는 별도 필드다. 로그는 stderr로 출력하며 Lambda에서는 CloudWatch, systemd에서는 journal에서 확인한다.
