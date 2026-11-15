@@ -22,7 +22,7 @@ PYTHONPATH=src python -m dsc.devtools.fault_proxy \
   --port 18080 --mode drop-after --route-prefix /ingest --nth 1
 ```
 
-개발용 엣지 환경 파일의 ENVIRONMENT를 test, API_URL을 `http://127.0.0.1:18080`으로 지정한다. TOKEN_URL은 실제 개발 Cognito HTTPS를 유지한다. 운영 설정 파일과 상태 디렉터리는 사용하지 않는다. 기존 엣지 서버를 중지하거나 운영 상태를 지우지 말고 별도 등록 주체·inbox·state_dir로 실행한다. 프록시는 인증·인가를 우회하지 않고 원래 토큰을 개발 API로 전달한다. 기본 TLS 인증서 검증을 유지하고 HTTP 리다이렉트를 따르지 않는다.
+개발용 엣지 환경 파일의 `DSC_EDGE_ENVIRONMENT`를 test, `DSC_EDGE_API_URL`을 `http://127.0.0.1:18080`으로 지정한다. `DSC_EDGE_TOKEN_URL`은 실제 개발 Cognito HTTPS를 유지한다. 운영 설정 파일과 상태 디렉터리는 사용하지 않는다. 기존 엣지 서버를 중지하거나 운영 상태를 지우지 말고 별도 등록 주체·inbox·state_dir로 실행한다. 프록시는 인증·인가를 우회하지 않고 원래 토큰을 개발 API로 전달한다. 기본 TLS 인증서 검증을 유지하고 HTTP 리다이렉트를 따르지 않는다.
 
 drop-before는 선택한 요청을 upstream에 보내기 전에 연결을 끊는다. drop-after는 upstream 처리와 응답 수신 후 클라이언트 연결을 끊어 저장 후 ACK 유실을 재현한다. delay는 선택한 요청을 보내기 전에 delay-seconds만큼 기다린다. nth는 route-prefix와 일치한 요청 중 1부터 세는 순서이며 한 실행에서 해당 요청 한 번에만 장애를 넣는다. 다시 재현하려면 프록시를 재시작한다.
 

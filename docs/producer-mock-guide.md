@@ -15,7 +15,7 @@ PYTHONPATH=src python -m dsc.devtools.producer \
   --count 20 --seed 42 --interval 0.2
 ```
 
-로봇은 별도 run-dir·inbox·clip-root와 `--channel robot --asset-id robot-1`을 사용한다. 실제 엣지 설정의 INBOX와 NAS_ROOT를 각각 inbox와 clip-root에 맞춘다. serverId·인증·상태 디렉터리도 설치별로 분리한다. CCTV는 DSC-1 계열, 로봇은 DSC-2 계열에서 생성한다. DSC-3 온도 센서 입력은 이 영상 목업 대상 밖이다. 발생·해소 쌍은 순서대로 생성하고 같은 incidentId를 공유한다. count는 이벤트 수이며 각 이벤트에 RECORDING과 AVAILABLE revision 1을 전달한다.
+로봇은 별도 run-dir·inbox·clip-root와 `--channel robot --asset-id robot-1`을 사용한다. 실제 엣지 설정의 `DSC_EDGE_INBOX`와 `DSC_EDGE_NAS_ROOT`를 각각 inbox와 clip-root에 맞춘다. serverId·인증·상태 디렉터리도 설치별로 분리한다. CCTV는 DSC-1 계열, 로봇은 DSC-2 계열에서 생성한다. DSC-3 온도 센서 입력은 이 영상 목업 대상 밖이다. 발생·해소 쌍은 순서대로 생성하고 같은 incidentId를 공유한다. count는 이벤트 수이며 각 이벤트에 RECORDING과 AVAILABLE revision 1을 전달한다.
 
 영상은 160×120, 10 fps, 1~3초 H.264 MP4다. 먼저 전체 입력과 영상 및 해시를 run-dir에 확정한 뒤 clip-root와 inbox로 공개한다. seed는 코드·색상·길이 선택을 반복할 수 있게 하며 새 실행은 새 runId와 UUID를 만든다. 완전히 같은 ID·본문·바이트 재전송에는 아래 replay를 사용한다. 발생 시각을 고정하려면 `--started-at 2026-11-15T00:00:00+00:00`을 지정한다.
 
