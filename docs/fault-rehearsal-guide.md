@@ -32,6 +32,8 @@ PYTHONPATH=src python -m dsc.devtools.fault_proxy \
   --mode delay --delay-seconds 40 --route-prefix /ingest
 ```
 
+## 지연 시험 결과 확인
+
 엣지의 기본 API timeout 30초보다 지연을 길게 하면 엣지는 재시도할 수 있다. 늦은 최초 요청과 재시도가 겹쳐도 같은 이벤트가 한 건만 남아야 한다. 엣지 재시도는 backoff를 사용하므로 즉시 ACKED가 되지 않을 수 있다. Ctrl-C로 프록시를 종료하고 시험 전후 개발 API·등록값·이벤트 ID·관측 시각을 보고서에 남긴다. 토큰·서명 URL·lease 토큰 전체를 기록하지 않는다.
 
 ## 무결성 확인 순서

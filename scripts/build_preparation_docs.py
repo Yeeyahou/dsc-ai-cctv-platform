@@ -17,6 +17,7 @@ if __name__ == "__main__":
         breaks = {
             "producer-mock-guide": ("확인과 한계",),
             "acceptance-report-guide": ("실제 환경 기록",),
+            "fault-rehearsal-guide": ("지연 시험 결과 확인",),
         }
         build(
             ROOT / f"docs/{stem}.md",
