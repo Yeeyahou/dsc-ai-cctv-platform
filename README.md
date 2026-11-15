@@ -92,6 +92,13 @@ dsc-edge-server --env-file /etc/dsc/edge.env --retry 123
 
 로컬 AI·녹화 프로그램은 [inbox 예제](examples/inbox-event.json)를 참고해 `.tmp`로 작성·동기화 후 같은 파일시스템에서 `{eventId}.event.json`으로 이름을 변경한다. 클립 상태 갱신은 `{eventId}.{revision}.media.json`으로 전달한다. `localMedia.relativePath`는 현장에서만 저장하며 서버로 보내지 않는다. accepted 이동은 로컬 접수 완료이며 서버 저장 완료는 outbox의 ACKED로 확인한다.
 
+## 분석 프로그램 연동 준비
+
+생산자 담당자에게 전달할 [분석·녹화 연동 계약](docs/producer-integration-contract.md)과
+[실행 목업 안내](docs/producer-mock-guide.md)를 제공한다. `PYTHONPATH=src python -m dsc.devtools.producer`는
+CCTV·로봇별 합성 MP4와 기존 inbox 형식의 JSON을 만들며, `--replay`로 같은 입력을 재전송한다.
+목업은 개발 도구이며 별도 HTTP 입력 API나 운영 인증 우회를 추가하지 않는다.
+
 ## 실행 로그
 
 API 전체와 백엔드·엣지의 기능 실행에 공통 AOP 로깅을 적용한다. 시작·정상 반환·예외·소요시간을 JSON으로 기록하고, `traceId`와 호출별 `spanId`로 연결한다. 이벤트의 `eventId`, 영상 작업의 `requestId`, Lambda의 `awsRequestId`는 별도 필드다. 로그는 stderr로 출력하며 Lambda에서는 CloudWatch, systemd에서는 journal에서 확인한다.
