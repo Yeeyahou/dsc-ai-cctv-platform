@@ -117,6 +117,13 @@ API 전체와 백엔드·엣지의 기능 실행에 공통 AOP 로깅을 적용�
 
 ## 산출물과 검증
 
+엣지·사무실 워커 개발자를 위한 [AWS API 명세서](docs/edge-cloud-api-v1.2.md)와 같은 이름의
+Word를 제공한다. AWS 제어 API 13개의 요청·응답·오류·cURL 예제, M2M 인증, 연관 사무실
+수신기·S3 전송 및 재시도 순서를 정리했다. 예제 JSON은 `examples/edge-cloud-api/`에 있다.
+`PYTHONPATH=src python scripts/check_edge_api_reference.py`로 경로·요청 모델·예제와 코드 사전을
+대조한다. Word 재생성은 python-docx·Pillow가 있는 문서 작성 환경에서
+`python scripts/build_edge_api_reference.py`를 실행하며 기존 규격서 Word는 수정하지 않는다.
+
 자체 API OpenAPI는 `docs/openapi.json`, DB 변경은 `migrations/`, AAS 고정 스키마·필드 매핑은 `src/dsc/backend/schemas/`에 있다. IDTA 원본의 출처·해시는 `sources.json`, 라이선스는 `IDTA-LICENSE.txt`에서 확인한다.
 
 ```sh

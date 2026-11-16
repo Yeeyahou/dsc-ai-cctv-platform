@@ -34,3 +34,4 @@ jobs:
       - run: cfn-lint infra/*.yaml
       - run: ruff check deploy/database/dev_init.py && ruff format --check deploy/database/dev_init.py
       - run: python scripts/export_openapi.py && git diff --exit-code docs/openapi.json
+      - run: PYTHONPATH=src python scripts/check_edge_api_reference.py

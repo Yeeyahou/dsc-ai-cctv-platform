@@ -1,0 +1,11 @@
+{
+  "requestId": "fa19c81b-6590-4c74-89d7-9938b52b0817",
+  "eventId": "8a394e71-50ac-4cde-b691-48c171f3a062",
+  "clipId": "94028d0a-4ef7-4fd4-9695-d195a78b40ce",
+  "attempt": 1,
+  "leaseToken": "example-lease-token-for-documentation-only-0001",
+  "leaseExpiresAt": "2026-11-16T00:05:00.000Z",
+  "revision": 1,
+  "sizeBytes": 1048576,
+  "checksumSha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+}
