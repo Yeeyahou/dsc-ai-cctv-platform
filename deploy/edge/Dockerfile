@@ -10,7 +10,8 @@ ARG DSC_UID=10001
 ARG DSC_GID=10001
 RUN groupadd --gid ${DSC_GID} dsc-edge \
     && useradd --uid ${DSC_UID} --gid ${DSC_GID} --no-create-home dsc-edge \
-    && mkdir -p /var/lib/dsc/office /mnt/dsc-archive /etc/dsc \
+    && mkdir -p /var/lib/dsc/office /var/lib/dsc/field /var/lib/dsc/field-local \
+       /mnt/dsc-archive /etc/dsc \
     && chown -R dsc-edge:dsc-edge /var/lib/dsc
 COPY requirements.lock /opt/dsc/requirements.lock
 RUN pip install --no-cache-dir --require-hashes -r /opt/dsc/requirements.lock

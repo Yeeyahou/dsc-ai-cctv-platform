@@ -81,6 +81,12 @@ v1.0 설치를 갱신할 때는 [v1.1 연동 변경 이력과 전환 절차](doc
 
 신규 CCTV·로봇 현장은 `examples/field.env.example`, 사무실 수신기·워커는 `examples/office.env.example`을 사용한다. 설치·HTTPS·NAS 마커·30일 관리 사본 정리와 장애 복구는 [사무실·현장 운영 안내](docs/office-worker-operations.md)를 따른다. 기존 legacy 설치는 `examples/edge.env.example`과 기존 서비스 파일을 유지할 수 있다. 비밀 파일 권한은 `0600`으로 두고 업데이트 시 outbox·manifest·관리 사본 경로를 보존한다.
 
+맥북에서 실제 MP4와 목업 이벤트를 Docker로 접수하고 컨테이너 재시작·재생성 후 DB·클립을
+검증하는 방법은 [현장 Docker 실행 안내](docs/field-docker-guide.md)에 있다.
+`scripts/check_field_docker.py --video /absolute/path/to/clip.mp4 --duration-seconds 25.174169`는
+네트워크 차단 개발용 컨테이너를 사용한다. 운영용 `compose.field.yaml`은 별도 설치 인증과
+사무실 수신 설정을 준비한 뒤 사용한다. 두 구성 모두 기존 공통 Docker 이미지를 사용한다.
+
 2026년 11월 11일 AWS 개발 스택을 v1.2로 갱신하고 실제 AWS 업로드·장애 전환·다운로드 만료를 확인했다. 배포 해시와 데이터 보존 및 남은 물리 장비 검수는 [개발 배포 기록](docs/office-worker-deployment-v1.2.md)에 있다. 현장·사무실 장비 설치는 NAS와 접속·네트워크 정보가 준비된 뒤 수행한다.
 
 ```sh
