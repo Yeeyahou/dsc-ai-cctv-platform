@@ -1,0 +1,8 @@
+{
+  "transferId": "0827d6f8-9f75-487a-90b9-75943d55b84f",
+  "receiverId": "office-incheon-01",
+  "transferToken": "example-transfer-token-for-documentation-only-0001",
+  "uploadUrl": "https://archive.example.invalid/archive/transfers/0827d6f8-9f75-487a-90b9-75943d55b84f",
+  "expiresAt": "2026-11-16T00:15:00.000Z",
+  "createdAt": "2026-11-16T00:00:01.000Z"
+}

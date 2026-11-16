@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.1",
+  "edgeServerVersion": "1.2.0",
+  "observedAt": "2026-11-16T00:00:00.000Z",
+  "outboxPendingCount": 2,
+  "oldestPendingAt": "2026-11-16T00:00:00.000Z",
+  "diskFreeBytes": 10737418240,
+  "nasStatus": "OK",
+  "replicaPendingCount": 1,
+  "replicaQuarantinedCount": 0
+}

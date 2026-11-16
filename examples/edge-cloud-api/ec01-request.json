@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0",
+  "eventId": "8a394e71-50ac-4cde-b691-48c171f3a062",
+  "eventCode": "DSC-102A",
+  "siteId": "incheon-01",
+  "occurredAt": "2026-11-16T00:00:00.000Z",
+  "incidentId": "a1ea9c1f-2c69-4e52-aabe-d7414986e31a",
+  "assets": [
+    {
+      "assetId": "cctv-r01",
+      "role": "detector"
+    }
+  ],
+  "metrics": {
+    "estimatedClearanceMarginM": 0.5
+  },
+  "media": {
+    "clipId": "94028d0a-4ef7-4fd4-9695-d195a78b40ce",
+    "status": "RECORDING"
+  }
+}

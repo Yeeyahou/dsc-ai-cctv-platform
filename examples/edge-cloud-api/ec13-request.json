@@ -1,0 +1,5 @@
+{
+  "leaseToken": "example-lease-token-for-documentation-only-0001",
+  "failureCode": "SOURCE_UNREACHABLE",
+  "retryable": true
+}

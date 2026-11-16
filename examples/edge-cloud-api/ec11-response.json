@@ -1,0 +1,8 @@
+{
+  "uploadUrl": "https://s3.example.invalid/clip.mp4?signature=EXAMPLE",
+  "urlExpiresAt": "2026-11-16T00:15:00.000Z",
+  "headers": {
+    "Content-Type": "video/mp4",
+    "x-amz-checksum-sha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  }
+}
