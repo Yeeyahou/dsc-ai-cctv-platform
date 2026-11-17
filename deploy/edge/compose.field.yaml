@@ -1,0 +1,37 @@
+services:
+  field:
+    image: dsc-edge-server:field
+    build:
+      context: ../..
+      dockerfile: deploy/edge/Dockerfile
+    command: [dsc-edge-server, --env-file, /etc/dsc/field.env]
+    user: '${DSC_FIELD_UID:-10001}:${DSC_FIELD_GID:-10001}'
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 180s
+    tmpfs: [/tmp]
+    environment:
+      PYTHONUNBUFFERED: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    volumes:
+      - type: bind
+        source: ${DSC_FIELD_CONFIG_DIR:?set config directory}
+        target: /etc/dsc
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${DSC_FIELD_INBOX_DIR:?set inbox directory}
+        target: /var/spool/dsc/inbox
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${DSC_FIELD_INPUT_DIR:?set producer clip directory}
+        target: /var/spool/dsc/input-clips
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${DSC_FIELD_STATE_DIR:?set persistent state directory}
+        target: /var/lib/dsc/field
+        bind: {create_host_path: false}

@@ -1,0 +1,24 @@
+services:
+  field-local:
+    image: dsc-edge-server:field
+    build:
+      context: ../..
+      dockerfile: deploy/edge/Dockerfile
+    command: [python, -m, dsc.devtools.field_local, --root, /var/lib/dsc/field-local]
+    user: '${DSC_FIELD_UID:-10001}:${DSC_FIELD_GID:-10001}'
+    network_mode: none
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 30s
+    tmpfs: [/tmp]
+    environment:
+      PYTHONUNBUFFERED: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    volumes:
+      - type: bind
+        source: ${DSC_FIELD_LOCAL_DIR:?set persistent local test directory}
+        target: /var/lib/dsc/field-local
+        bind: {create_host_path: false}
