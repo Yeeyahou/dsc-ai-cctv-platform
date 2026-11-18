@@ -42,6 +42,7 @@ class Access:
     principal: Principal
     scopes: frozenset[str]
     edge_server: EdgeServer | None
+    expires_at: int | None = None
 
     def require(self, *scopes: str) -> None:
         if not set(scopes).issubset(self.scopes):
@@ -79,4 +80,6 @@ def authenticate(session, claims: dict) -> Access:
         raise Problem(401, "INACTIVE_PRINCIPAL", "등록된 활성 주체가 필요합니다")
     scopes = frozenset(claims.get("scope", "").split()) & frozenset(principal.scopes)
     edge_server = session.scalar(select(EdgeServer).where(EdgeServer.principal_id == key))
-    return Access(principal, scopes, edge_server)
+    return Access(
+        principal, scopes, edge_server, int(claims["exp"]) * 1000 if "exp" in claims else None
+    )

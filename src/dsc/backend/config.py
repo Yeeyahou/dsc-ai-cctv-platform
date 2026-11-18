@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     assignment_seconds: int = Field(default=60, ge=10)
     archive_transfer_seconds: int = Field(default=900, ge=60, le=3600)
     local_retention_days: int = Field(default=30, ge=1, le=365)
+    live_enabled: bool = False
+    live_session_seconds: int = Field(default=300, ge=30, le=900)
 
     @model_validator(mode="after")
     def production(self) -> "Settings":

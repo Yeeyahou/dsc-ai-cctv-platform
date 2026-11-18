@@ -99,3 +99,50 @@ def test_event_read_and_clip_request_with_runtime_grants(system, event_body, mon
         connection.exec_driver_sql("RESET ROLE")
         actions = connection.scalars(select(Audit.action).where(Audit.object_id == event_id)).all()
         assert "event.read" in actions
+
+
+def test_live_sessions_with_restricted_runtime_grants(system):
+    from dsc.backend.auth import Access
+    from dsc.backend.db import EdgeServer, LiveCamera, Principal
+    from dsc.backend.live import Live, LiveAuthorization, LiveCheck
+
+    with system.sessions.begin() as session:
+        session.get(EdgeServer, "edge-server-1").role = "field"
+        person = session.get(Principal, "user:staff")
+        person.scopes = [*person.scopes, "dsc/live.read"]
+        session.add(
+            LiveCamera(
+                asset_id="camera-1",
+                edge_server_id="edge-server-1",
+                path="camera-1",
+                gateway_url="https://live.test",
+                active=True,
+            )
+        )
+    actor = system.access("staff")
+    actor = Access(actor.principal, actor.scopes | {"dsc/live.read"}, actor.edge_server)
+    edge = system.access("edge")
+    system.platform.settings.live_enabled = True
+    role = "dsc_live_runtime_grants_test"
+    grants = Path("deploy/database/grants.sql").read_text().replace("dsc_runtime", role)
+    with system.engine.connect() as connection:
+        connection.exec_driver_sql(f"CREATE ROLE {role} NOLOGIN")
+        for statement in grants.split(";"):
+            if statement.strip():
+                connection.exec_driver_sql(statement)
+        connection.exec_driver_sql(f"SET LOCAL ROLE {role}")
+        runtime_sessions = sessionmaker(
+            bind=connection, expire_on_commit=False, join_transaction_mode="create_savepoint"
+        )
+        from dsc.backend.service import Platform
+
+        live = Live(Platform(runtime_sessions, system.platform.settings, None, None, system.clock))
+        value = live.create(actor, "camera-1")
+        result = live.authorize(
+            edge, LiveAuthorization(token=value["sessionToken"], path="camera-1")
+        )
+        assert result["sessionId"] == value["sessionId"]
+        live.stop(actor, value["sessionId"])
+        assert live.check(edge, LiveCheck(session_ids=[value["sessionId"]])) == {
+            "activeSessionIds": []
+        }
