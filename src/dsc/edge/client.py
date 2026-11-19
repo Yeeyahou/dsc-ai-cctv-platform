@@ -1,18 +1,36 @@
+from __future__ import annotations
+
 import logging
 import os
 import threading
 import time
+from typing import TYPE_CHECKING
 
 import httpx
 
 from dsc.edge.config import EdgeSettings
 from dsc.shared.observability import emit_event, log_methods
 
+if TYPE_CHECKING:
+    from dsc.streaming.config import GatewaySettings
+
 
 @log_methods(level=logging.DEBUG, include=("_token",))
 class EdgeClient:
-    def __init__(self, settings: EdgeSettings, transport=None, clock=time.time):
+    def __init__(
+        self,
+        settings: EdgeSettings | GatewaySettings,
+        transport=None,
+        clock=time.time,
+        *,
+        scopes: str | None = None,
+    ):
         self.settings, self.clock = settings, clock
+        self.scopes = scopes or (
+            "dsc/edge-server.work"
+            if settings.role == "archive"
+            else "dsc/ingest.write dsc/edge-server.work"
+        )
         self.http = httpx.Client(
             timeout=httpx.Timeout(settings.request_timeout, connect=5),
             follow_redirects=False,
@@ -38,11 +56,7 @@ class EdgeClient:
                 auth=httpx.BasicAuth(self.settings.client_id, secret),
                 data={
                     "grant_type": "client_credentials",
-                    "scope": (
-                        "dsc/edge-server.work"
-                        if self.settings.role == "archive"
-                        else "dsc/ingest.write dsc/edge-server.work"
-                    ),
+                    "scope": self.scopes,
                 },
             )
             response.raise_for_status()
