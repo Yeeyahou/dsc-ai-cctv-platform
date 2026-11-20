@@ -1,0 +1,5 @@
+{
+  "liveCameras": [
+    {"assetId":"camera-1","edgeServerId":"edge-server-cctv","path":"camera-1","gatewayUrl":"https://live.example.internal","active":true}
+  ]
+}

@@ -76,6 +76,16 @@ Parameters:
     Default: '[]'
     AllowedPattern: \[.*\]
     Description: Approved browser origins as a JSON array; no wildcard is enabled by default.
+  LiveEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Enable authorized live sessions after DB migration and gateway installation.
+  LiveCallbackUrl:
+    Type: String
+    Default: ''
+    AllowedPattern: ^$|https://[a-zA-Z0-9.-]+(:[0-9]+)?/$
+    Description: Optional VPN viewer HTTPS origin with trailing slash.
   InitialQueueNaming:
     Type: String
     Default: edge-server
@@ -139,6 +149,11 @@ Rules:
             - ''
       AssertDescription: A custom domain needs a certificate and hosted zone.
 Conditions:
+  HasLiveCallback:
+    Fn::Not:
+    - Fn::Equals:
+      - Ref: LiveCallbackUrl
+      - ''
   IsDev:
     Fn::Equals:
     - Ref: Environment
@@ -177,6 +192,8 @@ Globals:
     Environment:
       Variables:
         DSC_ENVIRONMENT: production
+        DSC_LIVE_ENABLED:
+          Ref: LiveEnabled
         DSC_DATABASE_SECRET_ARN:
           Ref: DatabaseSecretArn
         DSC_RUNTIME_SECRET_ARN:
@@ -556,11 +573,13 @@ Resources:
         ScopeDescription: Read authorized event history
       - ScopeName: ingest.write
         ScopeDescription: Ingest authorized events
+      - ScopeName: live.read
+        ScopeDescription: View explicitly authorized live cameras
       - ScopeName: edge-server.work
         ScopeDescription: Edge Server jobs and heartbeat
     Metadata:
       com.aws.cloudformation.Context:
-        why: Defines explicit DSC API scopes.
+        why: Defines explicit DSC API scopes including optional camera-bound live viewing.
         must:
         - Scope alone does not grant data access
   StaffClient:
@@ -580,12 +599,21 @@ Resources:
       - email
       - dsc/aas.read
       - dsc/timeseries.read
+      - dsc/live.read
       SupportedIdentityProviders:
       - Ref: StaffIdentityProvider
       CallbackURLs:
       - Ref: StaffCallbackUrl
+      - Fn::If:
+        - HasLiveCallback
+        - Ref: LiveCallbackUrl
+        - Ref: AWS::NoValue
       LogoutURLs:
       - Ref: StaffLogoutUrl
+      - Fn::If:
+        - HasLiveCallback
+        - Ref: LiveCallbackUrl
+        - Ref: AWS::NoValue
       EnableTokenRevocation: true
       AccessTokenValidity: 15
       TokenValidityUnits:
@@ -598,6 +626,7 @@ Resources:
       com.aws.cloudformation.Context:
         why: Separates staff, partner and edge authentication flows.
         must:
+        - Preserve existing callbacks while adding the optional VPN live viewer
         - No shared edge server installation secret
   EdgeClient:
     Type: AWS::Cognito::UserPoolClient
@@ -738,6 +767,7 @@ Resources:
             - dsc/timeseries.read
             - dsc/ingest.write
             - dsc/edge-server.work
+            - dsc/live.read
       AccessLogSetting:
         DestinationArn:
           Fn::GetAtt:

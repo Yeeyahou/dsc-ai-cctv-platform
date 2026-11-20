@@ -1,0 +1,40 @@
+# Install on the gateway host. Bind TLS only to the VPN interface.
+server {
+    listen 100.64.0.10:443 ssl;
+    server_name live.example.internal;
+    ssl_certificate /etc/ssl/dsc-live/fullchain.pem;
+    ssl_certificate_key /etc/ssl/dsc-live/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    client_max_body_size 256k;
+    # WHEP IDs and camera routes are omitted from access logs.
+    access_log off;
+    error_log /var/log/nginx/dsc-live-error.log crit;
+    add_header Strict-Transport-Security 'max-age=31536000' always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy no-referrer always;
+    add_header X-Frame-Options DENY always;
+    # Replace the API, Cognito and gateway origins with the exact approved values.
+    add_header Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://wetuhtamrg.execute-api.ap-northeast-2.amazonaws.com https://REPLACE_DOMAIN.auth.ap-northeast-2.amazoncognito.com https://live.example.internal; media-src 'self' blob:; img-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'" always;
+    location ^~ /internal/ { return 404; }
+    location ~ "^/media/[A-Za-z0-9][A-Za-z0-9_-]{0,63}/whep(?:/[a-zA-Z0-9_-]+)?$" {
+        limit_except POST PATCH DELETE OPTIONS { deny all; }
+        rewrite ^/media/(.*)$ /$1 break;
+        proxy_pass http://127.0.0.1:8889;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_connect_timeout 3s;
+        proxy_read_timeout 20s;
+        proxy_send_timeout 20s;
+        proxy_buffering off;
+        proxy_redirect ~^(/.*)$ /media$1;
+        proxy_redirect http://127.0.0.1:8889/ /media/;
+    }
+    location /media/ { return 404; }
+    location / {
+        limit_except GET { deny all; }
+        proxy_pass http://127.0.0.1:8090;
+        proxy_connect_timeout 3s;
+        proxy_read_timeout 10s;
+    }
+}

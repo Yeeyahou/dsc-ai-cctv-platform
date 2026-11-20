@@ -1,0 +1,34 @@
+services:
+  live:
+    image: dsc-live-gateway:1.3.0
+    build:
+      context: ../..
+      dockerfile: deploy/streaming/Dockerfile
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: '1.0'
+    mem_limit: 384m
+    pids_limit: 100
+    stop_grace_period: 45s
+    tmpfs: [/tmp]
+    environment:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    ports:
+      - '127.0.0.1:8090:8090/tcp'
+      - '127.0.0.1:8889:8889/tcp'
+      - '${DSC_LIVE_VPN_IP:?set field VPN IP}:8189:8189/udp'
+      - '${DSC_LIVE_VPN_IP:?set field VPN IP}:8189:8189/tcp'
+    volumes:
+      - type: bind
+        source: ${DSC_LIVE_CONFIG_DIR:?set private config directory}
+        target: /etc/dsc
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${DSC_LIVE_STATE_DIR:?set live-only state directory}
+        target: /var/lib/dsc/live
+        bind: {create_host_path: false}

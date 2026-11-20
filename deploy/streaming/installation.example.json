@@ -1,0 +1,11 @@
+{
+  "vpn_address": "100.64.0.10",
+  "browser_origin": "https://live.example.internal",
+  "cameras": [
+    {
+      "path": "camera-1",
+      "rtsp_url": "rtsp://192.168.1.64:554/Streaming/Channels/102",
+      "credentials_file": "/etc/dsc/camera-1-credentials.json"
+    }
+  ]
+}
