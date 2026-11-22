@@ -275,5 +275,60 @@
     ],
     "fieldWork": "NAS 장비·현장 PC·전원·회선·부하·백업 복원 및 RPO/RTO 측정",
     "localScope": "로컬 상태·동시성·단계별 복구 프로토콜 검증"
+  },
+  {
+    "id": "AT26",
+    "title": "라이브 카메라 권한",
+    "expected": "scope·video·센터·자산·활성 주체를 모두 확인",
+    "tests": [
+      "test_live_camera_permissions_and_capability_binding",
+      "test_scope_does_not_grant_other_site_or_video_access"
+    ],
+    "fieldWork": "회사 Cognito와 실제 직원·파트너 권한표",
+    "localScope": "비허용 목록·단건·다른 설치·다른 path 거부"
+  },
+  {
+    "id": "AT27",
+    "title": "실시간 영상 재생",
+    "expected": "실제 카메라를 사무실 브라우저에서 재생하고 지연 측정",
+    "tests": [
+      "test_media_config_keeps_credentials_local_and_disables_other_protocols"
+    ],
+    "fieldWork": "실제 CCTV·VPN·TLS·브라우저 재생과 첫 화면·촬영→표시 지연 측정",
+    "localScope": "카메라 설정 생성·비밀 파일 권한만 자동 확인; 실제 영상은 별도 브라우저 시험"
+  },
+  {
+    "id": "AT28",
+    "title": "시청 만료와 권한 회수",
+    "expected": "이미 연결된 영상도 서버에서 종료",
+    "tests": [
+      "test_live_existing_connections_lose_authority",
+      "test_stop_is_owned_idempotent_and_durable",
+      "test_established_peers_are_kicked_and_state_survives_restart",
+      "test_camera_registration_change_revokes_active_sessions"
+    ],
+    "fieldWork": "실제 연결의 만료·회수·종료 지연과 사용자 로그아웃",
+    "localScope": "DB 유효성·회수 및 게이트웨이 제어 호출; 실제 peer는 별도 브라우저 시험"
+  },
+  {
+    "id": "AT29",
+    "title": "실시간 장애 복구",
+    "expected": "인증 확인 실패 시 연결 종료, 재시작 복구·정지 화면 안내",
+    "tests": [
+      "test_established_peers_are_kicked_and_state_survives_restart",
+      "test_other_protocols_and_url_tokens_are_rejected"
+    ],
+    "fieldWork": "카메라·회선·프로세스 중단, 재부팅·영상 정지 안내·재접속",
+    "localScope": "통신 실패 시 종료, peer 레지스트리 복구·우회 프로토콜 차단"
+  },
+  {
+    "id": "AT30",
+    "title": "실시간과 기존 경로 동시 운영",
+    "expected": "라이브 부하 중 분석·녹화·이벤트·NAS·S3·AAS 정상",
+    "tests": [
+      "test_peer_limit_and_rebinding"
+    ],
+    "fieldWork": "최대 동시 시청·분석·녹화·NAS 복제·API/AAS·S3 병행 부하와 무결성",
+    "localScope": "peer 한도·재바인딩 거부만 확인; 시스템 부하는 미검수"
   }
 ]

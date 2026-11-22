@@ -1,6 +1,6 @@
 # 검수 보고서 생성과 인수 안내
 
-AT01~AT25의 자동 시험 증거를 같은 방식으로 수집하고 실제 장비 검수와 구분하기 위한 안내다. `docs/acceptance-matrix.json`은 각 항목의 기대 결과·시험 함수·추가 현장 검수를 연결한다. 생성된 PASS는 자동 시험의 범위이며 전체 인수 완료가 아니다.
+AT01~AT30의 자동 시험 증거를 같은 방식으로 수집하고 실제 장비 검수와 구분하기 위한 안내다. `docs/acceptance-matrix.json`은 각 항목의 기대 결과·시험 함수·추가 현장 검수를 연결한다. 생성된 PASS는 자동 시험의 범위이며 전체 인수 완료가 아니다.
 
 ## 기본 실행
 
@@ -9,7 +9,7 @@ PYTHONPATH=src python -m dsc.devtools.acceptance \
   --output runtime/acceptance/sqlite-run1
 ```
 
-저장소 루트에서 가상 환경을 활성화한 뒤 실행한다. 기본 실행은 셸에 DSC_TEST_POSTGRES_URL이 있어도 제거하고 임시 SQLite로 시험한다. PostgreSQL 전용 8개 시험은 건너뛰므로 관련 AT는 INCOMPLETE, 도구 종료 코드는 1이 된다. pytest 자체가 실패했다는 뜻과 구분해 report.json의 exitCode 및 skipped를 확인한다.
+저장소 루트에서 가상 환경을 활성화한 뒤 실행한다. 기본 실행은 셸에 DSC_TEST_POSTGRES_URL이 있어도 제거하고 임시 SQLite로 시험한다. PostgreSQL 전용 9개 시험은 건너뛰므로 관련 AT는 INCOMPLETE, 도구 종료 코드는 1이 된다. pytest 자체가 실패했다는 뜻과 구분해 report.json의 exitCode 및 skipped를 확인한다.
 
 ## PostgreSQL 전체 실행
 
@@ -34,3 +34,7 @@ output은 새 디렉터리여야 한다. junit.xml은 각 pytest 항목의 결�
 `docs/acceptance-report-template.md`를 실행마다 복사한다. AWS 개발·물리 NAS·현장 PC·외부 파트너 각각의 버전과 등록값, 네트워크·보관 기간·일별 생성량·동시 작업 수를 적고 입력·기대·실제·증거·판정을 채운다. 기존 배포 기록은 과거 수행 사실로 연결하고 새 버전의 실제 검수로 자동 승계하지 않는다. 토큰·비밀·서명 URL·고객 영상은 첨부하지 않는다.
 
 AT17·AT25는 30일 보관과 장애 누적량, 실제 NAS fsync·hard link 영속성, 전원·회선, 백업 복원과 RPO/RTO 측정이 핵심이다. 자동 시험 통과만으로 이 항목을 인수 완료로 바꾸면 안 된다. 문서의 템플릿을 채워 담당자가 결과와 한계를 검토한 뒤 최종 판정한다. main 승격과 운영 배포는 별도 릴리스 승인 절차를 따른다.
+
+## 실시간 검수 추가 범위
+
+AT26~AT30은 라이브 권한·재생·만료·장애·동시 운영이다. pytest 증거의 범위는 설정·업무 코드·게이트웨이 제어 경계이며 실제 WebRTC 재생은 별도 합성 브라우저 시험으로 기록한다. 실제 CCTV·회사 로그인·VPN·TLS·NAS·부하는 물리 인수 결과에 기록한다.

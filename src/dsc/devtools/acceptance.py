@@ -1,4 +1,4 @@
-"""Run the isolated regression suite and build honest AT01–AT25 evidence reports."""
+"""Run the isolated regression suite and build honest AT01–AT30 evidence reports."""
 
 from __future__ import annotations
 
@@ -177,7 +177,7 @@ def run(output: Path, root: Path, *, postgres: bool = False, timeout: int = 600)
 
 def main() -> int:
     configure_logging("acceptance")
-    parser = argparse.ArgumentParser(description="AT01–AT25 isolated acceptance evidence runner")
+    parser = argparse.ArgumentParser(description="AT01–AT30 isolated acceptance evidence runner")
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument(
