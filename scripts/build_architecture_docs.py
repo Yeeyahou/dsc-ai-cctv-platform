@@ -82,6 +82,8 @@ def build(
     architecture: bool = False,
     document_title: str | None = None,
     page_break_before: tuple[str, ...] = (),
+    revision: str = "1.2",
+    keep_code_together: bool = False,
 ) -> None:
     doc = Document(TEMPLATE)
     template_table = deepcopy(doc.tables[0]._tbl.tblPr)
@@ -175,11 +177,19 @@ def build(
             picture(content)
         elif kind == "code":
             paragraph = doc.add_paragraph()
+            paragraph.paragraph_format.keep_together = keep_code_together
             run = paragraph.add_run(content)
             run.font.name = "Courier New"
             run.font.size = Pt(8.5)
         else:
             paragraph = doc.add_paragraph(style=kind)
+            if keep_code_together and content in {
+                "요청 필드",
+                "응답 필드",
+                "200 응답 예제",
+                "201 응답 예제",
+            }:
+                paragraph.paragraph_format.keep_with_next = True
             if content in page_break_before:
                 paragraph.paragraph_format.page_break_before = True
             if kind == "Heading 2" and str(content).startswith("11 1 사무실"):
@@ -193,7 +203,7 @@ def build(
             inline(paragraph, content)
     for paragraph in section.footer.paragraphs:
         for run in paragraph.runs:
-            run.text = run.text.replace("Rev 1.1", "Rev 1.2")
+            run.text = run.text.replace("Rev 1.1", f"Rev {revision}")
             if architecture:
                 run.text = run.text.replace("F2X DSC CCTV INT 001", "DSC 시스템 아키텍처")
             elif document_title:

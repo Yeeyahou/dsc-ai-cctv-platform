@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="720" viewBox="0 0 1000 720" role="img">
+<title>실시간 영상 경로</title><desc></desc>
+<rect width="100%" height="100%" fill="white"/>
+<text x="24" y="39" text-anchor="start" font-family="Apple SD Gothic Neo, sans-serif" font-size="28" font-weight="700" fill="#172431">실시간 영상 경로</text>
+<rect x="340" y="115" width="320" height="85" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="150.2" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="700" fill="#172431">현장 CCTV</text>
+<text x="500.0" y="180.2" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="400" fill="#172431">RTSP H264</text>
+<rect x="340" y="325" width="320" height="85" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="360.2" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="700" fill="#172431">현장 MediaMTX</text>
+<text x="500.0" y="390.2" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="400" fill="#172431">시청 중에만 수신</text>
+<rect x="340" y="535" width="320" height="85" rx="6" fill="white" stroke="#235D92" stroke-width="2.4"/>
+<text x="500.0" y="570.2" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="700" fill="#172431">사무실 브라우저</text>
+<text x="500.0" y="600.2" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="22" font-weight="400" fill="#172431">VPN 안의 시청자</text>
+<polyline points="500,200 500,325" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="500,325 495,313 505,313" fill="#A44F11"/>
+<text x="740" y="270" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="400" fill="#A44F11">L01 RTSP 영상 · 현장 LAN</text>
+<polyline points="500,410 500,535" fill="none" stroke="#A44F11" stroke-width="2.6" />
+<polygon points="500,535 495,523 505,523" fill="#A44F11"/>
+<text x="740" y="480" text-anchor="middle" font-family="Apple SD Gothic Neo, sans-serif" font-size="20" font-weight="400" fill="#A44F11">L02 WebRTC 영상 · VPN</text>
+</svg>
