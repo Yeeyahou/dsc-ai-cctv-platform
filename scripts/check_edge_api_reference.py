@@ -7,6 +7,7 @@ import json
 import re
 from pathlib import Path
 
+from dsc.backend.live import LiveAuthorization, LiveCheck
 from dsc.shared import contracts
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +26,13 @@ OPERATIONS = [
     ("EC12", "POST", "/edge-server/jobs/{request_id}/complete", "LeaseBody"),
     ("EC13", "POST", "/edge-server/jobs/{request_id}/fail", "FailureBody"),
 ]
+LIVE_OPERATIONS = [
+    ("LA01", "GET", "/live/cameras", None),
+    ("LA02", "POST", "/live/cameras/{asset_id}/sessions", contracts.EmptyBody),
+    ("LA03", "POST", "/live/sessions/{session_id}/stop", contracts.EmptyBody),
+    ("LA04", "POST", "/edge-server/live/authorize", LiveAuthorization),
+    ("LA05", "POST", "/edge-server/live/check", LiveCheck),
+]
 
 
 def main() -> None:
@@ -38,6 +46,9 @@ def main() -> None:
         if method in {"get", "post", "put", "patch", "delete", "head", "options"}
     }
     expected = {(method, path) for _, method, path, _ in OPERATIONS}
+    expected.update(
+        (method, path) for _, method, path, _ in LIVE_OPERATIONS if path.startswith("/edge-server")
+    )
     if actual != expected:
         raise ValueError("AWS edge API inventory changed; update the reference")
     sections = re.split(r"(?=^### 5 \d+ EC\d+ )", text, flags=re.MULTILINE)[1:]
@@ -95,7 +106,34 @@ def main() -> None:
             raise ValueError(f"Event code missing from reference: {code}")
     if "POST /archive/transfers/{transfer_id}/verify" not in text:
         raise ValueError("Related archive verify interface is missing")
-    print("AWS APIs: 13; request models: 13; example files: 26; error/event codes: verified")
+    live_text = (ROOT / "docs/live-api-v1.3.md").read_text()
+    for identity, method, path, model in LIVE_OPERATIONS:
+        if f"### {identity} {method} {path}" not in live_text:
+            raise ValueError(f"Live API documentation missing: {identity}")
+        operation = api["paths"][path][method.lower()]
+        if model:
+            schema = operation["requestBody"]["content"]["application/json"]["schema"]["$ref"]
+            if schema.rsplit("/", 1)[-1] != model.__name__:
+                raise ValueError(f"Live request model mismatch: {identity}")
+            sample = json.loads(
+                (ROOT / f"examples/live-api/{identity.lower()}-request.json").read_text()
+            )
+            model.model_validate(sample)
+            if json.dumps(sample, ensure_ascii=False, indent=2) not in live_text:
+                raise ValueError(f"Live request example mismatch: {identity}")
+        response = json.loads(
+            (ROOT / f"examples/live-api/{identity.lower()}-response.json").read_text()
+        )
+        if json.dumps(response, ensure_ascii=False, indent=2) not in live_text:
+            raise ValueError(f"Live response example mismatch: {identity}")
+    if {
+        (method.upper(), path)
+        for path, operations in api["paths"].items()
+        for method in operations
+        if path.startswith("/live") and method in {"get", "post", "put", "patch", "delete"}
+    } != {(method, path) for _, method, path, _ in LIVE_OPERATIONS if path.startswith("/live")}:
+        raise ValueError("Live viewer API inventory changed")
+    print("Legacy edge APIs: 13; live APIs: 5; request models and examples verified")
 
 
 if __name__ == "__main__":
