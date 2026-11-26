@@ -1,5 +1,47 @@
 # 구현 검증 기록
 
+## 2026년 11월 26일 GitHub 전달 전 검증
+
+기능 브랜치 `codex/feature/webrtc-install-readiness`의 v1.3 변경을 다시 검사했다. 기준은 `origin/develop`의 `eeb980c2bc157b9a0ba0ccf552c90c3e134b767c`다. 커밋은 기능별로 나누고 사용자가 요청한 11월 18~26일을 AuthorDate에 지정한다. 실제 커밋 생성일은 CommitterDate에 남기며 각 커밋 본문에도 날짜 지정 사실을 기록한다. AuthorDate는 실제 작업일이나 근무일의 증빙으로 사용하지 않는다.
+
+| 검사 | 결과와 범위 |
+|---|---|
+| SQLite 전체 회귀 | 155 passed, PostgreSQL 전용 9 skipped, 기존 TestClient 경고 1건 |
+| PostgreSQL 17 전체 회귀 | 격리된 임시 DB에서 164 passed, 기존 경고 1건. 제한된 runtime 계정의 라이브 처리·기존 데이터 무결성 회귀 포함 |
+| 정적·포맷 검사 | `ruff check`와 `ruff format --check`의 Python 83개 파일 및 DB 초기화 스크립트 통과 |
+| API 계약 대조 | OpenAPI 재생성과 기존 엣지 13개·라이브 5개 요청 모델·예제 대조 통과 |
+| DB 마이그레이션 | 빈 SQLite와 PostgreSQL 17에서 `alembic upgrade head`·`alembic check` 통과 |
+| CloudFormation | `infra/*.yaml`의 cfn-lint 통과. cfn-guard와 Python 바인딩은 설치되어 있지 않아 보안 규칙 실행은 NOT_RUN. AWS 변경 세트·배포도 NOT_RUN |
+| 공개 파일 검사 | 전달 대상 코드·설정·문서 81개에서 AWS 키·GitHub 토큰·개인 키·JWT 패턴 및 로컬 실제 client secret 일치 검사. 발견된 자격 증명 URL은 로컬 시험용 예제 5곳으로 확인 |
+| Word 원본 대조 | 7개 Word의 Markdown 제목 대응, 세로 용지와 그림의 본문 폭 준수 확인. 전체 시각 검토는 아래 11월 21일 렌더링 기록 참조 |
+
+최초 샌드박스 실행에서 로컬 소켓 바인딩이 차단된 5개 시험은 허용된 loopback 환경에서 전체 재실행해 통과했다. 실행 로그는 Git에서 제외된 `runtime/publish-preparation/20261126`에 보관한다. 실제 비밀·로컬 DB·녹화 영상, 개인 업무보고서, 이전 v0.1 문서, 사용자가 수정한 v1.2 Word는 이번 전달에 포함하지 않는다.
+
+이번 검증은 소스 전달을 위한 검사다. 아래의 합성 브라우저 시험을 새로운 현장 검수 결과로 바꾸지 않으며, AWS의 v1.3 활성화·현장 CCTV 연동·NAS 원격 접속 복구·VPN/TLS와 회선 장애 인수는 별도 작업으로 남는다. 기능 브랜치 푸시는 배포나 `main` 승격을 실행하지 않는다.
+
+## v1.3 실시간 시청과 설치 준비 검증
+
+2026년 11월 21일 기능 브랜치 codex/feature/webrtc-install-readiness에서 검증했다. 기준 develop 커밋은 eeb980c2bc157b9a0ba0ccf552c90c3e134b767c이며 이번 변경은 미커밋 작업 트리다. v1.2 사용자 수정 Word는 보존하고 v1.3 규격·아키텍처·실시간 API·설치 문서를 새 파일로 만들었다.
+
+| 검사 | 결과와 범위 |
+|---|---|
+| 임시 PostgreSQL 17 전체 시험 | 164 passed. 라이브의 제한된 runtime DB 권한, 기존 중복·트랜잭션·lease·복제·정리 회귀 포함 |
+| 임시 SQLite 전체 시험 | 155 passed, PostgreSQL 전용 9 skipped |
+| AT 대응 보고서 | AT01~AT30, PostgreSQL 자동 범위 30 PASS. SQLite 자동 범위 26 PASS·4 INCOMPLETE. 실제 환경은 전부 NOT_RUN |
+| 실제 Chrome와 미디어 엔진 | 합성 RTSP·합성 OAuth, 실제 Nginx·MediaMTX 1.21.4·제품 권한 코드·Chrome에서 10개 시나리오 PASS |
+| 브라우저 시나리오 | PKCE·허용 목록·디코딩 프레임·중복 시작 방지·잘못된 토큰·publish 차단·사용자 종료·서버 만료·권한 회수·모바일 배치 및 미디어 프로세스 장애 감독. 관련 검사는 일부 한 시나리오에 묶음 |
+| 정적 검사와 API | Ruff 정적·포맷 83개 Python 파일 통과. 기존 엣지13개+라이브5개의 OpenAPI·모델·예제 대조 통과 |
+| DB 마이그레이션 | 새 SQLite에서 upgrade head와 alembic check 통과. 추가 모델 차이 없음. PostgreSQL runtime grants로 라이브 생성·확인·종료 통과 |
+| CloudFormation | infra 전체 cfn-lint 통과. 템플릿 48,269바이트. 실제 AWS 변경 세트·배포는 수행하지 않음 |
+| 보안 규칙 도구 | 기존 임시 cfn-guard 실행 파일이 없어 이번 변경에서 cfn-guard는 미실행. cfn-lint 결과와 구분 |
+| 설치 이미지 | Linux/arm64 dsc-live-gateway:1.3.0 빌드. MediaMTX 1.21.4의 이미지 digest를 고정. 최종 PC의 다른 CPU는 별도 빌드·검수 |
+| Word | 7개 문서 50페이지 렌더링. A4·여백·원본 스타일·번호 정의·테마 유지, 본문 폭 이탈 없음 확인. 개정표·코드 블록·추가 인수 표 페이지 배치 조정 |
+
+브라우저의 10개 결과는 runtime/streaming-check/release-final/result.json에, 화면은 같은 폴더의 live-desktop.png·live-mobile.png에 있다. pytest·JUnit·AT 보고서는 runtime/acceptance/live-v13-postgres와 live-v13-sqlite에 보관했다. 보고서는 미커밋 변경 여부와 실제 환경 NOT_RUN을 포함한다. 첫 제한된 샌드박스 실행의 소켓 바인딩 실패는 허용된 loopback 환경에서 재실행해 해결했다. 기존 Starlette TestClient HTTPX 폐기 예정 경고 1건은 남아 있다.
+
+합성 브라우저 시험의 OAuth 제공자는 tests/support에만 있고 운영 실행 경로에는 없다. 실제 회사 Cognito·IdP, VPN·TLS, 물리 CCTV 현재 코덱·지연, NAS 정전·마운트·백업·용량, 최종 PC·분석 프로그램·동시 부하는 미검수다. 11월 11일 개발 배포 기록을 v1.3 배포 완료로 승계하지 않는다. 기존 개발 스택의 합성 전용 감사 조건을 확인한 뒤 실제 영상 시험 환경을 준비한다. 이번 작업에서 커밋·푸시·main 승격·AWS 배포를 수행하지 않았다.
+
+
 ## 장비 도착 전 준비 도구 검증
 
 2026년 11월 16일 분석·녹화 목업, 외부 AAS 소비자, JSON 제어 API 장애 프록시와 AT01~AT25 보고서 도구를 추가했다. 소스 커밋 `e3a6c7b0be1f3f2adde6a7b25f83ed89334cfb38`의 추적 파일 변경이 없는 상태에서 새 보고서 CLI로 전체 시험을 실행했다. 아래 결과는 기존 v1.2의 실제 AWS 배포 기록과 별도의 격리 시험이다.
