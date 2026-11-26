@@ -36,6 +36,8 @@ _fields = frozenset(
         "eventId",
         "requestId",
         "clipId",
+        "liveSessionId",
+        "mediaPeerId",
         "outboxId",
         "operation",
         "errorType",
@@ -63,6 +65,7 @@ _argument_fields = {
     "clipId": "clip_id",
     "assetId": "asset_id",
     "outboxId": "item_id",
+    "liveSessionId": "session_id",
 }
 
 

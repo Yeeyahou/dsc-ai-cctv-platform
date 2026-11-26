@@ -7,16 +7,22 @@ from typing import Literal
 from urllib.parse import urlsplit
 
 from pydantic import Field, field_validator
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from dsc.backend.aas import PROPERTIES
 from dsc.backend.aws import load_secrets
 from dsc.backend.config import Settings
-from dsc.backend.db import Asset, Audit, EdgeServer, Principal, database
+from dsc.backend.db import Asset, Audit, EdgeServer, LiveCamera, LiveSession, Principal, database
 from dsc.shared.contracts import Contract, Identifier, now_ms
 from dsc.shared.observability import configure_logging, logged
 
-SCOPES = {"dsc/aas.read", "dsc/timeseries.read", "dsc/ingest.write", "dsc/edge-server.work"}
+SCOPES = {
+    "dsc/aas.read",
+    "dsc/timeseries.read",
+    "dsc/ingest.write",
+    "dsc/edge-server.work",
+    "dsc/live.read",
+}
 
 
 class AssetRegistration(Contract):
@@ -104,10 +110,35 @@ class EdgeServerRegistration(Contract):
         return value
 
 
+class LiveCameraRegistration(Contract):
+    asset_id: Identifier
+    edge_server_id: Identifier
+    path: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
+    gateway_url: str
+    active: bool = True
+
+    @field_validator("gateway_url")
+    @classmethod
+    def secure_gateway(cls, value: str) -> str:
+        url = urlsplit(value)
+        if (
+            url.scheme != "https"
+            or not url.hostname
+            or url.username
+            or url.password
+            or url.query
+            or url.fragment
+            or url.path not in {"", "/"}
+        ):
+            raise ValueError("gatewayUrl must be an HTTPS origin without credentials")
+        return value.rstrip("/")
+
+
 class Registration(Contract):
     assets: list[AssetRegistration] = []
     principals: list[PrincipalRegistration] = []
     edge_servers: list[EdgeServerRegistration] = []
+    live_cameras: list[LiveCameraRegistration] = []
 
 
 @logged()
@@ -211,6 +242,31 @@ def register(sessions, data: Registration) -> None:
                         "archive target must cover this installation's site and assets"
                     )
             row.archive_server_id = entry.archive_server_id
+        for entry in data.live_cameras:
+            camera = session.get(Asset, entry.asset_id)
+            edge = session.get(EdgeServer, entry.edge_server_id)
+            if (
+                camera is None
+                or edge is None
+                or edge.role != "field"
+                or camera.site_id != edge.site_id
+                or camera.id not in edge.assets
+            ):
+                raise ValueError("live camera requires its registered field installation")
+            prior = session.get(LiveCamera, entry.asset_id)
+            if prior and any(
+                getattr(prior, key) != value for key, value in entry.model_dump().items()
+            ):
+                session.execute(
+                    update(LiveSession)
+                    .where(
+                        LiveSession.asset_id == entry.asset_id,
+                        LiveSession.revoked_at.is_(None),
+                    )
+                    .values(revoked_at=now_ms())
+                )
+            session.merge(LiveCamera(**entry.model_dump()))
+        session.flush()
         queues = list(session.scalars(select(EdgeServer.queue_url)))
         if len(queues) != len(set(queues)):
             raise ValueError("each installation requires a distinct SQS queue")

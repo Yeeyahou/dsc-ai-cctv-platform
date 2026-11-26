@@ -1,6 +1,6 @@
 # DSC AI CCTV 플랫폼
 
-퓨처렉스 DSC 센터의 이벤트를 수집·조회하고 요청한 녹화 클립을 전달하는 Python 백엔드, CCTV·로봇 공통 엣지 서버와 사무실 업로드 워커다. 구현 계약은 [연동 규격서](docs/aws-backend-edge-server-spec-v1.2.md)를 따른다.
+퓨처렉스 DSC 센터의 이벤트를 수집·조회하고 요청한 녹화 클립을 전달하는 Python 백엔드, CCTV·로봇 공통 엣지 서버와 사무실 업로드 워커다. 구현 계약은 [연동 규격서](docs/aws-backend-edge-server-spec-v1.3.md)를 따른다.
 
 ## 구현 구성
 
@@ -18,6 +18,33 @@
 DB는 이벤트·자산 관계와 작업 lease를 같은 트랜잭션으로 관리하기 위해 PostgreSQL을 선택했다. 규격의 미정 구현 선택과 운영 조건은 [구현 결정](docs/implementation-decisions.md)에 정리했다.
 
 전체 구성, 백엔드 내부 기능, 고객의 이벤트·시계열·AAS 조회, NAS 복제, 클립 요청·다운로드, 장애 전환·정리 및 AWS 배포·관측을 10개 관점의 11개 도식으로 정리했다. 노드 문구는 두 줄 이하로 제한하고 상세 내용은 별도 노드·연결과 본문 대응표로 설명한다. [시스템 아키텍처 상세 설계](docs/system-architecture-v1.2.md)와 Word 문서는 기존 A4 세로 양식을 유지한다.
+
+## 실시간 CCTV와 NAS 설치 준비
+
+사무실 브라우저의 회사 계정 로그인과 카메라별 WebRTC 시청을 추가했다. 현장에서는
+MediaMTX 1.21.4와 Python 인증 감시를 별도 컨테이너로 실행하며 VPN 안에서만 연결한다.
+기본 5분 세션, 권한 회수·만료 때 기존 연결 종료, 시청 종료·영상 정지 안내를 제공한다.
+라이브는 기본 비활성이고 기존 이벤트·NAS·S3·AAS 계약은 유지한다.
+
+- [v1.3 전체 규격](docs/aws-backend-edge-server-spec-v1.3.md)과 같은 이름의 Word
+- [실시간 아키텍처와 기존 기능 대응](docs/system-architecture-v1.3.md) 및 Word
+- [스트리밍 설치·로그인·VPN·복구](docs/streaming-installation-guide.md) 및 Word
+- [실시간 API 요청·응답과 예제](docs/live-api-v1.3.md) 및 Word
+- [장비 기록·사전 점검·NAS 설치 당일 인수](docs/installation-readiness.md) 및 Word
+
+설치 파일은 `deploy/streaming/`, 카메라 등록 예제는 `examples/live-registration.json`이다.
+새 DB 마이그레이션과 runtime grants, Cognito live scope·callback·직원 권한, 실제 VPN·TLS·
+카메라 계정 설정 후 활성화한다. 새 버전의 AWS 배포·물리 NAS·CCTV 설치 검수는 별도다.
+
+```sh
+pytest tests/test_live.py tests/test_streaming_gateway.py
+PYTHONPATH=src python -m dsc.devtools.preflight --help
+python scripts/build_install_bundle.py runtime/install-ready/NEW_RUN
+```
+
+합성 RTSP→실제 MediaMTX→Chrome 시험은 `scripts/check_streaming.py`와
+`check_streaming_browser.cjs`를 사용한다. Docker·Playwright·브라우저를 준비하고
+[설치 안내](docs/streaming-installation-guide.md)의 실행 조건을 따른다.
 
 ## 브랜치 운영
 

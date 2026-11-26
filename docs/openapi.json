@@ -2,9 +2,207 @@
   "openapi": "3.1.0",
   "info": {
     "title": "DSC CCTV Backend",
-    "version": "1.2.0"
+    "version": "1.3.0"
   },
   "paths": {
+    "/live/cameras": {
+      "get": {
+        "tags": [
+          "live"
+        ],
+        "summary": "Live Cameras",
+        "operationId": "live_cameras_live_cameras_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/live/cameras/{asset_id}/sessions": {
+      "post": {
+        "tags": [
+          "live"
+        ],
+        "summary": "Live Start",
+        "operationId": "live_start_live_cameras__asset_id__sessions_post",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/live/sessions/{session_id}/stop": {
+      "post": {
+        "tags": [
+          "live"
+        ],
+        "summary": "Live Stop",
+        "operationId": "live_stop_live_sessions__session_id__stop_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/edge-server/live/authorize": {
+      "post": {
+        "tags": [
+          "live"
+        ],
+        "summary": "Live Authorize",
+        "operationId": "live_authorize_edge_server_live_authorize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LiveAuthorization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/edge-server/live/check": {
+      "post": {
+        "tags": [
+          "live"
+        ],
+        "summary": "Live Check",
+        "operationId": "live_check_edge_server_live_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LiveCheck"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ingest": {
       "post": {
         "tags": [
@@ -1737,6 +1935,49 @@
           "leaseToken"
         ],
         "title": "LeaseBody"
+      },
+      "LiveAuthorization": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 64,
+            "format": "password",
+            "title": "Token",
+            "writeOnly": true
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+            "title": "Path"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "token",
+          "path"
+        ],
+        "title": "LiveAuthorization"
+      },
+      "LiveCheck": {
+        "properties": {
+          "sessionIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 64,
+            "title": "Sessionids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "sessionIds"
+        ],
+        "title": "LiveCheck"
       },
       "Media": {
         "properties": {

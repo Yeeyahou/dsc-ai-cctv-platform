@@ -104,3 +104,7 @@ docker compose -f deploy/edge/compose.office.yaml up -d
 ```
 
 설정 디렉터리의 office.env와 비밀 파일, 상태 디렉터리와 실제 NAS 루트를 bind mount한다. 두 프로세스는 SQLite·파일 잠금과 NAS 경로를 공유한다. 수신기 포트는 호스트 루프백으로만 공개하며 호스트의 HTTPS 역방향 프록시를 연결한다. 실제 NAS OS·CPU·파일시스템 지원과 재시작·정전 동작은 장비 도착 후 검수한다.
+
+## 실시간 시청 추가 설치
+
+NAS·archive 설치와 실시간 게이트웨이는 별도 실행 단위다. v1.3 라이브는 [실시간 설치 안내](streaming-installation-guide.md)를 따르고, NAS가 없어도 현장 RTSP·VPN 경로를 준비할 수 있다. 기존 field·archive의 outbox·manifest·관리 사본을 스트리밍 상태와 공유하지 않는다. 설치 당일 전체 인수 순서는 [설치 준비 문서](installation-readiness.md)에 있다. 새 AWS 마이그레이션 후 deploy/database/grants.sql을 재적용하며, 기존 데이터·큐·스토리지 보존을 확인한다.

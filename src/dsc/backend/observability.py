@@ -19,6 +19,7 @@ class LoggedRoute(APIRoute):
                 endpoint,
                 fields={
                     "requestId": "request_id",
+                    "liveSessionId": "session_id",
                     "principal": "actor.principal.id",
                     "edgeServerId": "actor.edge_server.id",
                     "siteId": "actor.edge_server.site_id",
@@ -29,13 +30,14 @@ class LoggedRoute(APIRoute):
 
 
 class RequestLogging:
-    def __init__(self, app):
+    def __init__(self, app, inherit_trace: bool = True):
         self.app = app
+        self.inherit_trace = inherit_trace
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
-        trace_id = current_trace_id() or str(uuid4())
+        trace_id = (current_trace_id() if self.inherit_trace else None) or str(uuid4())
         state = scope.setdefault("state", {})
         state["trace_id"] = trace_id
         status = 500
@@ -52,7 +54,7 @@ class RequestLogging:
                 headers["X-Content-Type-Options"] = "nosniff"
             await send(message)
 
-        with log_context(traceId=trace_id):
+        with log_context(inherit=self.inherit_trace, traceId=trace_id):
             try:
                 await self.app(scope, receive, traced_send)
             except BaseException as exc:

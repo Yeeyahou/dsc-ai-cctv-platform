@@ -156,6 +156,27 @@ class Attempt(Base):
     __table_args__ = (UniqueConstraint("request_id", "number"),)
 
 
+class LiveCamera(Base):
+    __tablename__ = "live_cameras"
+    asset_id: Mapped[str] = mapped_column(ForeignKey("assets.id"), primary_key=True)
+    edge_server_id: Mapped[str] = mapped_column(ForeignKey("edge_servers.id"))
+    path: Mapped[str] = mapped_column(String(64))
+    gateway_url: Mapped[str] = mapped_column(Text)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    __table_args__ = (UniqueConstraint("edge_server_id", "path"),)
+
+
+class LiveSession(Base):
+    __tablename__ = "live_sessions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    asset_id: Mapped[str] = mapped_column(ForeignKey("live_cameras.asset_id"))
+    principal_id: Mapped[str] = mapped_column(ForeignKey("principals.id"))
+    token_hash: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[int] = mapped_column(BigInteger)
+    expires_at: Mapped[int] = mapped_column(BigInteger, index=True)
+    revoked_at: Mapped[int | None] = mapped_column(BigInteger)
+
+
 class Audit(Base):
     __tablename__ = "audit_log"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

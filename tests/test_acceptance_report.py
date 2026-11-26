@@ -43,10 +43,10 @@ def test_report_never_promotes_skipped_missing_or_failed_checks(tmp_path):
     assert all(row["localStatus"] == "INCOMPLETE" for row in summarize(junit, matrix, 0))
 
 
-def test_all_25_acceptance_requirements_point_to_existing_tests():
+def test_all_30_acceptance_requirements_point_to_existing_tests():
     root = Path(__file__).resolve().parents[1]
     matrix = json.loads((root / "docs/acceptance-matrix.json").read_text())
-    assert [r["id"] for r in matrix] == [f"AT{i:02}" for i in range(1, 26)]
+    assert [r["id"] for r in matrix] == [f"AT{i:02}" for i in range(1, 31)]
     names = {
         node.name
         for path in (root / "tests").glob("test_*.py")

@@ -15,6 +15,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from dsc.backend.aas import AasAdapter, decoded, reference
 from dsc.backend.auth import Access, CognitoVerifier, authenticate
 from dsc.backend.errors import Problem
+from dsc.backend.live import Live, LiveAuthorization, LiveCheck
 from dsc.backend.observability import LoggedRoute, RequestLogging
 from dsc.backend.service import Filters, Platform
 from dsc.shared.contracts import (
@@ -95,7 +96,7 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
     local_docs = platform.settings.environment == "local"
     app = FastAPI(
         title="DSC CCTV Backend",
-        version="1.2.0",
+        version="1.3.0",
         docs_url="/docs" if local_docs else None,
         redoc_url=None,
         openapi_url="/openapi.json" if local_docs else None,
@@ -112,6 +113,7 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
     )
     app.add_middleware(RequestLogging)
     aas = AasAdapter(platform)
+    live = Live(platform)
 
     @app.exception_handler(Problem)
     async def problem(request: Request, exc: Problem):
@@ -188,6 +190,26 @@ def create_app(platform: Platform | None = None, verifier=None) -> FastAPI:
             )
         except ValueError as exc:
             raise Problem(422, "TIMEZONE_REQUIRED", "기간에는 시간대가 필요합니다") from exc
+
+    @app.get("/live/cameras", tags=["live"])
+    def live_cameras(actor: Access = Depends(access)):
+        return live.cameras(actor)
+
+    @app.post("/live/cameras/{asset_id}/sessions", tags=["live"], status_code=201)
+    def live_start(asset_id: str, body: EmptyBody, actor: Access = Depends(access)):
+        return live.create(actor, asset_id)
+
+    @app.post("/live/sessions/{session_id}/stop", tags=["live"])
+    def live_stop(session_id: UUID, body: EmptyBody, actor: Access = Depends(access)):
+        return live.stop(actor, str(session_id))
+
+    @app.post("/edge-server/live/authorize", tags=["live"])
+    def live_authorize(body: LiveAuthorization, actor: Access = Depends(access)):
+        return live.authorize(actor, body)
+
+    @app.post("/edge-server/live/check", tags=["live"])
+    def live_check(body: LiveCheck, actor: Access = Depends(access)):
+        return live.check(actor, body)
 
     @app.post(
         "/ingest",
