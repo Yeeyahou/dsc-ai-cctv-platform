@@ -124,25 +124,25 @@ class AasAdapter:
         if value_only:
             return values
         config = asset.aas["submodels"][kind]
-        return validate_model(
-            {
-                "modelType": "Submodel",
-                "id": config["id"],
-                "idShort": kind,
-                "kind": "Instance",
-                "semanticId": reference("", config["semanticId"], external=True),
-                "submodelElements": [
-                    {
-                        "modelType": "Property",
-                        "idShort": key,
-                        "valueType": f"xs:{PROPERTIES[kind][key]}",
-                        "value": str(value),
-                    }
-                    for key, value in values.items()
-                ],
-            },
-            "Submodel",
-        )
+        model = {
+            "modelType": "Submodel",
+            "id": config["id"],
+            "idShort": kind,
+            "kind": "Instance",
+            "semanticId": reference("", config["semanticId"], external=True),
+        }
+        if values:
+            # The AAS schema requires at least one element when the field is present.
+            model["submodelElements"] = [
+                {
+                    "modelType": "Property",
+                    "idShort": key,
+                    "valueType": f"xs:{PROPERTIES[kind][key]}",
+                    "value": str(value),
+                }
+                for key, value in values.items()
+            ]
+        return validate_model(model, "Submodel")
 
     def descriptor(self, access: Access, asset: Asset, kind: str | None = None) -> dict:
         if kind:
