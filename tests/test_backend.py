@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy import func, select
 
 from dsc.backend.aas import encoded
-from dsc.backend.db import Event, EventAsset, Principal
+from dsc.backend.db import Asset, Event, EventAsset, Principal
 from tests.conftest import headers
 
 
@@ -187,6 +187,24 @@ def test_aas_normative_schema_and_time_series_acl(system, event_body):
     hidden = encoded("urn:dsc:aas:other-camera")
     assert system.client.get(f"/shells/{hidden}", headers=headers()).status_code == 404
     assert system.client.get("/description", headers=headers()).json() == {"profiles": []}
+
+
+def test_aas_submodel_with_no_registered_values(system):
+    with system.sessions.begin() as session:
+        asset = session.get(Asset, "camera-1")
+        metadata = deepcopy(asset.aas)
+        metadata["values"]["Nameplate"] = {}
+        asset.aas = metadata
+
+    submodel_id = encoded("urn:dsc:submodel:camera-1:Nameplate")
+    path = f"/submodels/{submodel_id}"
+    submodel = system.client.get(path, headers=headers("partner"))
+    assert submodel.status_code == 200, submodel.text
+    assert submodel.json()["idShort"] == "Nameplate"
+    assert "submodelElements" not in submodel.json()
+    values = system.client.get(f"{path}/$value", headers=headers("partner"))
+    assert values.status_code == 200
+    assert values.json() == {}
 
 
 def test_heartbeat_offline_source_time_is_not_receive_time(system):
